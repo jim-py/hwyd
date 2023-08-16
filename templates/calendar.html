@@ -1,0 +1,6 @@
+{% if settings.showCalendar %}
+    <form id="chooseDate" action="{% url 'by_date' date %}" method="post">
+        {% csrf_token %}
+        <input type="month" id="chooseDate" name="chooseDate" min="2020-01" max="2030-12" value="{{ date }}">
+    </form>
+{% endif %}  <!-- Календарь для выбора месяца -->

@@ -1,0 +1,412 @@
+{% load tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>HWYD</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tableCells.css' %}">
+    <script src="{% static 'js/jquery.js' %}"></script>
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
+    <style>
+        {% for activity in range_activities %}
+                progress[id*="{{ forloop.counter0 }}-"]::-webkit-progress-value {
+                    background: {{ activity.backgroundColor }};
+                    border-radius: 2px;
+                    box-shadow: 0 1px 0 rgba(255, 255, 255, .3) inset;
+                }
+                div.on[id*="{{ forloop.counter0 }}-"], p[id*="p{{ forloop.counter0 }}"] {
+                    background-color: {{ activity.backgroundColor }};
+                    color: {{ activity.color }};
+                }
+        {% endfor %}
+        progress.notFull::-webkit-progress-value {
+            border-style: solid;
+            border-color: #555;
+            border-width: 0 1px 0 0;
+        }
+
+        p.headParagraph {
+            background-color: {{ settings.tableHeadColor }};
+            color: {{ settings.tableHeadTextColor }};
+        }
+
+        p.headParagraph.weekend {
+            background-color: {{ settings.tableHeadColorWeekend }};
+            color: {{ settings.tableHeadTextColor }};
+        }
+
+        body {
+            background-color: {{ settings.backgroundColor }};
+        }
+
+        progress.divClick {
+            width: 25px;
+            height: 25px;
+        }
+
+        .vertical.off {
+            box-shadow: 0 0;
+            border: 1px solid #ccc;
+        }
+
+        .vertical {
+            transform: rotate(-90deg);
+            border: 1px solid #555;
+            box-shadow: -1px 0 1px rgba(100, 100, 100, .3);
+            border-radius: 3px;
+        }
+
+        .progress-bar {
+            border-radius: 2px;
+            box-shadow: -1px 0 0 rgba(255, 255, 255, .3) inset;
+            transition: all 0.25s ease-out;
+        }
+
+        .progress-bar.notFull {
+            border-style: solid;
+            border-color: #555;
+            border-width: 0 1px 0 0;
+            box-shadow: 0 0;
+        }
+    </style>
+</head>
+<body>
+
+<style>
+    .button-6 {
+        background-color: #FFFFFF;
+        border: 1px solid rgba(0, 0, 0, 0.5);
+        border-radius: .25rem;
+        box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+        cursor: pointer;
+        transition: all 250ms;
+        font-weight: 600;
+        width: 100px;
+        height: 25px;
+    }
+
+    .button-6:hover,
+    .button-6:focus {
+        border-color: rgba(0, 0, 0, 1);
+        box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
+        color: rgba(0, 0, 0, 0.65);
+    }
+
+    .button-6:hover {
+        transform: translateY(-1px);
+    }
+
+    .button-6:active {
+        background-color: #F0F0F1;
+        border-color: rgba(0, 0, 0, 0.15);
+        box-shadow: rgba(0, 0, 0, 0.06) 0 2px 4px;
+        color: rgba(0, 0, 0, 0.65);
+        transform: translateY(0);
+    }
+</style>
+
+{% include 'dialogs.html' %}
+
+{% include 'calendar.html' %}
+
+{% include 'table.html' %}
+
+{% include 'createActivity.html' %}
+
+{% include 'activitiesLastMonth.html' %}
+
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/site-script.js' %}"></script>
+
+
+<script>
+    document.querySelector('[id=closeSettingsActivity]').addEventListener('click', function (event) {
+        let paragraph = event.target.parentNode.parentNode.querySelector('input.colorBackgroundForm').data;
+        paragraph.style.backgroundColor = '';
+        paragraph.style.color = '';
+        for (let elem of paragraph.parentNode.parentNode.children)
+            try {
+                if ($(elem.children[0]).hasClass('on'))
+                    elem.children[0].style.backgroundColor = '';
+                if ($(elem.children[0]).hasClass('full') || $(elem.children[0]).hasClass('notFull'))
+                    elem.children[0].children[0].style.backgroundColor = $(elem.children[0].children[0]).data('bgcolor');
+            } catch {
+            }
+    })
+</script>
+<script>
+document.querySelector('input#colorBackgroundFormText').addEventListener('input', function (e) {
+    let evt = document.createEvent('HTMLEvents');
+    evt.initEvent("input", true, true);
+    if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+        document.querySelector('input#colorBackgroundForm').value = e.target.value
+        document.querySelector('input#colorBackgroundForm').dispatchEvent(evt);
+    }
+})
+document.querySelector('input#colorTextFormText').addEventListener('input', function (e) {
+    let evt = document.createEvent('HTMLEvents');
+    evt.initEvent("input", true, true);
+    if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+        document.querySelector('input#colorTextForm').value = e.target.value
+        document.querySelector('input#colorTextForm').dispatchEvent(evt);
+    }
+})
+
+
+    {% for activity in range_activities %}
+        {% if activity.isGroup %}
+            document.querySelector('td.isGroup{{ activity.pk }}').children[1].oncontextmenu = rightClick{{ activity.pk }};
+        {% else %}
+            document.querySelector('td.group{% if activity|connection == None %}None{% else %}{{ activity|connection }}{% endif %}-{{ activity.pk }}').children[1].oncontextmenu = rightClick{{ activity.pk }};
+        {% endif %}
+        function rightClick{{ activity.pk }}(e) {
+            e.preventDefault();
+            let dialog = document.getElementById('dialog');
+            let elements = dialog.querySelectorAll('[class*=elementActivitySettings]')
+            document.querySelector('input#colorBackgroundFormText').value = '{{ activity.backgroundColor }}';
+            document.querySelector('input#colorTextFormText').value = '{{ activity.color }}';
+            elements[0].innerText = 'Настройка {% if activity.isGroup %} группы {% else %} активности {% endif %}"{{ activity.name }}"';
+            elements[1].value = '{{ activity.pk }}';
+            elements[2].value = '{{ activity.backgroundColor }}';
+            elements[2].data = e.target;
+            elements[3].value = '{{ activity.color }}';
+            elements[3].data = e.target;
+            elements[4].value = '{{ activity.name }}';
+            elements[5].value = '{{ activity.beginDay|add:1 }}';
+            elements[6].value = '{{ activity.endDay|add:1 }}';
+            {% if not activity.isGroup %}
+                document.querySelector('div.grid-container').style.display = 'none'
+                document.querySelector('div.beginDay').style.display = 'block'
+                document.querySelector('div.endDay').style.display = 'block'
+                document.querySelector('hr.grid-container').style.display = 'none'
+            {% else %}
+                let lst = {{ activity|connection_group }}
+                for (let elem of document.querySelectorAll('[id*=activityToGroup]')) {
+                    elem.checked = false;
+                    for (let num of lst) {
+                        if (Number(elem.name) === num) {
+                            elem.checked = true;
+                        }
+                    }
+                }
+                document.querySelector('div.grid-container').style.display = 'grid'
+                document.querySelector('div.beginDay').style.display = 'none'
+                document.querySelector('div.endDay').style.display = 'none'
+                document.querySelector('hr.grid-container').style.display = ''
+            {% endif %}
+            dialog.showModal();
+        }
+    {% endfor %}  // Открыть модальное окно настроек по правому клику с заполнением данных
+
+    document.querySelector('p.headParagraph.changeParagraph.main').oncontextmenu = function (e) {
+        e.preventDefault();
+        let dialog = document.getElementById('dialogHead');
+        dialog.showModal();
+    }
+    {% if settings.enableOpenCloseGroups %}
+    {% for id in groups_ids %}
+        for (let stroke of document.querySelectorAll('td.isGroup{{ id }}')) {
+            stroke.addEventListener("click", function () {
+                if ($(this).hasClass('expand')) {
+                    for (let elem of document.querySelectorAll('[class*="group{{ id }}"]')) {
+                        elem.style.display = ''
+                    }
+                } else {
+                    for (let elem of document.querySelectorAll('[class*="group{{ id }}"]')) {
+                        elem.style.display = 'none'
+                    }
+                }
+                $(this).toggleClass('expand');
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url 'by_date' date %}',
+                    data:
+                        {
+                            openedGroup: $(this)[0].classList[1],
+                            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                        }
+                })
+            });
+        }
+    {% endfor %}  // Раскрыть по левому клику группу активностей
+    {% endif %}
+</script>
+
+<script>
+    let fixHelper = function (e, ui) {
+        ui.children().each(function () {
+            $(this).width($(this).width());
+        });
+        return ui;
+    };  // Корректирует отображение при перетаскивании
+
+    let stop = function (e, ui) {
+        let elem = ui.item[0]
+        let elem_class = elem.className
+        let prev_elem = elem.previousElementSibling
+        let next_elem = elem.nextElementSibling
+        let groups_ids = {{ groups_ids }};
+        let numbers_filter = /[0-9-]+/g
+
+        if (elem_class.indexOf('None') >= 0) {
+            {#console.log('activity')#}
+            if (!((prev_elem === null) || (next_elem === null))) {
+                for (let group_id of groups_ids) {
+                    let prev_elem_group = prev_elem.className.indexOf('isGroup' + group_id) >= 0
+                    let next_elem_activ = next_elem.className.indexOf('group' + group_id) >= 0
+                    if (((prev_elem_group) && (next_elem_activ)) || ((next_elem_activ) && (next_elem_activ))) {
+                        $(elem).insertBefore('tr.isGroup' + group_id)
+                    }
+                }
+            }
+        } else if (elem_class.indexOf('isGroup') >= 0) {
+            {#console.log('group')#}
+            if (!((prev_elem === null) || (next_elem === null))) {
+                for (let group_id of groups_ids) {
+                    let prev_elem_group = prev_elem.className.indexOf('isGroup' + group_id) >= 0
+                    let next_elem_activ = next_elem.className.indexOf('group' + group_id) >= 0
+                    if (((prev_elem_group) && (next_elem_activ)) || ((next_elem_activ) && (next_elem_activ))) {
+                        $(elem).insertBefore('tr.isGroup' + group_id)
+                    }
+                }
+            }
+            for (let i in [0, 1])
+                for (let activity_group of document.querySelectorAll(`tr[class*=group${elem_class.match(numbers_filter)[0]}]`))
+                    $(activity_group).insertAfter(elem)
+        } else if (elem_class.indexOf('group') >= 0) {
+            {#console.log('activityGroup')#}
+            if (prev_elem === null)
+                $(elem).insertAfter('tr.isGroup' + elem_class.match(numbers_filter)[0].split('-')[0])
+            else
+                if (prev_elem.className.split('-')[0] !== elem_class.split('-')[0])
+                    $(elem).insertAfter('tr.isGroup' + elem_class.match(numbers_filter)[0].split('-')[0])
+        }
+        console.log(elem_class.match(numbers_filter)[0])
+        console.log(prev_elem, next_elem)
+        let activities = []
+        for (let activity of document.getElementsByClassName('activityNames')) {
+            activities.push(activity.name)
+        }
+        setTimeout(timeout, 0);
+
+        function timeout() {
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'by_date' date %}',
+                data:
+                    {
+                        activities: activities,
+                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                    }
+            })
+        }
+    };  // Отправляет порядок активностей после окончания перетаскивания
+
+    $('.sortable-table tbody').sortable({
+        handle: '.paragraph',
+        helper: fixHelper,
+        stop: stop,
+        revert: 200
+    });  // Настройка перетаскивания
+</script>
+
+<script>
+    {% if settings.showCreateActivity %}
+        document.querySelector("#createActivityInput").addEventListener("change", function () {
+            document.getElementById("createActivity").submit();
+        });
+    {% endif %}  // Отправка формы создания активности
+
+    {% if settings.showCreateActivityGroup %}
+        document.querySelector("#createActivityGroupInput").addEventListener("change", function () {
+            document.getElementById("createActivityGroup").submit();
+        });
+    {% endif %}  // Отправка формы создания группы
+
+    {% if settings.showCalendar %}
+        document.getElementById('chooseDate').addEventListener("change", function () {
+            document.getElementById("chooseDate").submit();
+        });
+    {% endif %}  //Отправка формы выбора месяца
+</script>
+
+<script>
+    try {
+        //Динамическое изменение цвета заголовка таблицы
+        let tmpElem = document.getElementById('tableHeadColor*changeParagraph')
+        tmpElem.addEventListener("input", function (event) {
+            for (let elem of document.querySelectorAll('p.' + event.target.id.split('*')[1])) {
+                elem.style.backgroundColor = event.target.value;
+            }
+        });
+
+        //Динамическое изменение цвета заголовка таблицы выходных
+        tmpElem = document.getElementById('tableHeadColorWeekend')
+        tmpElem.addEventListener("input", function (event) {
+            for (let elem of document.querySelectorAll('p.weekend')) {
+                elem.style.backgroundColor = event.target.value;
+            }
+        });
+
+        //Динамическое изменение цвета текста заголовка таблицы
+        tmpElem = document.getElementById('tableHeadTextColor*changeParagraph')
+        tmpElem.addEventListener("input", function (event) {
+            for (let elem of document.querySelectorAll('p.' + event.target.id.split('*')[1])) {
+                elem.style.color = event.target.value;
+            }
+            for (let elem of document.querySelectorAll('p.weekend')) {
+                elem.style.color = event.target.value;
+            }
+        });
+
+        //Динамическое изменение заднего фона сайта
+        tmpElem = document.getElementById('backgroundColor')
+        tmpElem.addEventListener("input", function (event) {
+            document.body.style.backgroundColor = event.target.value;
+        });
+    } catch {
+
+    }
+
+    for (let elem of document.querySelectorAll('input.colorBackgroundForm')) {
+        elem.addEventListener("input", function (event) {
+            event.target.data.style.backgroundColor = event.target.value;
+            document.querySelector('input#colorBackgroundFormText').value = event.target.value;
+        });  //Изменение цвета активности
+        elem.addEventListener("input", function (event) {
+            for (let elem of event.target.data.parentNode.parentNode.children)
+                try {
+                    if ($(elem.children[0]).hasClass('on'))
+                        elem.children[0].style.backgroundColor = event.target.value;
+                    if ($(elem.children[0]).hasClass('full') || $(elem.children[0]).hasClass('notFull'))
+                        elem.children[0].children[0].style.backgroundColor = event.target.value;
+                } catch {
+                }
+            });  //Изменение цвета клеток активности
+    }  //Динамическое обновление цвета фона активности
+
+    for (let elem of document.querySelectorAll('input.colorTextForm')) {
+        elem.addEventListener("input", function updateColorText(event) {
+            event.target.data.style.color = event.target.value;
+        });  //Изменение цвета текста активности
+    }  //Динамическое обновление цвета текста активности и отправка после конечного изменения
+</script>
+
+<script>
+    function btnSaveSettings() {
+        let data = []
+        data.push(document.querySelector("#showCalendar").checked)
+        data.push(document.querySelector("#showCreateActivity").checked)
+        data.push(document.querySelector("#showDeleteActivity").checked)
+        data.push(document.querySelector("#showDeleteAllActivities").checked)
+        data.push(document.querySelector("#showCreateActivityGroup").checked)
+        document.querySelector("#data").value = data;
+        document.getElementById('settingsGlobal').submit();
+    }
+</script>
+
+</body>
+</html>
