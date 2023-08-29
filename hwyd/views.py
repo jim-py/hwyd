@@ -98,7 +98,7 @@ def by_date(request, picked_date):
             activity, day = activities[activity_day[0]], activity_day[1]
             cells_comments = [act.split('*') for act in activity.cellsComments.split('|')]
             cells_comments[day][0] = request.POST['symbols'][:3]
-            cells_comments[day][1] = request.POST['comment']
+            cells_comments[day][1] = request.POST['comment'][:255]
             activity.cellsComments = '|'.join('*'.join(comm) for comm in cells_comments)
             activity.save()
             return redirect(redirect_url, picked_date)
