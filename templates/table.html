@@ -59,7 +59,7 @@
                         {% else %}
                             {% if activity.beginDay <= j and j <= activity.endDay and activity|get_one_day:j %}
                                 <div id="{{ forloop.parentloop.counter0 }}-{{ j }}" {% get_comments as res %} data-title="{{ res }}"
-                                     class="divClick {% if today|add:-1 == j %}today{% endif %} {% if res %}hasText{% endif %}" style="display:flex;align-items: center; justify-content: center; font-size: 9px">{% get_symbols %}</div>
+                                     class="divClick {% if today|add:-1 == j %}today{% endif %} {% if res %}hasText{% endif %} {% if j > 15 %}bigger15{% endif %}" style="display:flex;align-items: center; justify-content: center; font-size: 9px">{% get_symbols %}</div>
                             {% endif %}
                         {% endif %}
                     </td>
