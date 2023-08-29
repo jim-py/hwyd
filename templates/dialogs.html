@@ -7,39 +7,72 @@
     <form id="settingsGlobal" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
         <div>
-            <label for="showCalendar">Показать календарь</label>
+        <label for="selectFont">Шрифт</label>
+        <select id="selectFont" name="selectFont" style="margin-left: 10px;">
+            <option {% if settings.fontFamily == 'Consolas' %}selected{% endif %} style="font-family: 'Consolas', serif" name="Consolas">Consolas</option>
+            <option {% if settings.fontFamily == 'Montserrat' %}selected{% endif %} style="font-family: 'Montserrat', serif" name="Montserrat">Montserrat</option>
+            <option {% if settings.fontFamily == 'Montserrat Alternates' %}selected{% endif %} style="font-family: 'Montserrat Alternates', serif" name="Montserrat Alternates">Montserrat Alternates</option>
+            <option {% if settings.fontFamily == 'Georgia' %}selected{% endif %} style="font-family: 'Georgia', serif" name="Georgia">Georgia</option>
+            <option {% if settings.fontFamily == 'Arial' %}selected{% endif %} style="font-family: 'Arial', serif" name="Arial">Arial</option>
+            <option {% if settings.fontFamily == 'Courier New' %}selected{% endif %} style="font-family: 'Courier New', serif" name="Courier New">Courier New</option>
+            <option {% if settings.fontFamily == 'Lucida Console' %}selected{% endif %} style="font-family: 'Lucida Console', serif" name="Lucida Console">Lucida Console</option>
+            <option {% if settings.fontFamily == 'Trebuchet MS' %}selected{% endif %} style="font-family: 'Trebuchet MS', serif" name="Trebuchet MS">Trebuchet MS</option>
+            <option {% if settings.fontFamily == 'Istok Web' %}selected{% endif %} style="font-family: 'Istok Web', serif" name="Istok Web">Istok Web</option>
+            <option {% if settings.fontFamily == 'Roboto Mono' %}selected{% endif %} style="font-family: 'Roboto Mono', serif" name="Roboto Mono">Roboto Mono</option>
+            <option {% if settings.fontFamily == 'Inter' %}selected{% endif %} style="font-family: 'Inter', serif" name="Inter">Inter</option>
+            <option {% if settings.fontFamily == 'Ubuntu' %}selected{% endif %} style="font-family: 'Ubuntu', serif" name="Ubuntu">Ubuntu</option>
+            <option {% if settings.fontFamily == 'Comic Sans MS' %}selected{% endif %} style="font-family: 'Comic Sans MS', serif" name="Comic Sans MS">Comic Sans MS</option>
+        </select>
+        </div>
+        <div>
+            <label for="showCalendar">Календарь</label>
             <input name="showCalendar" id="showCalendar" type="checkbox"
                     {% if settings.showCalendar %} checked {% endif %}>
         </div>
         <div>
-            <label for="showCreateActivity">Показать создание активностей</label>
+            <label for="showCreateActivity">Создание активностей</label>
             <input name="showCreateActivity" id="showCreateActivity" type="checkbox"
                     {% if settings.showCreateActivity %} checked {% endif %}>
         </div>
         <div>
-            <label for="showCreateActivityGroup">Показать создание групп активностей</label>
+            <label for="showCreateActivityGroup">Создание групп</label>
             <input name="showCreateActivityGroup" id="showCreateActivityGroup" type="checkbox"
                     {% if settings.showCreateActivityGroup %} checked {% endif %}>
         </div>
         <div>
-            <label for="showDeleteActivity">Показать удаление активностей</label>
+            <label for="showDeleteActivity">Удаление активностей</label>
             <input name="showDeleteActivity" id="showDeleteActivity" type="checkbox"
                     {% if settings.showDeleteActivity %} checked {% endif %}>
         </div>
         <div>
-            <label for="showDeleteAllActivities">Показать кнопку удаления всех активностей</label>
+            <label for="showDeleteAllActivities">Удаление всех активностей</label>
             <input name="showDeleteAllActivities" id="showDeleteAllActivities" type="checkbox"
                     {% if settings.showDeleteAllActivities %} checked {% endif %}>
         </div>
         <div>
-            <label for="enableSortTable">Включить перетаскивание строк</label>
+            <label for="enableSortTable">Перетаскивание строк</label>
             <input name="radioSettings" id="enableSortTable" type="radio" value="sort"
                     {% if settings.enableSortTable %} checked {% endif %}>
         </div>
         <div>
-            <label for="enableOpenCloseGroups">Включить открытие/закрытие групп</label>
+            <label for="enableOpenCloseGroups">Открытие/закрытие групп</label>
             <input name="radioSettings" id="enableOpenCloseGroups" type="radio" value="group"
                     {% if settings.enableOpenCloseGroups %} checked {% endif %}>
+        </div>
+            <div>
+            <label for="onSounds">Звуки</label>
+            <input name="onSounds" id="onSounds" type="checkbox"
+                    {% if settings.onSounds %} checked {% endif %}>
+        </div>
+        <div>
+            <label for="showRowColumnLight">Выделение строки и столбца</label>
+            <input name="showRowColumnLight" id="showRowColumnLight" type="checkbox"
+                    {% if settings.showRowColumnLight %} checked {% endif %}>
+        </div>
+        <div>
+            <label for="showActivityDayLight">Выделение активности и дня</label>
+            <input name="showActivityDayLight" id="showActivityDayLight" type="checkbox"
+                    {% if settings.showActivityDayLight %} checked {% endif %}>
         </div>
         <p></p>
         <hr>
@@ -47,14 +80,30 @@
     </form>
     <button class="button-6" role="button" onclick="btnSaveSettings();"
             style="background-color:#dfffdf;">Сохранить</button>
-    <form id="closeDialog" method="dialog">
+    <form id="closeDialog" method="dialog" style="margin-right: 35px;">
         <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
     </form>
+    {% if not request.user.is_superuser %}
+        {{ request.user.username }}
+    {% else %}
+        staff
+    {% endif %}
+    <button onclick="location.href='{% url 'user_logout' %}';" class="button-6" style="width: auto;">Выйти</button>
 </dialog>  <!-- Диалоговое окно настроек сайта -->
 
 <button id="buttonSettings" type="button"
         onclick="window['some-modal-id'].showModal();" aria-controls="some-modal-id">
     <img width="16" height="16" src="{% static 'settings.png' %}"></button>  <!-- Кнопка настроек -->
+
+{% if '/m' in request.path %}
+<button id="buttonSettings" type="button" style="margin-right: 10px;"
+        onclick="location.href = '{% url 'by_date' date %}';">
+    <img width="16" height="16" src="{% static 'pc.png' %}"></button>  <!-- Компьютерная версия -->
+{% else %}
+<button id="buttonSettings" type="button" style="margin-right: 10px;"
+        onclick="location.href = '{% url 'mobile_by_date' date %}';">
+    <img width="16" height="16" src="{% static 'phone.png' %}"></button>  <!-- Мобильная версия -->
+{% endif %}
 
 <dialog id="dialog">
     <h3 class="dialog__title elementActivitySettings"></h3>
@@ -95,9 +144,18 @@
                 {% endif %}
             {% endfor %}
         </div>
+        <input type="hidden" id="inputCells" name="onOffCells">
+        <div class="onOffDaysDiv">
+            {% for day in onOffDays %}
+                <p id="day{{ forloop.counter }}">{{ forloop.counter }}</p>
+                {% if day == 13 %}
+                    <p></p>
+                {% endif %}
+            {% endfor %}
+        </div>
     </form>
     <hr>
-    <button class="button-6" onclick="document.querySelector('form[id=formActivitySettings]').submit();"
+    <button class="button-6" onclick="submitActivitySettings();"
             role="button" style="background-color:#dfffdf;">Сохранить</button>
     <form method="dialog" id="closeDialog">
         <button id="closeSettingsActivity" class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
@@ -129,6 +187,11 @@
             <input name="backgroundColor" id="backgroundColor" type="color"
                    value="{{ settings.backgroundColor }}">
         </div>
+        <div>
+            <label for="rowColumnLight">Цвет выделения строки и столбца</label>
+            <input name="rowColumnLight" id="rowColumnLight" type="color"
+                   value="{{ settings.rowColumnLight }}">
+        </div>
 
     </form>
     <hr>
@@ -150,7 +213,7 @@
         </div>
         <div>
             <label for="commentOnCell">Комментарий в клетке</label>
-            <input id="commentOnCell" name="comment" type="text">
+            <textarea id="commentOnCell" name="comment"></textarea>
         </div>
         <input id="cellNum" type="hidden" name="cell">
     </form>

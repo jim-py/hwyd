@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>HWYD</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+</head>
+<body>
+<section class="wrapper">
+    <div class="form signup">
+        <header>Регистрация</header>
+        <form method="post" action="{% url 'start' %}">
+            {% csrf_token %}
+            <input type="hidden" name="type_form" value="registration_form">
+            <input type="text" id="id_username" maxlength="150" name="username" placeholder="Логин" required/>
+            <input type="text" id="id_email" maxlength="254" name="email" placeholder="Почта" required/>
+            <input type="password" id="id_password1" autocomplete="new-password" name="password1" placeholder="Пароль" required/>
+            <input type="submit" value="Создать аккаунт"/>
+        </form>
+    </div>
+
+    <div class="form login">
+        <header>Вход</header>
+        <form method="post" action="{% url 'start' %}">
+            {% csrf_token %}
+            <input type="hidden" name="type_form" value="login_form">
+            <input type="text" id="id_username" maxlength="150" name="username" placeholder="Логин" required/>
+            <input type="password" id="id_password" name="password" placeholder="Пароль" required/>
+            <a href="#">Забыли пароль?</a>
+            <input type="submit" value="Войти в аккаунт"/>
+        </form>
+    </div>
+
+    <script>
+        const wrapper = document.querySelector(".wrapper"),
+            signupHeader = document.querySelector(".signup header"),
+            loginHeader = document.querySelector(".login header");
+
+        loginHeader.addEventListener("click", () => {
+            wrapper.classList.add("active");
+        });
+        signupHeader.addEventListener("click", () => {
+            wrapper.classList.remove("active");
+        });
+    </script>
+</section>
+</body>
+</html>

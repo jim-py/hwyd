@@ -1,15 +1,22 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 
 class ActivitiesConnection(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Владелец')
     group = models.ForeignKey('Activities', on_delete=models.CASCADE, verbose_name='Группа', related_name='group')
     activity = models.ForeignKey('Activities', on_delete=models.CASCADE, verbose_name='Активность', related_name='activity')
 
+    class Meta:
+        verbose_name = 'Связь активностей'
+        verbose_name_plural = 'Связи активностей'
+
     def __str__(self):
-        return f'{self.activity}'
+        return f'Группа: {self.group.name} | Активность: {self.activity.name} | Пользователь: {self.user}'
 
 
 class Activities(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Владелец')
     name = models.CharField(max_length=100, verbose_name='Название')
     date = models.CharField(max_length=7, verbose_name='Месяц')
     backgroundColor = models.CharField(max_length=7, verbose_name='Цвет')
@@ -21,6 +28,7 @@ class Activities(models.Model):
     endDay = models.IntegerField(verbose_name='Конец')
     isOpen = models.BooleanField(verbose_name='Раскрыта')
     cellsComments = models.TextField(verbose_name='Надписи клеток')
+    onOffCells = models.TextField(verbose_name='Выключение клеток')
 
     class Meta:
         verbose_name = 'Активность'
@@ -28,10 +36,11 @@ class Activities(models.Model):
         ordering = ['number']
 
     def __str__(self):
-        return f'{self.name}'
+        return f'Активность: {self.name} | Пользователь: {self.user} | Месяц: {self.date}'
 
 
 class Settings(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Владелец')
     backgroundColor = models.CharField(max_length=7, verbose_name='Цвет сайта')
     tableHeadColorWeekend = models.CharField(max_length=7, verbose_name='Цвет выходных')
     tableHeadColor = models.CharField(max_length=7, verbose_name='Цвет заголовка таблицы')
@@ -43,7 +52,15 @@ class Settings(models.Model):
     enableSortTable = models.BooleanField(verbose_name='Включить перетаскивание строк')
     enableOpenCloseGroups = models.BooleanField(verbose_name='Включить открытие/закрытие групп')
     showDeleteAllActivities = models.BooleanField(verbose_name='Показать кнопку удаления всех активностей')
+    onSounds = models.BooleanField(verbose_name='Включить звуки')
+    showRowColumnLight = models.BooleanField(verbose_name='Включить выделение строки и столбца')
+    showActivityDayLight = models.BooleanField(verbose_name='Включить выделение активности и дня')
+    rowColumnLight = models.CharField(max_length=7, verbose_name='Цвет выделения стоки и столбца')
+    fontFamily = models.TextField(verbose_name='Шрифт')
 
     class Meta:
         verbose_name = 'Настройку'
         verbose_name_plural = 'Настройки'
+
+    def __str__(self):
+        return f'Пользователь: {self.user} {self.fontFamily}'

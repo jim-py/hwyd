@@ -3,9 +3,9 @@
 
 <div>
     {% if settings.enableSortTable %}
-        <table class="sortable-table">
+        <table class="sortable-table table">
     {% else %}
-        <table>
+        <table class="table">
     {% endif %}
     <thead>
     <tr>
@@ -28,14 +28,14 @@
     </thead>
     <tbody>
     {% for activity in range_activities %}
-        <tr style="{% if not activity.isGroup and activity|group_is_open and settings.enableOpenCloseGroups %} display: none; {% endif %}"
-            class="{% if activity.isGroup %}isGroup{{ activity.pk }}{% else %}group{{ activity|connection }}-{{ activity.pk }}{% endif %}">
+        <tr style="{% if not activity.isGroup and activity|group_is_open:group_open and settings.enableOpenCloseGroups %} display: none; {% endif %}"
+            class="{% if activity.isGroup %}isGroup{{ activity.pk }}{% else %}group{{ activity|get_group_id:connections }}-{{ activity.pk }}{% endif %}">
             {% for j in range_days %}
                 {% if forloop.first %}
-                    <td class="header {% if activity.isOpen %} expand {% endif %} {% if activity.isGroup %} isGroup{{ activity.pk }} {% else %} group{{ activity|connection }}-{{ activity.pk }} {% endif %}">
+                    <td class="header {% if activity.isOpen %} expand {% endif %} {% if activity.isGroup %} isGroup{{ activity.pk }} {% else %} group{{ activity|get_group_id:connections }}-{{ activity.pk }} {% endif %}">
                         <input class="activityNames" name="{{ activity.name }}" style="display:none;">
-                        <p class="paragraph" id="p{{ forloop.parentloop.counter0 }}{{ j }}"
-                           style="{% if not activity|connection == None %} margin-left: 10px; {% endif %}">
+                        <p class="paragraph" id="p{{ forloop.parentloop.counter0 }}{% if '/m' in request.path and j != -1 %}-{% endif %}{{ j }}"
+                           style="{% if not activity|get_group_id:connections == None %} margin-left: 10px; {% endif %}{% if '/m' in request.path %}font-size: 12px;{% endif %}" data-conn="{{ activity|connection_group:lst_group_conns }}" data-onOffDays="{{ activity|get_days|safe }}" data-type="{% if activity.isGroup %}группы{% else %}активности{% endif %}" data-pk="{{ activity.pk }}" data-color-activity="{{ activity.backgroundColor }}" data-color-text="{{ activity.color }}" data-name="{{ activity.name }}" data-beginDay="{{ activity.beginDay|add:1 }}" data-endDay="{{ activity.endDay|add:1 }}">
                             {% if settings.showDeleteActivity %}
                                 <a href="{% url 'delete_activity' activity.pk date %}">
                                     <button class="deleteActivity" type="button">
@@ -57,7 +57,7 @@
                                 </div>
                             {% endif %}
                         {% else %}
-                            {% if activity.beginDay <= j and j <= activity.endDay %}
+                            {% if activity.beginDay <= j and j <= activity.endDay and activity|get_one_day:j %}
                                 <div id="{{ forloop.parentloop.counter0 }}-{{ j }}"
                                      class="divClick {% if today|add:-1 == j %}today{% endif %} {% get_comments as res %}{% if res %}hasText{% endif %}" style="display:flex;align-items: center; justify-content: center; font-size: 9px">{% get_symbols %}</div>
                             {% endif %}
@@ -76,98 +76,4 @@
     {% csrf_token %}
 <button class="button-6" role="button" style="background-color:#ffdfdf;width: auto">Очистить все активности</button>
 </form>
-{% endif %}
-
-<script>
-    for (let elem of document.querySelectorAll('div.divClick')) {
-        elem.addEventListener('click', function () {
-            $(this).toggleClass('on');
-        })
-        elem.oncontextmenu = function (e) {
-            e.preventDefault();
-            let dialog = document.getElementById('dialogCell');
-            document.querySelector('input#cellNum').value = e.target.id
-            $.ajax({
-                type: 'POST',
-                url: '{% url 'get_comments' date %}',
-                data:
-                    {
-                        cell: e.target.id,
-                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-                    }
-            }).done(function(data, textStatus, jqXHR){
-                data = data.split('|')[e.target.id.split('-')[1]].split('*');
-                document.querySelector('input#symbolsOnCell').value = data[0]
-                document.querySelector('input#commentOnCell').value = data[1]
-            });
-            dialog.showModal();
-        }
-    }
-
-    for (let cell of {{ cellsToClick|safe }}) {
-        try {
-            document.getElementById(cell).click();
-        } catch (err) {
-        }
-    }  //При заходе на сайт нажимает отмеченные ранее клетки таблицы
-
-    for (let elem of document.querySelectorAll('div.divClick')) {
-        elem.addEventListener('click', function () {
-            let group_id = $(this.parentNode.parentNode)[0].className.match(/[0-9-]+/g)[0].split('-')[0]
-            if (group_id) {
-                let day = Number(this.id.split('-')[1]) + 1, newWidth
-                let groups_progress_add = {% progress_cell_add %};
-                let progress = document.querySelector('tr.isGroup' + group_id).children[day].children[0]
-                let progress_bar = progress.children[0]
-                let width = progress_bar.style.width
-
-                if (progress_bar.style.width === '0%') {
-                    $(progress).toggleClass('off')
-                    $(progress_bar).toggleClass('off')
-                } else if (progress_bar.style.width === '100%') {
-                    $(progress).toggleClass('full')
-                    $(progress_bar).toggleClass('full')
-                } else {
-                    $(progress).toggleClass('notFull')
-                    $(progress_bar).toggleClass('notFull')
-                }
-
-                if ($(this).hasClass('on')) {
-                    newWidth = Number(width.substring(0, width.length - 1)) + groups_progress_add[group_id][day - 1];
-                    if (newWidth > 99)
-                        progress_bar.style.width = '100%'
-                    else
-                        progress_bar.style.width = `${newWidth}%`
-                } else {
-                    newWidth = Number(width.substring(0, width.length - 1)) - groups_progress_add[group_id][day - 1];
-                    if (newWidth < 1)
-                        progress_bar.style.width = '0%'
-                    else
-                        progress_bar.style.width = `${newWidth}%`
-                }
-
-                if (newWidth < 1) {
-                    $(progress).addClass('off')
-                    $(progress_bar).addClass('off')
-                } else if (newWidth > 99) {
-                    $(progress).addClass('full')
-                    $(progress_bar).addClass('full')
-                } else {
-                    $(progress).addClass('notFull')
-                    $(progress_bar).addClass('notFull')
-                }
-            }
-
-            $.ajax({
-                type: 'POST',
-                url: '{% url 'by_date' date %}',
-                data:
-                    {
-                        checkboxToCheck: elem.id,
-                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-                    }
-            })
-        })
-    }
-</script>
-
+{% endif %}  <!-- Кнопка удаления всех активностей -->

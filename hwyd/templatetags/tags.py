@@ -1,5 +1,4 @@
 from django import template
-from ..models import ActivitiesConnection
 register = template.Library()
 
 
@@ -14,32 +13,30 @@ def get_color(indexable, i):
 
 
 @register.filter
-def connection(obj):
+def get_group_id(obj, connections):
     try:
-        pk = ActivitiesConnection.objects.get(activity=obj).group.pk
-    except ActivitiesConnection.DoesNotExist:
+        pk = connections[obj.pk]
+    except KeyError:
         pk = None
     return pk
-    # return 24
 
 
 @register.filter
-def connection_group(obj):
-    lst = []
-    for elem in ActivitiesConnection.objects.filter(group=obj):
-        lst.append(elem.activity.pk)
-    return lst
-    # return ['50']
-
-
-@register.filter
-def group_is_open(obj):
+def connection_group(obj, lst_group_conns):
     try:
-        res = ActivitiesConnection.objects.get(activity=obj).group.isOpen
-    except ActivitiesConnection.DoesNotExist:
+        lst = lst_group_conns[obj.pk]
+    except KeyError:
+        lst = []
+    return lst
+
+
+@register.filter
+def group_is_open(obj, group_open):
+    try:
+        res = group_open[obj.pk]
+    except KeyError:
         res = False
     return res
-    # return True
 
 
 @register.simple_tag(takes_context=True)
@@ -66,3 +63,13 @@ def get_comments(context):
         cells_comments = [act.split('*') for act in context['activity'].cellsComments.split('|')]
         return cells_comments[context['j']][1]
     return ''
+
+
+@register.filter
+def get_days(obj):
+    return obj.onOffCells.split()
+
+
+@register.filter
+def get_one_day(obj, day):
+    return True if obj.onOffCells.split()[day] == 'True' else False

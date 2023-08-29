@@ -1,0 +1,475 @@
+{% load static %}
+{% load tags %}
+
+{# Скрипты таблицы #}
+<script>
+    for (let elem of document.querySelectorAll('div.divClick')) {
+        elem.addEventListener('click', function () {
+            $(this).toggleClass('on');
+        })
+        elem.oncontextmenu = function (e) {
+            e.preventDefault();
+            let dialog = document.getElementById('dialogCell');
+            document.querySelector('input#cellNum').value = e.target.id
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'get_comments' date %}',
+                data:
+                    {
+                        cell: e.target.id,
+                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                    }
+            }).done(function(data){
+                data = data.split('|')[e.target.id.split('-')[1]].split('*');
+                document.querySelector('input#symbolsOnCell').value = data[0]
+                document.querySelector('textarea#commentOnCell').value = data[1]
+            });
+            dialog.showModal();
+        }
+    }
+
+    for (let cell of {{ cellsToClick|safe }}) {
+        try {
+            document.getElementById(cell).click();
+        } catch (err) {
+        }
+    }  //При заходе на сайт нажимает отмеченные ранее клетки таблицы
+
+    for (let elem of document.querySelectorAll('div.divClick')) {
+        elem.addEventListener('click', function () {
+            {% if settings.onSounds %}
+            let music
+            if ($(this).hasClass('on')) {
+                music = new Audio("{% static 'on.MP3' %}");
+            } else {
+                music = new Audio("{% static 'off.MP3' %}");
+            }
+            music.volume = 0.5;
+            music.play();
+            {% endif %}
+            let group_id = $(this.parentNode.parentNode)[0].className.match(/[0-9-]+/g)[0].split('-')[0]
+            if (group_id) {
+                let day = Number(this.id.split('-')[1]) + 1, newWidth, progress
+                let groups_progress_add = {% progress_cell_add %};
+                {% if '/m' in request.path %}
+                let tmp = {{ range_days }};
+                progress = document.querySelector('tr.isGroup' + group_id).children[tmp.indexOf(day - 1)].children[0]
+                {% else %}
+                progress = document.querySelector('tr.isGroup' + group_id).children[day].children[0]
+                {% endif %}
+                let progress_bar = progress.children[0]
+                let width = progress_bar.style.width
+
+                if (progress_bar.style.width === '0%') {
+                    $(progress).toggleClass('off')
+                    $(progress_bar).toggleClass('off')
+                } else if (progress_bar.style.width === '100%') {
+                    $(progress).toggleClass('full')
+                    $(progress_bar).toggleClass('full')
+                } else {
+                    $(progress).toggleClass('notFull')
+                    $(progress_bar).toggleClass('notFull')
+                }
+
+                if ($(this).hasClass('on')) {
+                    newWidth = Number(width.substring(0, width.length - 1)) + groups_progress_add[group_id][day - 1];
+                    if (newWidth > 99)
+                        progress_bar.style.width = '100%'
+                    else
+                        progress_bar.style.width = `${newWidth}%`
+                } else {
+                    newWidth = Number(width.substring(0, width.length - 1)) - groups_progress_add[group_id][day - 1];
+                    if (newWidth < 1)
+                        progress_bar.style.width = '0%'
+                    else
+                        progress_bar.style.width = `${newWidth}%`
+                }
+
+                if (newWidth < 1) {
+                    $(progress).addClass('off')
+                    $(progress_bar).addClass('off')
+                } else if (newWidth > 99) {
+                    $(progress).addClass('full')
+                    $(progress_bar).addClass('full')
+                } else {
+                    $(progress).addClass('notFull')
+                    $(progress_bar).addClass('notFull')
+                }
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'by_date' date %}',
+                data:
+                    {
+                        checkboxToCheck: elem.id,
+                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                    }
+            })
+        })
+    }
+</script>
+
+{# Тоже что-то #}
+<script>
+    function submitActivitySettings() {
+        let data = ''
+        for (let elem of document.querySelectorAll('[id*=day]')) {
+            if ($(elem).hasClass('on'))
+                data += 'True '
+            else
+                data += 'False '
+        }
+        document.querySelector('[id=inputCells]').value = data;
+        document.querySelector('form[id=formActivitySettings]').submit();
+    }
+
+    for (let elem of document.querySelectorAll('[id*=day]')) {
+        elem.addEventListener("click", function (e) {
+            $(e.target).toggleClass('on')
+        })
+    }
+
+    {% if settings.showActivityDayLight %}
+    // Выделение дня при наведении на клетку
+    $(document).ready(function () {
+        const selector = '.table th p';
+        $('.table td').hover(function () {
+            let columnIndex = $(this).index();
+            if (columnIndex !== 0) {
+                $(selector).eq(columnIndex).css('box-shadow', '0 0 3px -1px rgb(0, 0, 0) inset');
+                $(selector).eq(columnIndex).css('border', '1px solid black');
+            }
+        }, function () {
+            $(selector).css('box-shadow', '');
+            $(selector).css('border', '');
+        });
+    });
+    {% endif %}
+
+    document.querySelector('[id=closeSettingsActivity]').addEventListener('click', function (event) {
+        let paragraph = event.target.parentNode.parentNode.querySelector('input.colorBackgroundForm').data;
+        paragraph.style.backgroundColor = '';
+        paragraph.style.color = '';
+        for (let elem of paragraph.parentNode.parentNode.children)
+            try {
+                if ($(elem.children[0]).hasClass('on'))
+                    elem.children[0].style.backgroundColor = '';
+                if ($(elem.children[0]).hasClass('full') || $(elem.children[0]).hasClass('notFull'))
+                    elem.children[0].children[0].style.backgroundColor = $(elem.children[0].children[0]).data('bgcolor');
+            } catch {
+            }
+    })
+</script>
+
+{# ОТКРЫТИЕ/РАСКРЫТИЕ ГРУПП #}
+<script>
+    {% if settings.enableOpenCloseGroups %}
+        for (let stroke of document.querySelectorAll('td[class*="isGroup"]')) {
+            stroke.addEventListener("click", function (e) {
+                let group_id = e.target.getAttribute('data-pk')
+                if ($(this).hasClass('expand')) {
+                    for (let elem of document.querySelectorAll(`tr[class*=group${group_id}]`)) {
+                        elem.style.display = ''
+                    }
+                } else {
+                    for (let elem of document.querySelectorAll(`tr[class*=group${group_id}]`)) {
+                        elem.style.display = 'none'
+                    }
+                }
+                $(this).toggleClass('expand');
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url 'by_date' date %}',
+                    data:
+                        {
+                            openedGroup: group_id,
+                            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                        }
+                })
+            });
+        }
+    {% endif %}
+</script>
+
+{# ОТКРЫВАЕТ МОДАЛЬНОЕ ОКНО ПО НАЖАТИЮ НА МЕСЯЦ #}
+<script>
+    document.querySelector('p.headParagraph.changeParagraph.main').oncontextmenu = function (e) {
+        e.preventDefault();
+        let dialog = document.getElementById('dialogHead');
+        dialog.showModal();
+    }
+</script>
+
+{# ОБРАБОТКА ВВЕДЁННОГО ЦВЕТА АКТИВНОСТИ И ТЕКСТА В НАСТРОЙКАХ АКТИВНОСТИ #}
+<script>
+    // Функция для обработки
+    function handleColorInputChange(inputId, outputId) {
+        document.querySelector(inputId).addEventListener('input', function (e) {
+            const evt = document.createEvent('HTMLEvents');
+            evt.initEvent("input", true, true);
+
+            // Проверяем, соответствует ли введенное значение шестнадцатеричному коду цвета
+            if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                document.querySelector(outputId).value = e.target.value;
+                document.querySelector(outputId).dispatchEvent(evt);
+            }
+        });
+    }
+
+    // Обрабатываем изменения цвета фона и текста активности
+    handleColorInputChange('input#colorBackgroundFormText', 'input#colorBackgroundForm');
+    handleColorInputChange('input#colorTextFormText', 'input#colorTextForm');
+</script>
+
+{# ПРАВЫЙ КЛИК НА АКТИВНОСТЬ, ЗАПОЛНЕНИЕ ПОЛЕЙ МОДАЛЬНОГО ОКНА #}
+<script>
+    // Присоединяем обработчик события правого клика всем активностям
+    for (let elem of document.querySelectorAll('td.header')) {
+        elem.oncontextmenu = rightClick;
+    }
+
+    // Обработка правого клика на активность
+    function rightClick(e) {
+        e.preventDefault();
+
+        // Получаем необходимые элементы
+        const dialog = document.getElementById('dialog');
+        const elements = dialog.querySelectorAll('[class*=elementActivitySettings]');
+        const onOffDaysDiv = document.querySelector('div.onOffDaysDiv');
+        const gridContainer = document.querySelector('div.grid-container');
+        const beginDay = document.querySelector('div.beginDay');
+        const endDay = document.querySelector('div.endDay');
+        const hrGridContainer = document.querySelector('hr.grid-container');
+
+        // Извлекаем атрибуты из нажатого элемента
+        const targetType = e.target.getAttribute('data-type');
+        const targetName = e.target.getAttribute('data-name');
+        const targetPk = e.target.getAttribute('data-pk');
+        const targetColorActivity = e.target.getAttribute('data-color-activity');
+        const targetColorText = e.target.getAttribute('data-color-text');
+        const targetOnOffDays = JSON.parse(e.target.getAttribute('data-onOffDays').replace(/'/g, '"'));
+        const targetConn = JSON.parse(e.target.getAttribute('data-conn'));
+
+        // Заполняем поля ввода и обновляем текст на основе атрибутов активности
+        document.querySelector('input#colorBackgroundFormText').value = targetColorActivity;
+        document.querySelector('input#colorTextFormText').value = targetColorText;
+        elements[0].innerText = `Настройка ${targetType} ${targetName}`;
+        elements[1].value = targetPk;
+        elements[2].value = targetColorActivity;
+        elements[2].data = e.target;
+        elements[3].value = targetColorText;
+        elements[3].data = e.target;
+        elements[4].value = targetName;
+        elements[5].value = e.target.getAttribute('data-beginDay');
+        elements[6].value = e.target.getAttribute('data-endDay');
+
+        // Подстраиваем отображение на основе типа активности
+        if (targetType === 'активности') {
+            // Очищаем и прокликиваем кнопки связанные с отключением дней у активности
+            for (let i = 0; i < {{ days }}; i += 1) {
+                const dayElement = document.querySelector(`[id=day${i + 1}]`);
+                dayElement.className = '';
+                if (targetOnOffDays[i] === 'True') {
+                    dayElement.click();
+                }
+            }
+            // Обновляем стили отображения под тип 'активность'
+            onOffDaysDiv.style.display = 'inline-block';
+            gridContainer.style.display = 'none';
+            beginDay.style.display = 'block';
+            endDay.style.display = 'block';
+            hrGridContainer.style.display = 'none';
+        } else {
+            // Очищаем и прокликиваем активности связанные с группой
+            for (let elem of document.querySelectorAll('[id*=activityToGroup]')) {
+                elem.checked = targetConn.includes(Number(elem.name));
+            }
+            // Обновляем стили отображения под тип 'группа'
+            onOffDaysDiv.style.display = 'none';
+            gridContainer.style.display = 'grid';
+            beginDay.style.display = 'none';
+            endDay.style.display = 'none';
+            hrGridContainer.style.display = '';
+        }
+
+        // Отображаем модальный диалог
+        dialog.showModal();
+    }
+</script>
+
+{# Перетаскивание строк #}
+<script>
+    let fixHelper = function (e, ui) {
+        ui.children().each(function () {
+            $(this).width($(this).width());
+        });
+        return ui;
+    };  // Корректирует отображение при перетаскивании
+
+    let stop = function (e, ui) {
+        let elem = ui.item[0]
+        let elem_class = elem.className
+        let prev_elem = elem.previousElementSibling
+        let next_elem = elem.nextElementSibling
+        let groups_ids = {{ groups_ids }};
+        let numbers_filter = /[0-9-]+/g
+
+        if (elem_class.indexOf('None') >= 0) {
+            {#console.log('activity')#}
+            if (!((prev_elem === null) || (next_elem === null))) {
+                for (let group_id of groups_ids) {
+                    let prev_elem_group = prev_elem.className.indexOf('isGroup' + group_id) >= 0
+                    let next_elem_activ = next_elem.className.indexOf('group' + group_id) >= 0
+                    if (((prev_elem_group) && (next_elem_activ)) || ((next_elem_activ) && (next_elem_activ))) {
+                        $(elem).insertBefore('tr.isGroup' + group_id)
+                    }
+                }
+            }
+        } else if (elem_class.indexOf('isGroup') >= 0) {
+            {#console.log('group')#}
+            if (!((prev_elem === null) || (next_elem === null))) {
+                for (let group_id of groups_ids) {
+                    let prev_elem_group = prev_elem.className.indexOf('isGroup' + group_id) >= 0
+                    let next_elem_activ = next_elem.className.indexOf('group' + group_id) >= 0
+                    if (((prev_elem_group) && (next_elem_activ)) || ((next_elem_activ) && (next_elem_activ))) {
+                        $(elem).insertBefore('tr.isGroup' + group_id)
+                    }
+                }
+            }
+            for (let i in [0, 1])
+                for (let activity_group of document.querySelectorAll(`tr[class*=group${elem_class.match(numbers_filter)[0]}]`))
+                    $(activity_group).insertAfter(elem)
+        } else if (elem_class.indexOf('group') >= 0) {
+            {#console.log('activityGroup')#}
+            if (prev_elem === null)
+                $(elem).insertAfter('tr.isGroup' + elem_class.match(numbers_filter)[0].split('-')[0])
+            else
+                if (prev_elem.className.split('-')[0] !== elem_class.split('-')[0])
+                    $(elem).insertAfter('tr.isGroup' + elem_class.match(numbers_filter)[0].split('-')[0])
+        }
+        let activities = []
+        for (let activity of document.getElementsByClassName('activityNames')) {
+            activities.push(activity.name)
+        }
+        setTimeout(timeout, 0);
+
+        function timeout() {
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'by_date' date %}',
+                data:
+                    {
+                        activities: activities,
+                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                    }
+            })
+        }
+    };  // Отправляет порядок активностей после окончания перетаскивания
+
+    $('.sortable-table tbody').sortable({
+        handle: '.paragraph',
+        helper: fixHelper,
+        stop: stop,
+        revert: 200
+    });  // Настройка перетаскивания
+</script>
+
+{# ОТПРАВКА ФОРМ СОЗДАНИЯ АКТИВНОСТЕЙ И ВЫБОРА МЕСЯЦА В КАЛЕНДАРЕ #}
+<script>
+    {% if settings.showCreateActivity %}
+        document.querySelector("#createActivityInput").addEventListener("change", function () {
+            document.getElementById("createActivity").submit();
+        });
+    {% endif %}  // Отправка формы создания активности
+
+    {% if settings.showCreateActivityGroup %}
+        document.querySelector("#createActivityGroupInput").addEventListener("change", function () {
+            document.getElementById("createActivityGroup").submit();
+        });
+    {% endif %}  // Отправка формы создания группы
+
+    {% if settings.showCalendar %}
+        document.getElementById('chooseDate').addEventListener("change", function () {
+            document.getElementById("chooseDate").submit();
+        });
+    {% endif %}  //Отправка формы выбора месяца
+</script>
+
+{# Динамическое изменение цветов #}
+<script>
+    try {
+        //Динамическое изменение цвета заголовка таблицы
+        let tmpElem = document.getElementById('tableHeadColor*changeParagraph')
+        tmpElem.addEventListener("input", function (event) {
+            for (let elem of document.querySelectorAll('p.' + event.target.id.split('*')[1])) {
+                elem.style.backgroundColor = event.target.value;
+            }
+        });
+
+        //Динамическое изменение цвета заголовка таблицы выходных
+        tmpElem = document.getElementById('tableHeadColorWeekend')
+        tmpElem.addEventListener("input", function (event) {
+            for (let elem of document.querySelectorAll('p.weekend')) {
+                elem.style.backgroundColor = event.target.value;
+            }
+        });
+
+        //Динамическое изменение цвета текста заголовка таблицы
+        tmpElem = document.getElementById('tableHeadTextColor*changeParagraph')
+        tmpElem.addEventListener("input", function (event) {
+            for (let elem of document.querySelectorAll('p.' + event.target.id.split('*')[1])) {
+                elem.style.color = event.target.value;
+            }
+            for (let elem of document.querySelectorAll('p.weekend')) {
+                elem.style.color = event.target.value;
+            }
+        });
+
+        //Динамическое изменение заднего фона сайта
+        tmpElem = document.getElementById('backgroundColor')
+        tmpElem.addEventListener("input", function (event) {
+            document.body.style.backgroundColor = event.target.value;
+        });
+    } catch {
+
+    }
+
+    for (let elem of document.querySelectorAll('input.colorBackgroundForm')) {
+        elem.addEventListener("input", function (event) {
+            event.target.data.style.backgroundColor = event.target.value;
+            document.querySelector('input#colorBackgroundFormText').value = event.target.value;
+        });  //Изменение цвета активности
+        elem.addEventListener("input", function (event) {
+            for (let elem of event.target.data.parentNode.parentNode.children)
+                try {
+                    if ($(elem.children[0]).hasClass('on'))
+                        elem.children[0].style.backgroundColor = event.target.value;
+                    if ($(elem.children[0]).hasClass('full') || $(elem.children[0]).hasClass('notFull'))
+                        elem.children[0].children[0].style.backgroundColor = event.target.value;
+                } catch {
+                }
+            });  //Изменение цвета клеток активности
+    }  //Динамическое обновление цвета фона активности
+
+    for (let elem of document.querySelectorAll('input.colorTextForm')) {
+        elem.addEventListener("input", function updateColorText(event) {
+            event.target.data.style.color = event.target.value;
+        });
+    }  //Динамическое обновление цвета текста активности
+</script>
+
+{# СОХРАНЕНИЕ НАСТРОЕК #}
+<script>
+    function btnSaveSettings() {
+        const checkboxes = [
+            "showCalendar", "showCreateActivity", "showDeleteActivity",
+            "showDeleteAllActivities", "showCreateActivityGroup",
+            "onSounds", "showRowColumnLight", "showActivityDayLight"
+        ];
+        document.querySelector("#data").value = checkboxes.map(checkboxId =>
+            document.querySelector(`#${checkboxId}`).checked
+        );
+        document.getElementById('settingsGlobal').submit();
+    }
+</script>

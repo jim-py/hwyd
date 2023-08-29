@@ -1,0 +1,152 @@
+{% load static %}
+{% if not '/m' in request.path %}
+    <style>
+        html {
+            margin: auto;
+        }
+    </style>
+{% else %}
+    <style>
+        html {
+            zoom: 250%;
+        }
+    </style>
+{% endif %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@600&family=Istok+Web&family=Montserrat+Alternates:wght@600&family=Montserrat:wght@600&family=Roboto+Mono:wght@600&family=Ubuntu:wght@300&display=swap');
+
+    body {
+        font-family: '{{ settings.fontFamily }}', serif;
+        display: table-cell;
+        vertical-align: middle;
+    }
+    .button-6 {
+        font-family: '{{ settings.fontFamily }}', serif;
+    }
+
+    input[type=month] {
+        font-family: '{{ settings.fontFamily }}', serif;
+        font-weight: 600;
+    }
+</style>
+<style>
+    {# Выставление цвета фона и текста активности и её клеткам #}
+    {% for activity in range_activities %}
+        progress[id*="{{ forloop.counter0 }}-"]::-webkit-progress-value {
+            background: {{ activity.backgroundColor }};
+            border-radius: 2px;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, .3) inset;
+        }
+        div.on[id*="{{ forloop.counter0 }}-"], p[id*="p{{ forloop.counter0 }}"] {
+            background-color: {{ activity.backgroundColor }};
+            color: {{ activity.color }};
+        }
+    {% endfor %}
+
+    progress.notFull::-webkit-progress-value {
+        border-style: solid;
+        border-color: #555;
+        border-width: 0 1px 0 0;
+    }
+
+    p[id*=day] {
+        background-color: #ffdfdf;
+        text-align: center;
+        display: inline-block;
+        margin: 0;
+        width: 24px;
+        border-radius: 3px;
+        border: 1px solid black;
+        cursor: pointer;
+    }
+
+    p.on {
+        background-color: #dfffdf;
+    }
+
+    p.headParagraph {
+        background-color: {{ settings.tableHeadColor }};
+        color: {{ settings.tableHeadTextColor }};
+    }
+
+    p.headParagraph.weekend {
+        background-color: {{ settings.tableHeadColorWeekend }};
+        color: {{ settings.tableHeadTextColor }};
+    }
+
+    body {
+        background-color: {{ settings.backgroundColor }};
+    }
+
+    progress.divClick {
+        width: 25px;
+        height: 25px;
+    }
+
+    .vertical.off {
+        box-shadow: 0 0;
+        border: 1px solid #ccc;
+    }
+
+    .vertical {
+        transform: rotate(-90deg);
+        border: 1px solid #555;
+        box-shadow: -1px 0 1px rgba(100, 100, 100, .3);
+        border-radius: 3px;
+    }
+
+    .progress-bar {
+        border-radius: 2px;
+        box-shadow: -1px 0 0 rgba(255, 255, 255, .3) inset;
+        transition: all 0.25s ease-out;
+    }
+
+    .progress-bar.notFull {
+        border-style: solid;
+        border-color: #555;
+        border-width: 0 1px 0 0;
+        box-shadow: 0 0;
+    }
+
+    {# Подсветка строки и колонки при наведении на клетку #}
+    {% if settings.showRowColumnLight %}
+        .table {
+            overflow: hidden;
+        }
+
+        .table th, .table td {
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .table td:not(:has(p)):hover:before {
+            background-color: {{ settings.rowColumnLight }};
+            content: '';
+            height: 100%;
+            left: -5000px;
+            position: absolute;
+            top: 0;
+            width: 10000px;
+            z-index: -2;
+        }
+
+        .table td:not(:has(p)):hover:after {
+            background-color: {{ settings.rowColumnLight }};
+            content: '';
+            height: 10000px;
+            left: 0;
+            position: absolute;
+            top: -5000px;
+            width: 100%;
+            z-index: -1;
+        }
+    {% endif %}
+
+    {# Подсвечивает день и активность при наведении на клетку #}
+    {% if settings.showActivityDayLight %}
+        .table tr:hover td:first-child > p {
+            box-shadow: 0 0 3px -1px rgb(0, 0, 0) inset;
+            border: 1px solid black;
+        }
+    {% endif %}
+</style>
