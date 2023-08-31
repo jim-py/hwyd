@@ -1,7 +1,8 @@
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Activities, Settings, ActivitiesConnection
 from calendar import monthrange
 from datetime import datetime, date
@@ -16,13 +17,15 @@ locale.setlocale(
 
 @login_required(login_url='start')
 def by_date(request, picked_date):
+    # Определение версии сайта (мобильная или компьютерная)
     try:
         redirect_url = 'mobile_by_date' if '/m' in request.META.get('HTTP_REFERER') else 'by_date'
     except TypeError:
         redirect_url = 'by_date'
-    # Выбор месяца
+
+    # Выбор месяца календарём
     if request.POST.get('chooseDate', False):
-        return redirect(redirect_url, picked_date)
+        return redirect(redirect_url, request.POST['chooseDate'])
 
     # Проверка прилетевшей строки на дату
     try:
@@ -149,19 +152,34 @@ def by_date(request, picked_date):
             for post in dict(request.POST)['activities[]']:
                 data.append(post)
             # Замена порядка активностей
-            for activity in activities:
-                if activity.name in data:
-                    if activity.number != data.index(activity.name):
-                        activity.number = data.index(activity.name)
-                        activity.save()
+            print(data, [activity.name for activity in activities])
+            tmp_num = 1
+            tmp_num_group = 0
+            if data != [activity.name for activity in activities]:
+                for name in data:
+                    activity = activities.get(name=name)
+                    if activity.isGroup:
+                        tmp_num_group += 1000
+                        activity.number = tmp_num_group
+                        tmp_num = 1
+                    else:
+                        if act_connections.filter(activity__name=name):
+                            activity.number = tmp_num + tmp_num_group
+                            tmp_num += 1
+                        else:
+                            activity.number = tmp_num_group + tmp_num + 500
+                            tmp_num += 1
+                    activity.save()
             return redirect(redirect_url, picked_date)
 
         if request.POST.get('activityPk', False):
             activity = Activities.objects.get(pk=int(request.POST['activityPk']))
-            if activity.user != request.user:
+
+            if activity.user_id != request.user.pk:
                 request.user.is_active = False
                 request.user.save()
                 return redirect(redirect_url, picked_date)
+
             activity.name = request.POST['activityName']
             activity.beginDay = int(request.POST['beginDay']) - 1 if -1 < int(request.POST['beginDay']) - 1 < days else 0
             activity.endDay = int(request.POST['endDay']) - 1 if -1 < int(request.POST['endDay']) - 1 < days else days - 1
@@ -170,23 +188,27 @@ def by_date(request, picked_date):
             activity.onOffCells = request.POST['onOffCells']
 
             if activity.isGroup:
+                group_id = activity.pk
                 connection_data = []
-                group_id = int(request.POST['activityPk'])
                 for post in request.POST:
                     if post.isnumeric():
                         connection_data.append(int(post))
-                for connection in ActivitiesConnection.objects.filter(group_id=group_id):
-                    connection.activity.number = activity.number - 1
-                    connection.activity.save()
-                    connection.delete()
-                tmp_number = activity.number
-                for activity_id in connection_data:
-                    for connection in ActivitiesConnection.objects.filter(activity_id=activity_id):
-                        connection.delete()
-                    connection = ActivitiesConnection.objects.create(user=request.user, group_id=group_id, activity_id=activity_id)
-                    connection.activity.number = tmp_number + 1
-                    connection.activity.save()
-                    tmp_number += 1
+                if not connection_data == [connection.activity_id for connection in act_connections.filter(group_id=group_id)]:
+                    act_connections.filter(group_id=group_id).delete()
+
+                    tmp_conns = []
+                    ActivitiesConnection.objects.filter(activity_id__in=connection_data).delete()
+                    for activity_id in connection_data:
+                        connection = ActivitiesConnection(user=request.user, group_id=group_id, activity_id=activity_id)
+                        tmp_conns.append(connection)
+                    ActivitiesConnection.objects.bulk_create(tmp_conns)
+
+                    tmp_number = activity.number
+                    for conn in tmp_conns:
+                        conn.activity.number = tmp_number + 1
+                        conn.activity.save()
+                        tmp_number += 1
+
             activity.save()
             return redirect(redirect_url, picked_date)
 
@@ -262,16 +284,19 @@ def create_last_activities(request, picked_date):
 
     # Создаёт активности прошлого месяца и заносит их в списки
     new_activities = []
+    all_activities = []
     new_groups = []
     for activity in activities:
-        a = Activities.objects.create(user=request.user, name=activity.name, date=picked_date, marks='False ' * days, color=activity.color,
-                                      backgroundColor=activity.backgroundColor, number=activity.number,
-                                      isGroup=activity.isGroup, isOpen=activity.isOpen, beginDay=activity.beginDay,
-                                      endDay=activity.endDay, cellsComments='*|' * days, onOffCells='True ' * days)
+        a = Activities(user=request.user, name=activity.name, date=picked_date, marks='False ' * days,
+                       backgroundColor=activity.backgroundColor, number=activity.number, color=activity.color,
+                       isGroup=activity.isGroup, isOpen=activity.isOpen, beginDay=activity.beginDay,
+                       endDay=activity.endDay, cellsComments='*|' * days, onOffCells='True ' * days)
+        all_activities.append(a)
         if a.isGroup:
             new_groups.append(a)
         else:
             new_activities.append(a)
+    Activities.objects.bulk_create(all_activities)
 
     # Создаёт словарь пар связей активностей прошлого месяца
     old_dict_pare = {}
@@ -281,12 +306,15 @@ def create_last_activities(request, picked_date):
             old_dict_pare[activity.activity] = group
 
     # Создаёт связи новых активностей смотря на пары прошлого месяца
+    all_activities_connections = []
     for new_activity in new_activities:
         for old_activity in old_dict_pare.keys():
             if new_activity.name == old_activity.name:
                 for new_group in new_groups:
                     if new_group.name == old_dict_pare[old_activity].name:
-                        ActivitiesConnection.objects.create(user=request.user, activity=new_activity, group=new_group)
+                        a = ActivitiesConnection(user=request.user, activity=new_activity, group=new_group)
+                        all_activities_connections.append(a)
+    ActivitiesConnection.objects.bulk_create(all_activities_connections)
 
     if '/m' in request.META.get('HTTP_REFERER'):
         return redirect('mobile_by_date', picked_date)
@@ -295,24 +323,23 @@ def create_last_activities(request, picked_date):
 
 @login_required(login_url='start')
 def delete_activity(request, pk, picked_date):
-    Activities.objects.get(pk=pk).delete()
-    if '/m' in request.META.get('HTTP_REFERER'):
-        return redirect('mobile_by_date', picked_date)
-    return redirect('by_date', picked_date)
+    activity = get_object_or_404(Activities, pk=pk)
+    activity.delete()
+    redirect_view = 'mobile_by_date' if '/m' in request.META.get('HTTP_REFERER') else 'by_date'
+    return redirect(redirect_view, picked_date)
 
 
 @login_required(login_url='start')
 def global_colors(request, picked_date):
-    settings = Settings.objects.get(user=request.user)
+    settings = get_object_or_404(Settings, user=request.user)
     settings.tableHeadColor = request.POST['tableHeadColor']
     settings.tableHeadColorWeekend = request.POST['tableHeadColorWeekend']
     settings.tableHeadTextColor = request.POST['tableHeadTextColor']
     settings.backgroundColor = request.POST['backgroundColor']
     settings.rowColumnLight = request.POST['rowColumnLight']
     settings.save()
-    if '/m' in request.META.get('HTTP_REFERER'):
-        return redirect('mobile_by_date', picked_date)
-    return redirect('by_date', picked_date)
+    redirect_view = 'mobile_by_date' if '/m' in request.META.get('HTTP_REFERER') else 'by_date'
+    return redirect(redirect_view, picked_date)
 
 
 @login_required(login_url='start')
@@ -326,24 +353,14 @@ def create_activity(request, picked_date, is_group):
             number = activities[len(activities) - 1].number + 1
         else:
             number = 0
+        number = number + 1000 if is_group else number
         picked_date_lst = list(map(int, picked_date.split('-')))  # Разделение строки даты на массив года и месяца
         days = monthrange(picked_date_lst[0], picked_date_lst[1])[1]  # Количество дней в месяце
-        Activities.objects.create(name=request.POST[inp],
-                                  date=picked_date,
-                                  color='#000000',
-                                  backgroundColor='#ffffff',
-                                  marks='False ' * days,
-                                  onOffCells='True ' * days,
-                                  number=number,
-                                  isGroup=is_group,
-                                  beginDay=0,
-                                  endDay=days - 1,
-                                  isOpen=False,
-                                  cellsComments='*|' * days,
-                                  user=request.user)
-    if '/m' in request.META.get('HTTP_REFERER'):
-        return redirect('mobile_by_date', picked_date)
-    return redirect('by_date', picked_date)
+        Activities.objects.create(name=request.POST[inp], date=picked_date, color='#000000', backgroundColor='#ffffff',
+                                  marks='False ' * days, onOffCells='True ' * days, number=number, isGroup=is_group,
+                                  beginDay=0, endDay=days - 1, isOpen=False, cellsComments='*|' * days, user=request.user)
+    redirect_view = 'mobile_by_date' if '/m' in request.META.get('HTTP_REFERER') else 'by_date'
+    return redirect(redirect_view, picked_date)
 
 
 @login_required(login_url='start')
@@ -356,11 +373,9 @@ def get_comments(request, picked_date):
 
 @login_required(login_url='start')
 def delete_all(request, picked_date):
-    for activity in Activities.objects.filter(user=request.user, date=picked_date):
-        activity.delete()
-    if '/m' in request.META.get('HTTP_REFERER'):
-        return redirect('mobile_by_date', picked_date)
-    return redirect('by_date', picked_date)
+    Activities.objects.filter(user=request.user, date=picked_date).delete()
+    redirect_view = 'mobile_by_date' if '/m' in request.META.get('HTTP_REFERER') else 'by_date'
+    return redirect(redirect_view, picked_date)
 
 
 def signin(request):
@@ -379,12 +394,14 @@ def signin(request):
                 Settings.objects.create(user=user, backgroundColor='#f0f0f0', tableHeadColorWeekend='#eeb3b3',
                                         tableHeadColor='#e6e4ce', tableHeadTextColor='#000000', showCalendar=False,
                                         showCreateActivity=False, showDeleteAllActivities=False, showDeleteActivity=False,
-                                        showCreateActivityGroup=False, enableSortTable=False, enableOpenCloseGroups=True,
-                                        onSounds=True, showRowColumnLight=True, showActivityDayLight=True, rowColumnLight='#e7e7e7')
+                                        showCreateActivityGroup=False, enableSortTable=True, enableOpenCloseGroups=False,
+                                        onSounds=True, showRowColumnLight=True, showActivityDayLight=True,
+                                        rowColumnLight='#e7e7e7', fontFamily='Inter')
                 login(request, user)
                 return redirect('index')
             else:
-                return render(request, 'index.html', {'form': registration_form})
+                message = 'Аккаунт не создан, некорректные данные!'
+                return render(request, 'index.html', {'form': login_form, 'message': message})
         elif request.POST['type_form'] == 'login_form':
             login_form = LoginForm(request.POST)
             if login_form.is_valid():
@@ -394,8 +411,13 @@ def signin(request):
                 if user:
                     login(request, user)
                     return redirect('index')
-            else:
-                return render(request, 'index.html', {'form': login_form})
+                else:
+                    try:
+                        User.objects.get(username=login_form.cleaned_data['username'].lower())
+                        message = 'Введите логин маленькими буквами!'
+                    except User.DoesNotExist:
+                        message = 'Некорректные данные!'
+                    return render(request, 'index.html', {'form': login_form, 'message': message})
     return render(request, 'index.html', context=context)
 
 

@@ -14,6 +14,11 @@
         <header>Регистрация</header>
         <form method="post" action="{% url 'start' %}">
             {% csrf_token %}
+            {% if message %}
+                <div style="padding: 3px;border-radius: 3px; margin: auto; color:#ff0000;background-color:rgb(255,255,255);">{{ message }}</div>
+            {% else %}
+                <div style="opacity: 0.8; margin: auto; color:#ffffff;">Логин будет записан маленькими буквами</div>
+            {% endif %}
             <input type="hidden" name="type_form" value="registration_form">
             <input type="text" id="id_username" maxlength="150" name="username" placeholder="Логин" required/>
             <input type="text" id="id_email" maxlength="254" name="email" placeholder="Почта" required/>
@@ -26,6 +31,7 @@
         <header>Вход</header>
         <form method="post" action="{% url 'start' %}">
             {% csrf_token %}
+            <div style="opacity: 0.5; margin: auto">Логин писать маленькими буквами</div>
             <input type="hidden" name="type_form" value="login_form">
             <input type="text" id="id_username" maxlength="150" name="username" placeholder="Логин" required/>
             <input type="password" id="id_password" name="password" placeholder="Пароль" required/>
