@@ -1,3 +1,5 @@
+import calendar
+
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -93,6 +95,21 @@ def by_date(request, picked_date):
 
         if request.POST:
             print(request.POST)
+
+        # Создаем словарь с ключами, которые являются названиями дней недели
+        weekdays = {i.lower(): [] for i in calendar.day_name}
+
+        now = datetime.now()
+        month = now.month
+
+        # Получаем календарь для текущего месяца
+        for day in range(1, calendar.monthrange(now.year, month)[1] + 1):
+            # Определяем день недели текущей даты и добавляем ее в соответствующий список в словаре
+            weekday = calendar.day_name[calendar.weekday(now.year, month, day)]
+            weekdays[weekday.lower()].append(day)
+        tmp_weekdays = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
+        for index, weekday in enumerate(dict(weekdays).keys()):
+            weekdays[tmp_weekdays[index]] = weekdays.pop(weekday)
 
         if request.POST.get('cell', False):
             if '*' in request.POST['symbols'] or '|' in request.POST['symbols'] or '*' in request.POST['comment'] or '|' in request.POST['comment']:
@@ -208,6 +225,10 @@ def by_date(request, picked_date):
                         conn.activity.number = tmp_number + 1
                         conn.activity.save()
                         tmp_number += 1
+                for connection in act_connections.filter(group_id=group_id):
+                    connection.activity.color = request.POST['color']
+                    connection.activity.backgroundColor = request.POST['backgroundColor']
+                    connection.activity.save()
 
             activity.save()
             return redirect(redirect_url, picked_date)
@@ -252,7 +273,7 @@ def by_date(request, picked_date):
                    'settings': settings, 'progress': progress_activities, 'today': today, 'month_name': month_name,
                    'year': picked_date_lst[0], 'groups_ids': groups_ids, 'days': days, 'groupsToClick': activated_groups,
                    'groups_progress': groups_progress, 'groups_progress_add': groups_progress_add, 'connections': connections,
-                   'lst_group_conns': lst_group_conns, 'group_open': group_open}
+                   'lst_group_conns': lst_group_conns, 'group_open': group_open, 'weekdays': weekdays}
 
         return render(request, 'base.html', context=context)
 
@@ -275,7 +296,7 @@ def start(request):
 def create_last_activities(request, picked_date):
     picked_date_lst = list(map(int, picked_date.split('-')))
     days = monthrange(picked_date_lst[0], picked_date_lst[1])[1]
-
+    print(days)
     # Корректно выбирает прошлый месяц
     if picked_date_lst[1] == 1:
         activities = Activities.objects.filter(user=request.user, date=f'{picked_date_lst[0] - 1}-12')
@@ -289,8 +310,8 @@ def create_last_activities(request, picked_date):
     for activity in activities:
         a = Activities(user=request.user, name=activity.name, date=picked_date, marks='False ' * days,
                        backgroundColor=activity.backgroundColor, number=activity.number, color=activity.color,
-                       isGroup=activity.isGroup, isOpen=activity.isOpen, beginDay=activity.beginDay,
-                       endDay=activity.endDay, cellsComments='*|' * days, onOffCells='True ' * days)
+                       isGroup=activity.isGroup, isOpen=activity.isOpen, beginDay=0,
+                       endDay=days - 1, cellsComments='*|' * days, onOffCells='True ' * days)
         all_activities.append(a)
         if a.isGroup:
             new_groups.append(a)

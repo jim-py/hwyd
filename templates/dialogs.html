@@ -110,7 +110,8 @@
     <hr>
     <form id="formActivitySettings" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
-        <input class="elementActivitySettings" style="display:none" name="activityPk"/>
+        <input type="hidden" name="saveWithColor">
+        <input class="elementActivitySettings" type="hidden" name="activityPk"/>
         <div>
             <label for="colorBackgroundForm">Цвет активности</label>
             <input id="colorBackgroundForm" name="backgroundColor" class="colorBackgroundForm elementActivitySettings" type="color">
@@ -153,10 +154,15 @@
                 {% endif %}
             {% endfor %}
         </div>
+        <div class="onOffWeekdays">
+            {% for day in weekdays.keys %}
+                <p style="background-color: #ffffff" id="weekday{{ forloop.counter }}" data-day="{{ day }}">{{ day }}</p>
+            {% endfor %}
+        </div>
     </form>
     <hr>
-    <button class="button-6" onclick="submitActivitySettings();"
-            role="button" style="background-color:#dfffdf;">Сохранить</button>
+    <button class="button-6" onclick="submitActivitySettings('default');" role="button" style="background-color:#dfffdf;">Сохранить</button>
+    <button id="saveWithColor" onclick="submitActivitySettings('saveWithColor');" class="button-6" role="button" style="background-color:#fffcdf; width: auto">Сохранить с переносом цвета</button>
     <form method="dialog" id="closeDialog">
         <button id="closeSettingsActivity" class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
     </form>

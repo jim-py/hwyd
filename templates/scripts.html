@@ -112,13 +112,16 @@
 
 {# Тоже что-то #}
 <script>
-    function submitActivitySettings() {
+    function submitActivitySettings(e) {
         let data = ''
         for (let elem of document.querySelectorAll('[id*=day]')) {
             if ($(elem).hasClass('on'))
                 data += 'True '
             else
                 data += 'False '
+        }
+        if (e === 'saveWithColor') {
+            document.querySelector('[id=saveWithColor]').value = 'true';
         }
         document.querySelector('[id=inputCells]').value = data;
         document.querySelector('form[id=formActivitySettings]').submit();
@@ -127,6 +130,15 @@
     for (let elem of document.querySelectorAll('[id*=day]')) {
         elem.addEventListener("click", function (e) {
             $(e.target).toggleClass('on')
+        })
+    }
+
+    for (let elem of document.querySelectorAll('[id*=weekday]')) {
+        elem.addEventListener("click", function (e) {
+            let lst = {{ weekdays|safe }};
+            for (let elem_day of lst[e.target.getAttribute('data-day')]) {
+                document.querySelector(`[id=day${elem_day}]`).click()
+            }
         })
     }
 
@@ -237,10 +249,12 @@
         const dialog = document.getElementById('dialog');
         const elements = dialog.querySelectorAll('[class*=elementActivitySettings]');
         const onOffDaysDiv = document.querySelector('div.onOffDaysDiv');
+        const onOffWeekdays = document.querySelector('div.onOffWeekdays');
         const gridContainer = document.querySelector('div.grid-container');
         const beginDay = document.querySelector('div.beginDay');
         const endDay = document.querySelector('div.endDay');
         const hrGridContainer = document.querySelector('hr.grid-container');
+        const btnSaveWithColor = document.querySelector('#saveWithColor');
 
         // Извлекаем атрибуты из нажатого элемента
         const targetType = e.target.getAttribute('data-type');
@@ -276,10 +290,12 @@
             }
             // Обновляем стили отображения под тип 'активность'
             onOffDaysDiv.style.display = 'inline-block';
+            onOffWeekdays.style.display = 'block';
             gridContainer.style.display = 'none';
             beginDay.style.display = 'block';
             endDay.style.display = 'block';
             hrGridContainer.style.display = 'none';
+            btnSaveWithColor.style.display = 'none';
         } else {
             // Очищаем и прокликиваем активности связанные с группой
             for (let elem of document.querySelectorAll('[id*=activityToGroup]')) {
@@ -287,10 +303,12 @@
             }
             // Обновляем стили отображения под тип 'группа'
             onOffDaysDiv.style.display = 'none';
+            onOffWeekdays.style.display = 'none';
             gridContainer.style.display = 'grid';
             beginDay.style.display = 'none';
             endDay.style.display = 'none';
             hrGridContainer.style.display = '';
+            btnSaveWithColor.style.display = 'inline-block';
         }
 
         // Отображаем модальный диалог
