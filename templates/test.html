@@ -349,6 +349,9 @@ ul:not(:has(.list-group-item)) {
                     }
             })
         }
+        setTimeout(function () {
+            location.reload();
+        }, 100)
 
         const taskListItem = document.createElement("li");
         taskListItem.classList.add("list-group-item");
