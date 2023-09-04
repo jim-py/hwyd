@@ -13,6 +13,7 @@
             <option {% if settings.fontFamily == 'Montserrat' %}selected{% endif %} style="font-family: 'Montserrat', serif" name="Montserrat">Montserrat</option>
             <option {% if settings.fontFamily == 'Montserrat Alternates' %}selected{% endif %} style="font-family: 'Montserrat Alternates', serif" name="Montserrat Alternates">Montserrat Alternates</option>
             <option {% if settings.fontFamily == 'Georgia' %}selected{% endif %} style="font-family: 'Georgia', serif" name="Georgia">Georgia</option>
+            <option {% if settings.fontFamily == 'JetBrains Mono' %}selected{% endif %} style="font-family: 'JetBrains Mono', serif" name="JetBrains Mono">JetBrains Mono</option>
             <option {% if settings.fontFamily == 'Arial' %}selected{% endif %} style="font-family: 'Arial', serif" name="Arial">Arial</option>
             <option {% if settings.fontFamily == 'Courier New' %}selected{% endif %} style="font-family: 'Courier New', serif" name="Courier New">Courier New</option>
             <option {% if settings.fontFamily == 'Lucida Console' %}selected{% endif %} style="font-family: 'Lucida Console', serif" name="Lucida Console">Lucida Console</option>
@@ -105,9 +106,11 @@
     <img width="16" height="16" src="{% static 'phone.png' %}"></button>  <!-- Мобильная версия -->
 {% endif %}
 
-<dialog id="dialog">
+<dialog id="dialog" class="modalActivity">
+<div class="modal__header">
     <h3 class="dialog__title elementActivitySettings"></h3>
     <hr>
+</div>
     <form id="formActivitySettings" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="saveWithColor">
@@ -168,9 +171,11 @@
     </form>
 </dialog>  <!-- Диалоговое окно настроек группы/активности -->
 
-<dialog id="dialogHead">
+<dialog id="dialogHead" class="modalColors">
+    <div class="modal__header">
     <h3 class="dialog__title dialogHeadSettings">Глобальные настройки цвета</h3>
     <hr>
+    </div>
     <form id="formColorSettings" action="{% url 'global_colors' date %}" method="post">
         {% csrf_token %}
         <div>

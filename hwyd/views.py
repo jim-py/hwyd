@@ -129,7 +129,7 @@ def by_date(request, picked_date):
             marks_db = activity.marks.split()
             marks_db[day] = 'False' if marks_db[day] == 'True' else 'True'
             activity.marks = ' '.join(marks_db)
-            activity.save()
+            activity.save(update_fields=['marks'])
             return redirect(redirect_url, picked_date)
 
         if request.POST.get('data'):
@@ -284,19 +284,10 @@ def start(request):
     return redirect('by_date', f'{current_date.year}-{current_date.month:0>2}')
 
 
-# def start(request):
-#     if request.POST:
-#         print(request.POST)
-#     context = {'act': Activities.objects.filter(date='2023-09'),
-#                'days': [i for i in range(-1, 2)]}
-#     return render(request, 'test.html', context=context)
-
-
 @login_required(login_url='start')
 def create_last_activities(request, picked_date):
     picked_date_lst = list(map(int, picked_date.split('-')))
     days = monthrange(picked_date_lst[0], picked_date_lst[1])[1]
-    print(days)
     # Корректно выбирает прошлый месяц
     if picked_date_lst[1] == 1:
         activities = Activities.objects.filter(user=request.user, date=f'{picked_date_lst[0] - 1}-12')

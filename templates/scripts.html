@@ -389,6 +389,7 @@
         handle: '.paragraph',
         helper: fixHelper,
         stop: stop,
+        scroll: false,
         revert: 200
     });  // Настройка перетаскивания
 </script>
@@ -490,4 +491,20 @@
         );
         document.getElementById('settingsGlobal').submit();
     }
+</script>
+<script>
+{#function swapRows() {#}
+{#    let rows = $(".sortable-table tbody tr");#}
+{#    rows.first().before(rows.last());#}
+{# } #}
+{#document.querySelector('#buttonUp').addEventListener('click', function() {#}
+{#    swapRows();#}
+{# }); #}
+
+$("#dialogHead, #dialog").draggable({
+    handle: '.modal__header',
+    cursor: 'move'
+});
+
+
 </script>
