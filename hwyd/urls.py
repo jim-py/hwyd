@@ -1,6 +1,6 @@
 from django.urls import path
 from hwyd.views import start, by_date, create_last_activities, delete_activity, create_activity, global_colors,\
-    get_comments, delete_all, signin, user_logout, check_cell, open_group
+    get_comments, delete_all, signin, user_logout, check_cell, open_group, open_all
 
 urlpatterns = [
     path('', start, name="index"),
@@ -14,6 +14,7 @@ urlpatterns = [
     path('create_activity/<str:picked_date>/<int:is_group>', create_activity, name="create_activity"),
 
     path('check_cell/<str:picked_date>', check_cell, name="check_cell"),
+    path('open_all/<str:picked_date>', open_all, name="open_all"),
     path('delete_all/<str:picked_date>', delete_all, name="delete_all"),
     path('delete-activity/', delete_activity, name="delete_activity"),
     path('open_group/', open_group, name="open_group"),

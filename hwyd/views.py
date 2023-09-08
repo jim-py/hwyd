@@ -38,6 +38,7 @@ def by_date(request, picked_date):
         settings.onSounds = lst[5]
         settings.showRowColumnLight = lst[6]
         settings.showActivityDayLight = lst[7]
+        settings.showOpenAllGroups = lst[8]
 
         if request.POST['radioSettings'] == 'sort':
             settings.enableSortTable = True
@@ -394,7 +395,7 @@ def create_activity(request, picked_date, is_group):
 
 @login_required(login_url='start')
 def get_comments(request, picked_date):
-    activity, day = get_activity_day(request.POST['checkboxToCheck'], request.user, picked_date)
+    activity, day = get_activity_day(request.POST['cell'], request.user, picked_date)
     return HttpResponse(activity.cellsComments)
 
 
@@ -413,6 +414,19 @@ def open_group(request):
     group = Activities.objects.get(pk=int(request.POST['openedGroup']))
     group.isOpen = False if group.isOpen else True
     group.save(update_fields=['isOpen'])
+    return HttpResponse()
+
+
+@login_required(login_url='start')
+def open_all(request, picked_date):
+    groups = Activities.objects.filter(user=request.user, date=picked_date, isGroup=True)
+    opened_groups = []
+    for group in groups:
+        opened_groups.append(group.isOpen)
+    res = not any(opened_groups)
+    for group in groups:
+        group.isOpen = res
+    Activities.objects.bulk_update(groups, ['isOpen'])
     return HttpResponse()
 
 

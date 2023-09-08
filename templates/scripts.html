@@ -486,7 +486,7 @@
         const checkboxes = [
             "showCalendar", "showCreateActivity", "showDeleteActivity",
             "showDeleteAllActivities", "showCreateActivityGroup",
-            "onSounds", "showRowColumnLight", "showActivityDayLight"
+            "onSounds", "showRowColumnLight", "showActivityDayLight", "showOpenAllGroups"
         ];
         document.querySelector("#data").value = checkboxes.map(checkboxId =>
             document.querySelector(`#${checkboxId}`).checked
@@ -543,4 +543,53 @@ document.querySelector('#deleteAll').addEventListener('click', function (evt) {
         });
     })
 {% endif %}
+
+function any(iterable) {
+    for (let index = 0; index < iterable.length; index++) {
+        if (iterable[index]) return true;
+    }
+    return false;
+}
+
+document.querySelector('#openAll').addEventListener('click', function (evt) {
+    $.ajax({
+        type: 'POST',
+        url: '{% url 'open_all' date %}',
+        data:
+            {
+                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+            }
+    }).done(function () {
+        let groups = document.querySelectorAll('tbody td[class*=isGroup]')
+        let opened = []
+        let activities_clean = []
+        for (let elem of document.querySelectorAll('tbody tr[class*=group]')) {
+            if (!elem.className.includes('None')) {
+                activities_clean.push(elem)
+            }
+        }
+        for (let elem of activities_clean) {
+            opened.push(elem.style.display)
+        }
+        if (any(opened) === true) {
+            for (let elem of activities_clean) {
+                elem.style.display = ''
+            }
+            for (let elem of groups) {
+                if ($(elem).hasClass('expand')) {
+                    $(elem).toggleClass('expand')
+                }
+            }
+        } else {
+            for (let elem of activities_clean) {
+                elem.style.display = 'none'
+            }
+            for (let elem of groups) {
+                if (!$(elem).hasClass('expand')) {
+                    $(elem).toggleClass('expand')
+                }
+            }
+        }
+    });
+})
 </script>

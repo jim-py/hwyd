@@ -70,6 +70,7 @@ class Settings(models.Model):
     showActivityDayLight = models.BooleanField(verbose_name='Включить выделение активности и дня')
     rowColumnLight = models.CharField(max_length=7, verbose_name='Цвет выделения стоки и столбца')
     fontFamily = models.TextField(verbose_name='Шрифт')
+    showOpenAllGroups = models.BooleanField(verbose_name='Открыть/закрыть группы')
 
     class Meta:
         verbose_name = 'Настройку'
