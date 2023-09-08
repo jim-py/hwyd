@@ -99,7 +99,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: '{% url 'by_date' date %}',
+                url: '{% url 'check_cell' date %}',
                 data:
                     {
                         checkboxToCheck: elem.id,
@@ -120,8 +120,10 @@
             else
                 data += 'False '
         }
+        console.log(e)
         if (e === 'saveWithColor') {
-            document.querySelector('[id=saveWithColor]').value = 'true';
+            document.querySelector('[name=saveWithColor]').value = 'true';
+            console.log('asdf')
         }
         document.querySelector('[id=inputCells]').value = data;
         document.querySelector('form[id=formActivitySettings]').submit();
@@ -192,7 +194,7 @@
                 $(this).toggleClass('expand');
                 $.ajax({
                     type: 'POST',
-                    url: '{% url 'by_date' date %}',
+                    url: '{% url 'open_group' %}',
                     data:
                         {
                             openedGroup: group_id,
@@ -506,5 +508,39 @@ $("#dialogHead, #dialog").draggable({
     cursor: 'move'
 });
 
-
+for (let elem of document.querySelectorAll('.deleteActivityButt')) {
+    elem.addEventListener('click', function (evt) {
+        let pk = evt.target.getAttribute('data-pk')
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'delete_activity' %}',
+            data:
+                {
+                    pk: pk,
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                }
+        }).done(function () {
+            $(evt.target.parentNode.parentNode.parentNode.parentNode.parentNode).remove()
+            $(document.querySelector(`#activityToGroup${pk}`).parentNode).remove()
+        });
+    })
+}
+{% if range_activities and settings.showDeleteAllActivities %}
+document.querySelector('#deleteAll').addEventListener('click', function (evt) {
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'delete_all' date %}',
+            data:
+                {
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                }
+        }).done(function () {
+            for (let elem of document.querySelectorAll('tbody tr')) {
+                elem.remove()
+            }
+            $('#deleteAll')[0].style.display = 'none'
+            $('#btnActLastMonth')[0].style.display = 'block'
+        });
+    })
+{% endif %}
 </script>

@@ -1,6 +1,8 @@
-{% if not range_activities %}
-    <form action="{% url 'create_last_activities' date %}">
-        <button type="submit" class="button-6" id="btnSaveSettings" role="button"
-                style="background-color:#f0f0f0;width: auto;">Создать активности прошлого месяца</button>
-    </form>
-{% endif %}  <!-- Кнопка создания активностей прошлого месяца -->
+<form action="{% url 'create_last_activities' date %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="button-6" role="button" id="btnActLastMonth"
+            style="background-color:#ffffff;width: auto; display:{% if not range_activities %}block;{% else %}none;{% endif %}">
+        Создать активности прошлого месяца
+    </button>
+</form>
+<!-- Кнопка создания активностей прошлого месяца -->

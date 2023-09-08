@@ -1,7 +1,9 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from .models import Tasks
 
 
+@login_required(login_url='start')
 def start(request):
     if request.POST:
         if request.POST.get('taskText', False):

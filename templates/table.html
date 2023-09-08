@@ -37,9 +37,10 @@
                         <p class="paragraph" id="p{{ forloop.parentloop.counter0 }}{% if '/m' in request.path and j != -1 %}-{% endif %}{{ j }}"
                            style="{% if not activity|get_group_id:connections == None %} margin-left: 10px; {% endif %}{% if '/m' in request.path %}font-size: 12px;{% endif %}" data-conn="{{ activity|connection_group:lst_group_conns }}" data-onOffDays="{{ activity|get_days|safe }}" data-type="{% if activity.isGroup %}группы{% else %}активности{% endif %}" data-pk="{{ activity.pk }}" data-color-activity="{{ activity.backgroundColor }}" data-color-text="{{ activity.color }}" data-name="{{ activity.name }}" data-beginDay="{{ activity.beginDay|add:1 }}" data-endDay="{{ activity.endDay|add:1 }}">
                             {% if settings.showDeleteActivity %}
-                                <a href="{% url 'delete_activity' activity.pk date %}">
+                                <a class="deleteActivityButt">
                                     <button class="deleteActivity" type="button">
-                                        <img class="cross" src="{% static 'cross.png' %}"></button>
+                                        <img class="cross" data-pk="{{ activity.pk }}" src="{% static 'cross.png' %}">
+                                    </button>
                                 </a>
                             {% endif %}
                             {{ activity.name }}
@@ -71,11 +72,8 @@
 </table>
 </div>  <!-- Таблица активностей -->
 
-{% if range_activities and settings.showDeleteAllActivities %}
-<form action="{% url 'delete_all' date %}" method="post">
-    {% csrf_token %}
-<button class="button-6" role="button" style="background-color:#ffdfdf;width: auto">Очистить все активности</button>
-</form>
-{% endif %}  <!-- Кнопка удаления всех активностей -->
+
+<button id="deleteAll" class="button-6" role="button" style="background-color:#ffdfdf;width: auto; display:{% if range_activities and settings.showDeleteAllActivities %}block;{% else %}none;{% endif %}">Очистить все активности</button>
+<!-- Кнопка удаления всех активностей -->
 
 {#<button class="button-6" id="buttonUp" role="button" style="background-color:#dfefff;width: auto">Вверх</button>#}

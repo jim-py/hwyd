@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.forms.models import model_to_dict
 
 
 class ActivitiesConnection(models.Model):
@@ -37,6 +38,18 @@ class Activities(models.Model):
 
     def __str__(self):
         return f'Активность: {self.name} | Пользователь: {self.user} | Месяц: {self.date}'
+
+    def get_changed_fields(self, old_instance):
+        old_instance_dict = model_to_dict(old_instance)
+        new_instance_dict = model_to_dict(self)
+        changed_fields = {}
+
+        for field, old_value in old_instance_dict.items():
+            new_value = new_instance_dict[field]
+            if old_value != new_value:
+                changed_fields[field] = new_value
+
+        return changed_fields
 
 
 class Settings(models.Model):
