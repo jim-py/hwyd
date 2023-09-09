@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Задачи</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    {% include 'todo/styles.html' %}
+</head>
+<body>
+
+<!-- Модальное окно -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Создание задач</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-task-form">
+                    {% csrf_token %}
+                    <input id="task-name" maxlength="100" class="form-control" type="text" placeholder="Название">
+                    <textarea style="max-height: 175px" maxlength="255" id="task-description" class="form-control" type="text" placeholder="Описание"></textarea>
+                    <select class="form-control" id="task-priority">
+                        <option value="none">Без приоритета</option>
+                        <option value="low">Низкий приоритет</option>
+                        <option value="medium">Средний приоритет</option>
+                        <option value="high">Высокий приоритет</option>
+                    </select>
+                    <input id="task-time" class="form-control d-inline-block" style="width: 33%;" type="time">
+                    <input id="task-date" class="form-control d-inline-block" style="width: 32%;" type="date">
+                    <input id="task-deadline" class="form-control d-inline-block" style="width: 33%;" type="date">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="add-task" class="btn btn-success">Добавить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button class="btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop" id="open-modal">
+    <img width="50" alt="img" src="https://cdn-icons-png.flaticon.com/512/4315/4315609.png">
+</button>
+
+<div class="container" style="margin-top: 25px;">
+    <ul class="list-group d-inline-block" id="task-list-today">
+        <b class="custom-b">Все задачи</b>
+        <p style="height: 15px;"></p>
+{#        {% for task in tasks %}#}
+{#            <li class="list-group-item {{ task.priority }} task-card" data-pk="{{ task.pk }}">#}
+{#                <input type="checkbox" class="form-check-input">#}
+{#                <div>#}
+{#                    <div class="task-title">{{ task.name }}</div>#}
+{#                    <span class="task-details">{{ task.date|date:'j E' }} {{ task.time|date:'H:i' }}</span>#}
+{#                    {% if task.deadline %}<div class="task-details">{{ task.deadline }}</div>{% endif %}#}
+{#                    <div class="task-tags">Работа, Проект, Важное</div>#}
+{#                </div>#}
+{#                <span class="remove-task-btn">×</span>#}
+{#            </li>#}
+{#        {% endfor %}#}
+    </ul>
+    <ul class="list-group d-inline-block" id="task-list-done">
+        <b class="custom-b">Выполненные</b>
+        <p style="height: 15px;"></p>
+{#        {% for task in tasks_done %}#}
+{#            <li class="list-group-item {{ task.priority }} task-card" data-pk="{{ task.pk }}">#}
+{#                <input type="checkbox" class="form-check-input" checked>#}
+{#                <div>#}
+{#                    <div class="task-title">{{ task.name }}</div>#}
+{#                    <span class="task-details">{{ task.date|date:'j E' }} {{ task.time|date:'H:i' }}</span>#}
+{#                    {% if task.deadline %}<div class="task-details">{{ task.deadline }}</div>{% endif %}#}
+{#                    <div class="task-tags">Работа, Проект, Важное</div>#}
+{#                </div>#}
+{#                <span class="remove-task-btn">×</span>#}
+{#            </li>#}
+{#        {% endfor %}#}
+    </ul>
+</div>
+
+<script src="{% static 'js/bootstrap.js' %}"></script>
+<script src="{% static 'js/jquery.js' %}"></script>
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'js/jquery-ui.min.js' %}"></script>
+
+{% include 'todo/scripts.html' %}
+
+</body>
+</html>

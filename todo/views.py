@@ -24,4 +24,4 @@ def start(request):
     tasks = Tasks.objects.filter(user=request.user)
     tasks_done = [t for t in tasks if t.done]
     tasks_not_done = [t for t in tasks if not t.done]
-    return render(request, 'test.html', context={'tasks': tasks_not_done, 'tasks_done': tasks_done, 'all_tasks': tasks})
+    return render(request, 'todo/base.html', context={'tasks': tasks_not_done, 'tasks_done': tasks_done, 'all_tasks': tasks})
