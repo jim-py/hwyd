@@ -33,15 +33,15 @@
             {% for j in range_days %}
                 {% if forloop.first %}
                     <td class="header {% if activity.isOpen %} expand {% endif %} {% if activity.isGroup %} isGroup{{ activity.pk }} {% else %} group{{ activity|get_group_id:connections }}-{{ activity.pk }} {% endif %}">
-                        <input class="activityNames" name="{{ activity.name }}" style="display:none;">
                         <p class="paragraph" id="p{{ forloop.parentloop.counter0 }}{% if '/m' in request.path and j != -1 %}-{% endif %}{{ j }}"
-                           style="{% if not activity|get_group_id:connections == None %} margin-left: 10px; {% endif %}{% if '/m' in request.path %}font-size: 12px;{% endif %}" data-conn="{{ activity|connection_group:lst_group_conns }}" data-onOffDays="{{ activity|get_days|safe }}" data-type="{% if activity.isGroup %}группы{% else %}активности{% endif %}" data-pk="{{ activity.pk }}" data-color-activity="{{ activity.backgroundColor }}" data-color-text="{{ activity.color }}" data-name="{{ activity.name }}" data-beginDay="{{ activity.beginDay|add:1 }}" data-endDay="{{ activity.endDay|add:1 }}">
+                           style="{% if not activity|get_group_id:connections == None %} margin-left: 10px; {% endif %}{% if '/m' in request.path %}font-size: 12px;{% endif %}" data-conn="{{ activity|connection_group:lst_group_conns }}" data-type="{% if activity.isGroup %}группы{% else %}активности{% endif %}" data-name="{{ activity.name }}">
                             {% if settings.showDeleteActivity %}
                                 <a class="deleteActivityButt">
                                     <button class="deleteActivity" type="button">
                                         <img class="cross" data-pk="{{ activity.pk }}" src="{% static 'cross.png' %}">
                                     </button>
                                 </a>
+
                             {% endif %}
                             {{ activity.name }}
                         </p>
@@ -60,7 +60,7 @@
                         {% else %}
                             {% if activity.beginDay <= j and j <= activity.endDay and activity|get_one_day:j %}
                                 <div id="{{ forloop.parentloop.counter0 }}-{{ j }}" {% get_comments as res %} data-title="{{ res }}"
-                                     class="divClick {% if today|add:-1 == j %}today{% endif %} {% if res %}hasText{% endif %} {% if j > 15 %}bigger15{% endif %}" style="display:flex;align-items: center; justify-content: center; font-size: 9px">{% get_symbols %}</div>
+                                     class="divClick {% if today|add:-1 == j %}today{% endif %} {% if res %}hasText{% endif %} {% if j > 15 %}bigger15{% endif %}">{% get_symbols %}</div>
                             {% endif %}
                         {% endif %}
                     </td>

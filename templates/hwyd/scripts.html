@@ -258,13 +258,21 @@
         const hrGridContainer = document.querySelector('hr.grid-container');
         const btnSaveWithColor = document.querySelector('#saveWithColor');
 
+        let tmp = {{ test|safe }}, selected_activity;
+        for (let activity of tmp) {
+            if (activity['name'] === e.target.getAttribute('data-name')) {
+                selected_activity = activity
+            }
+        }
+        console.log(selected_activity)
+
         // Извлекаем атрибуты из нажатого элемента
         const targetType = e.target.getAttribute('data-type');
-        const targetName = e.target.getAttribute('data-name');
-        const targetPk = e.target.getAttribute('data-pk');
-        const targetColorActivity = e.target.getAttribute('data-color-activity');
-        const targetColorText = e.target.getAttribute('data-color-text');
-        const targetOnOffDays = JSON.parse(e.target.getAttribute('data-onOffDays').replace(/'/g, '"'));
+        const targetName = selected_activity['name'];
+        const targetPk = selected_activity['id'];
+        const targetColorActivity = selected_activity['backgroundColor'];
+        const targetColorText = selected_activity['color'];
+        const targetOnOffDays = selected_activity['onOffCells'].split(' ');
         const targetConn = JSON.parse(e.target.getAttribute('data-conn'));
 
         // Заполняем поля ввода и обновляем текст на основе атрибутов активности
@@ -369,8 +377,8 @@
                     $(elem).insertAfter('tr.isGroup' + elem_class.match(numbers_filter)[0].split('-')[0])
         }
         let activities = []
-        for (let activity of document.getElementsByClassName('activityNames')) {
-            activities.push(activity.name)
+        for (let activity of document.querySelectorAll('p[id*=p]')) {
+            activities.push(activity.getAttribute('data-name'))
         }
         setTimeout(timeout, 0);
 

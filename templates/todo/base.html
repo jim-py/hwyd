@@ -45,6 +45,33 @@
     <img width="50" alt="img" src="https://cdn-icons-png.flaticon.com/512/4315/4315609.png">
 </button>
 
+    <style>
+        li{
+            display: inline-block;
+        }
+        ul{
+            margin: 0;
+            display: inline-block;
+        }
+        .link {
+        display: inline-block;
+        background: #8C959D;
+        color: #fff;
+        padding: 0 1.5rem;
+        text-decoration: none;
+        border-radius: 3px;
+       }
+        .active{
+            background: #75beff;
+        }
+    </style>
+    <ul>
+        <li><a href="{% url 'test' %}" class="link">To-Do</a></li>
+        <li><a href="{% url 'by_date' '2023-09' %}" class="link">HWYD</a></li>
+    </ul>
+
+
+
 <div class="container" style="margin-top: 25px;">
     <ul class="list-group d-inline-block" id="task-list-today">
         <b class="custom-b">Все задачи</b>
@@ -84,6 +111,14 @@
 <script src="{% static 'js/jquery.js' %}"></script>
 <script src="{% static 'js/jquery.min.js' %}"></script>
 <script src="{% static 'js/jquery-ui.min.js' %}"></script>
+
+<script>
+        for (let elem of document.querySelectorAll('.link')) {
+            if (elem.href === location.href){
+                $(elem).toggleClass('active')
+            }
+        }
+    </script>
 
 {% include 'todo/scripts.html' %}
 

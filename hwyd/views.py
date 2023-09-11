@@ -1,4 +1,5 @@
 # Импорты из стандартной библиотеки
+import json
 from copy import deepcopy
 from calendar import monthrange, day_name, weekday
 from datetime import datetime, date
@@ -316,13 +317,14 @@ def by_date(request, picked_date):
             else:
                 range_days = range_days[today - 4:today + 2]
 
+        test = json.dumps(list(activities.values()))
         context = {'range_activities': activities, 'range_days': range_days, 'weekends': weekends,
                    'cellsToClick': activated_cells, 'date': picked_date, 'onOffDays': [i for i in range(-1, days)][:-1],
                    'settings': settings, 'progress': progress_activities, 'today': today, 'month_name': month_name,
                    'year': year, 'groups_ids': groups_ids, 'days': days, 'groupsToClick': activated_groups,
                    'groups_progress': groups_progress, 'groups_progress_add': groups_progress_add,
                    'lst_group_conns': group_to_activities, 'group_open': group_open, 'connections': connections,
-                   'weekdays': weekdays}
+                   'weekdays': weekdays, 'test': test}
 
         return render(request, 'hwyd/base.html', context=context)
 
@@ -586,7 +588,8 @@ def signin(request):
                                         showCreateActivity=False, showDeleteAllActivities=False,
                                         showDeleteActivity=False, showCreateActivityGroup=False, enableSortTable=True,
                                         enableOpenCloseGroups=False, onSounds=True, showRowColumnLight=True,
-                                        showActivityDayLight=True, rowColumnLight='#e7e7e7', fontFamily='Inter')
+                                        showActivityDayLight=True, rowColumnLight='#e7e7e7', fontFamily='Inter',
+                                        showOpenAllGroups=True)
                 login(request, user)
                 return redirect('index')
             else:
