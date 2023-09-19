@@ -71,6 +71,7 @@ class Settings(models.Model):
     rowColumnLight = models.CharField(max_length=7, verbose_name='Цвет выделения стоки и столбца')
     fontFamily = models.TextField(verbose_name='Шрифт')
     showOpenAllGroups = models.BooleanField(verbose_name='Открыть/закрыть группы')
+    showTabs = models.BooleanField(verbose_name='Вкладки')
 
     class Meta:
         verbose_name = 'Настройку'

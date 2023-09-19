@@ -4,7 +4,7 @@
         <input type="month" id="chooseDate" name="chooseDate" min="2020-01" max="2030-12" value="{{ date }}">
     </form>
 {% endif %}  <!-- Календарь для выбора месяца -->
-
+{% if settings.showTabs %}
     <style>
         li{
             display: inline-block;
@@ -37,3 +37,4 @@
             }
         }
     </script>
+{% endif %}

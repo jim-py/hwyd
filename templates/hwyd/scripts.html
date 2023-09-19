@@ -272,6 +272,8 @@
         const targetPk = selected_activity['id'];
         const targetColorActivity = selected_activity['backgroundColor'];
         const targetColorText = selected_activity['color'];
+        const beginDayAct = selected_activity['beginDay'];
+        const endDayAct = selected_activity['endDay'];
         const targetOnOffDays = selected_activity['onOffCells'].split(' ');
         const targetConn = JSON.parse(e.target.getAttribute('data-conn'));
 
@@ -285,8 +287,8 @@
         elements[3].value = targetColorText;
         elements[3].data = e.target;
         elements[4].value = targetName;
-        elements[5].value = e.target.getAttribute('data-beginDay');
-        elements[6].value = e.target.getAttribute('data-endDay');
+        elements[5].value = beginDayAct + 1;
+        elements[6].value = endDayAct + 1;
 
         // Подстраиваем отображение на основе типа активности
         if (targetType === 'активности') {
@@ -494,7 +496,8 @@
         const checkboxes = [
             "showCalendar", "showCreateActivity", "showDeleteActivity",
             "showDeleteAllActivities", "showCreateActivityGroup",
-            "onSounds", "showRowColumnLight", "showActivityDayLight", "showOpenAllGroups"
+            "onSounds", "showRowColumnLight", "showActivityDayLight", "showOpenAllGroups",
+            "showTabs"
         ];
         document.querySelector("#data").value = checkboxes.map(checkboxId =>
             document.querySelector(`#${checkboxId}`).checked
@@ -567,7 +570,67 @@ document.querySelector('#openAll').addEventListener('click', function (evt) {
             {
                 csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
             }
-    }).done(function () {
+    }).done(openAllGroups);
+})
+</script>
+<script src="{% static 'js/html2canvas.js' %}"></script>
+<script>
+
+	window.onload = function() {
+
+		document.getElementById("screenShot").onclick = function() {
+            let table = document.getElementById("myTable")
+            openAllGroups()
+            table.style.backgroundColor = '#f0f0f0'
+			html2canvas(table).then(function(canvas) {
+
+                document.getElementById("screenShot").appendChild(canvas);
+                let canvasObj = document.querySelector('canvas'); // Получить ссылку на элемент canvas
+                canvasObj.id = "asdf";
+                canvasObj.style.display = "none";
+                let dataURL = canvasObj.toDataURL('image/png'); // Получить данные из canvas в формате PNG
+                let img = new Image();
+                img.src = dataURL;
+
+                // Создать временный элемент для хранения изображения
+                let tempInput = document.createElement('input');
+                tempInput.type = 'text';
+                tempInput.value = dataURL;
+
+                // Добавить элемент в DOM (он не будет видимым на странице)
+                document.body.appendChild(tempInput);
+
+                // Выделить текст внутри элемента
+                tempInput.select();
+
+                // Копировать выделенный текст в буфер обмена
+                document.execCommand('copy');
+
+                // Удалить временный элемент
+                document.body.removeChild(tempInput);
+
+                setTimeout(downloadTable, 300)
+			});
+		};
+
+
+        function downloadTable() {
+            let canvas = document.getElementById("asdf");
+            let ctx = canvas.getContext("2d");
+            let imageData = canvas.toDataURL("image/png");
+            let tempLink = document.createElement("a");
+            tempLink.href = imageData;
+            tempLink.download = "productivum.png";
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
+            document.getElementById("myTable").style.backgroundColor = ''
+            setTimeout(function () {
+                window.location.reload();
+            }, 1000);
+        }
+    }
+function openAllGroups() {
         let groups = document.querySelectorAll('tbody td[class*=isGroup]')
         let opened = []
         let activities_clean = []
@@ -598,6 +661,5 @@ document.querySelector('#openAll').addEventListener('click', function (evt) {
                 }
             }
         }
-    });
-})
+    }
 </script>

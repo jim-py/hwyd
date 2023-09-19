@@ -3,9 +3,9 @@
 
 <div>
     {% if settings.enableSortTable %}
-        <table class="sortable-table table">
+        <table id="myTable" class="sortable-table table">
     {% else %}
-        <table class="table">
+        <table id="myTable" class="table">
     {% endif %}
     <thead>
     <tr>
@@ -33,7 +33,7 @@
             {% for j in range_days %}
                 {% if forloop.first %}
                     <td class="header {% if activity.isOpen %} expand {% endif %} {% if activity.isGroup %} isGroup{{ activity.pk }} {% else %} group{{ activity|get_group_id:connections }}-{{ activity.pk }} {% endif %}">
-                        <p class="paragraph" id="p{{ forloop.parentloop.counter0 }}{% if '/m' in request.path and j != -1 %}-{% endif %}{{ j }}"
+                        <p class="paragraph" id="p{{ forloop.parentloop.counter0 }}{% if '/m' in request.path and j != -1 %}-{% endif %}{{ j }}" data-pk="{{ activity.pk }}"
                            style="{% if not activity|get_group_id:connections == None %} margin-left: 10px; {% endif %}{% if '/m' in request.path %}font-size: 12px;{% endif %}" data-conn="{{ activity|connection_group:lst_group_conns }}" data-type="{% if activity.isGroup %}группы{% else %}активности{% endif %}" data-name="{{ activity.name }}">
                             {% if settings.showDeleteActivity %}
                                 <a class="deleteActivityButt">

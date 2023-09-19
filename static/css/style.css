@@ -41,7 +41,7 @@ body {
 
 .wrapper.active .form.login {
   bottom: -15%;
-  border-radius: 35%;
+  border-radius: 23%;
   box-shadow: 0 -5px 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -132,4 +132,8 @@ form input[type="submit"] {
   background: #4070f4;
   color: #fff;
   border: none;
+}
+
+li {
+  list-style-type: none;
 }

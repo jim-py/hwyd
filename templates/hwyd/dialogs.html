@@ -25,60 +25,74 @@
             <option {% if settings.fontFamily == 'Comic Sans MS' %}selected{% endif %} style="font-family: 'Comic Sans MS', serif" name="Comic Sans MS">Comic Sans MS</option>
         </select>
         </div>
+
         <div>
-            <label for="showCalendar">Календарь</label>
-            <input name="showCalendar" id="showCalendar" type="checkbox"
-                    {% if settings.showCalendar %} checked {% endif %}>
-        </div>
-        <div>
-            <label for="showCreateActivity">Создание активностей</label>
-            <input name="showCreateActivity" id="showCreateActivity" type="checkbox"
-                    {% if settings.showCreateActivity %} checked {% endif %}>
-        </div>
-        <div>
-            <label for="showCreateActivityGroup">Создание групп</label>
-            <input name="showCreateActivityGroup" id="showCreateActivityGroup" type="checkbox"
-                    {% if settings.showCreateActivityGroup %} checked {% endif %}>
-        </div>
-        <div>
-            <label for="showDeleteActivity">Удаление активностей</label>
-            <input name="showDeleteActivity" id="showDeleteActivity" type="checkbox"
-                    {% if settings.showDeleteActivity %} checked {% endif %}>
-        </div>
-        <div>
-            <label for="showDeleteAllActivities">Удаление всех активностей</label>
-            <input name="showDeleteAllActivities" id="showDeleteAllActivities" type="checkbox"
-                    {% if settings.showDeleteAllActivities %} checked {% endif %}>
-        </div>
-        <div>
-            <label for="enableSortTable">Перетаскивание строк</label>
-            <input name="radioSettings" id="enableSortTable" type="radio" value="sort"
-                    {% if settings.enableSortTable %} checked {% endif %}>
-        </div>
-        <div>
-            <label for="enableOpenCloseGroups">Открытие/закрытие групп</label>
-            <input name="radioSettings" id="enableOpenCloseGroups" type="radio" value="group"
-                    {% if settings.enableOpenCloseGroups %} checked {% endif %}>
-        </div>
             <div>
-            <label for="onSounds">Звуки</label>
-            <input name="onSounds" id="onSounds" type="checkbox"
-                    {% if settings.onSounds %} checked {% endif %}>
+                <label for="enableSortTable">Перетаскивание строк</label>
+                <input name="radioSettings" id="enableSortTable" type="radio" value="sort"
+                        {% if settings.enableSortTable %} checked {% endif %}>
+            </div>
+            <div>
+                <label for="enableOpenCloseGroups">Открытие/закрытие групп</label>
+                <input name="radioSettings" id="enableOpenCloseGroups" type="radio" value="group"
+                        {% if settings.enableOpenCloseGroups %} checked {% endif %}>
+            </div>
         </div>
-        <div>
-            <label for="showRowColumnLight">Выделение строки и столбца</label>
-            <input name="showRowColumnLight" id="showRowColumnLight" type="checkbox"
-                    {% if settings.showRowColumnLight %} checked {% endif %}>
+
+        <div style="display: inline-block">
+            <div>
+                <label for="showCalendar">Календарь</label>
+                <input name="showCalendar" id="showCalendar" type="checkbox"
+                        {% if settings.showCalendar %} checked {% endif %}>
+            </div>
+            <div>
+                <label for="showCreateActivityGroup">Создание групп</label>
+                <input name="showCreateActivityGroup" id="showCreateActivityGroup" type="checkbox"
+                        {% if settings.showCreateActivityGroup %} checked {% endif %}>
+            </div>
+            <div>
+                <label for="showCreateActivity">Создание активностей</label>
+                <input name="showCreateActivity" id="showCreateActivity" type="checkbox"
+                        {% if settings.showCreateActivity %} checked {% endif %}>
+            </div>
+            <div>
+                <label for="showDeleteActivity">Удаление активностей</label>
+                <input name="showDeleteActivity" id="showDeleteActivity" type="checkbox"
+                        {% if settings.showDeleteActivity %} checked {% endif %}>
+            </div>
+            <div>
+                <label for="showDeleteAllActivities">Удаление всех активностей</label>
+                <input name="showDeleteAllActivities" id="showDeleteAllActivities" type="checkbox"
+                        {% if settings.showDeleteAllActivities %} checked {% endif %}>
+            </div>
         </div>
-        <div>
-            <label for="showActivityDayLight">Выделение активности и дня</label>
-            <input name="showActivityDayLight" id="showActivityDayLight" type="checkbox"
-                    {% if settings.showActivityDayLight %} checked {% endif %}>
-        </div>
-        <div>
-            <label for="showOpenAllGroups">Открытие/закрытие групп</label>
-            <input name="showOpenAllGroups" id="showOpenAllGroups" type="checkbox"
-                    {% if settings.showOpenAllGroups %} checked {% endif %}>
+
+        <div style="display: inline-block">
+            <div>
+                <label for="onSounds">Звуки</label>
+                <input name="onSounds" id="onSounds" type="checkbox"
+                        {% if settings.onSounds %} checked {% endif %}>
+            </div>
+            <div>
+                <label for="showTabs">Вкладки</label>
+                <input name="showTabs" id="showTabs" type="checkbox"
+                        {% if settings.showTabs %} checked {% endif %}>
+            </div>
+            <div>
+                <label for="showOpenAllGroups">Открытие/закрытие групп</label>
+                <input name="showOpenAllGroups" id="showOpenAllGroups" type="checkbox"
+                        {% if settings.showOpenAllGroups %} checked {% endif %}>
+            </div>
+            <div>
+                <label for="showActivityDayLight">Выделение активности и дня</label>
+                <input name="showActivityDayLight" id="showActivityDayLight" type="checkbox"
+                        {% if settings.showActivityDayLight %} checked {% endif %}>
+            </div>
+            <div>
+                <label for="showRowColumnLight">Выделение строки и столбца</label>
+                <input name="showRowColumnLight" id="showRowColumnLight" type="checkbox"
+                        {% if settings.showRowColumnLight %} checked {% endif %}>
+            </div>
         </div>
         <p></p>
         <hr>
@@ -89,12 +103,15 @@
     <form id="closeDialog" method="dialog" style="margin-right: 35px;">
         <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
     </form>
+
+    <button onclick="location.href='{% url 'user_logout' %}';" class="button-6" style="width: auto; float: right">Выйти</button>
+<div style="float: right; margin-right: 10px">
     {% if not request.user.is_superuser %}
         {{ request.user.username }}
     {% else %}
         staff
     {% endif %}
-    <button onclick="location.href='{% url 'user_logout' %}';" class="button-6" style="width: auto;">Выйти</button>
+</div>
 </dialog>  <!-- Диалоговое окно настроек сайта -->
 
 <button id="buttonSettings" type="button"
@@ -110,6 +127,8 @@
         onclick="location.href = '{% url 'mobile_by_date' date %}';">
     <img width="16" height="16" src="{% static 'phone.png' %}"></button>  <!-- Мобильная версия -->
 {% endif %}
+<button id="screenShot" type="button" style="margin-right: 10px;">
+    <img width="16" height="16" src="{% static 'photocam.png' %}"></button>  <!-- Кнопка скриншота -->
 
 <dialog id="dialog" class="modalActivity">
 <div class="modal__header">

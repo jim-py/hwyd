@@ -14,8 +14,8 @@
         <header>Регистрация</header>
         <form method="post" action="{% url 'start' %}">
             {% csrf_token %}
-            {% if message %}
-                <div style="padding: 3px;border-radius: 3px; margin: auto; color:#ff0000;background-color:rgb(255,255,255);">{{ message }}</div>
+            {% if messages %}
+                <div style="padding: 3px;border-radius: 3px; margin: auto; color:#ff0000;background-color:rgb(255,255,255);">{% for message in messages %}{{ message }}{% endfor %}</div>
             {% else %}
                 <div style="opacity: 0.8; margin: auto; color:#ffffff;">Логин будет записан маленькими буквами</div>
             {% endif %}

@@ -88,21 +88,31 @@ h3.dialog__title {
     margin: 0 5px;
 }
 
-form[id=settingsGlobal] > div > input[type=checkbox] {
+form[id=settingsGlobal] > div > div > input[type=checkbox] {
     display: inline-block;
     margin: auto 0 auto 10px;
     width: 16px;
     height: 16px;
 }
 
-form[id=settingsGlobal] > div > input[type=checkbox]:checked {
+form[id=settingsGlobal] > div > div > input[type=checkbox]:checked {
     border: 1px solid black;
 }
 
 form[id=settingsGlobal] > div {
     margin-bottom: 7px;
     display: flex;
-    justify-content: start;
+    justify-content: space-between;
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0 0 2px 0 black;
+}
+
+form[id=settingsGlobal] > div > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
 }
 
 form[id=formColorSettings] > div {
@@ -129,7 +139,7 @@ form[id=createActivity] {
     margin-top: 5px;
 }
 
-button[id=buttonSettings] {
+#buttonSettings, #screenShot {
     padding: 0;
     width: 20px;
     height: 20px;

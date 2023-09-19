@@ -59,6 +59,7 @@ def by_date(request, picked_date):
         settings.showRowColumnLight = lst[6]
         settings.showActivityDayLight = lst[7]
         settings.showOpenAllGroups = lst[8]
+        settings.showTabs = lst[9]
 
         if request.POST['radioSettings'] == 'sort':
             settings.enableSortTable = True
@@ -584,17 +585,17 @@ def signin(request):
                 user.username = user.username.lower()
                 user.save()
                 Settings.objects.create(user=user, backgroundColor='#f0f0f0', tableHeadColorWeekend='#eeb3b3',
-                                        tableHeadColor='#e6e4ce', tableHeadTextColor='#000000', showCalendar=False,
-                                        showCreateActivity=False, showDeleteAllActivities=False,
-                                        showDeleteActivity=False, showCreateActivityGroup=False, enableSortTable=True,
+                                        tableHeadColor='#e6e4ce', tableHeadTextColor='#000000', showCalendar=True,
+                                        showCreateActivity=True, showDeleteAllActivities=True,
+                                        showDeleteActivity=True, showCreateActivityGroup=True, enableSortTable=True,
                                         enableOpenCloseGroups=False, onSounds=True, showRowColumnLight=True,
                                         showActivityDayLight=True, rowColumnLight='#e7e7e7', fontFamily='Inter',
-                                        showOpenAllGroups=True)
+                                        showOpenAllGroups=True, showTabs=True)
                 login(request, user)
                 return redirect('index')
             else:
-                message = 'Аккаунт не создан, некорректные данные!'
-                return render(request, 'hwyd/index.html', {'form': login_form, 'message': message})
+                return render(request, 'hwyd/index.html', {'form': login_form,
+                                                           'messages': list(registration_form.errors.values())})
         elif request.POST['type_form'] == 'login_form':
             login_form = LoginForm(request.POST)
             if login_form.is_valid():
@@ -610,7 +611,7 @@ def signin(request):
                         message = 'Введите логин маленькими буквами!'
                     except User.DoesNotExist:
                         message = 'Некорректные данные!'
-                    return render(request, 'hwyd/index.html', {'form': login_form, 'message': message})
+                    return render(request, 'hwyd/index.html', {'form': login_form, 'messages': message})
     return render(request, 'hwyd/index.html', context=context)
 
 
