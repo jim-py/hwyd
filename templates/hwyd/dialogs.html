@@ -7,6 +7,17 @@
     <form id="settingsGlobal" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
         <div>
+            <label for="selectSettings">Настройка</label>
+            <button type="button" id="addSetting" class="button-6" style="width: auto;height: auto;background-color:#dfffdf;">add</button>
+            <input type="text" id="nameSetting" name="nameSetting" value="{{ settings.name }}">
+        <button type="button" id="delSetting" class="button-6" style="width: auto;height: auto;background-color:#ffdfdf;">del</button>
+            <select id="selectSettings" name="selectSettings" style="margin-left: 10px;">
+                {% for setting in all_settings %}
+                    <option {% if setting.selected %}selected{% endif %} value="{{ setting.pk }}">{{ setting.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
         <label for="selectFont">Шрифт</label>
         <select id="selectFont" name="selectFont" style="margin-left: 10px;">
             <option {% if settings.fontFamily == 'Consolas' %}selected{% endif %} style="font-family: 'Consolas', serif" name="Consolas">Consolas</option>
@@ -29,7 +40,7 @@
         <div>
             <div>
                 <label for="enableSortTable">Перетаскивание строк</label>
-                <input name="radioSettings" id="enableSortTable" type="radio" value="sort"
+                <input name="radioSettings" id="enableSortTable" type="radio" value="sort" autofocus
                         {% if settings.enableSortTable %} checked {% endif %}>
             </div>
             <div>
@@ -129,6 +140,8 @@
 {% endif %}
 <button id="screenShot" type="button" style="margin-right: 10px;">
     <img width="16" height="16" src="{% static 'photocam.png' %}"></button>  <!-- Кнопка скриншота -->
+<button id="hideActivities" type="button" style="margin-right: 10px;" class="">
+    <img width="16" height="16" src="{% static 'eye.png' %}"></button>  <!-- Скрыть активности -->
 
 <dialog id="dialog" class="modalActivity">
 <div class="modal__header">
@@ -160,6 +173,10 @@
         <div class="endDay">
             <label for="endDay">День конца</label>
             <input name="endDay" id="endDay" type="number" min="1" max="{{ days }}" class="elementActivitySettings">
+        </div>
+        <div class="hideOn">
+            <label for="hideOn">Спрятать</label>
+            <input name="hideOn" id="hideOn" type="checkbox" class="elementActivitySettings">
         </div>
         <hr class="grid-container">
         <div class="grid-container">

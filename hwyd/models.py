@@ -30,6 +30,7 @@ class Activities(models.Model):
     isOpen = models.BooleanField(verbose_name='Раскрыта')
     cellsComments = models.TextField(verbose_name='Надписи клеток')
     onOffCells = models.TextField(verbose_name='Выключение клеток')
+    hide = models.BooleanField(verbose_name='Спрятать')
 
     class Meta:
         verbose_name = 'Активность'
@@ -53,6 +54,7 @@ class Activities(models.Model):
 
 
 class Settings(models.Model):
+    name = models.CharField(max_length=100, verbose_name='Название')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Владелец')
     backgroundColor = models.CharField(max_length=7, verbose_name='Цвет сайта')
     tableHeadColorWeekend = models.CharField(max_length=7, verbose_name='Цвет выходных')
@@ -72,6 +74,7 @@ class Settings(models.Model):
     fontFamily = models.TextField(verbose_name='Шрифт')
     showOpenAllGroups = models.BooleanField(verbose_name='Открыть/закрыть группы')
     showTabs = models.BooleanField(verbose_name='Вкладки')
+    selected = models.BooleanField(verbose_name='Выбрана настройка')
 
     class Meta:
         verbose_name = 'Настройку'

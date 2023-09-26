@@ -120,10 +120,8 @@
             else
                 data += 'False '
         }
-        console.log(e)
         if (e === 'saveWithColor') {
             document.querySelector('[name=saveWithColor]').value = 'true';
-            console.log('asdf')
         }
         document.querySelector('[id=inputCells]').value = data;
         document.querySelector('form[id=formActivitySettings]').submit();
@@ -264,7 +262,6 @@
                 selected_activity = activity
             }
         }
-        console.log(selected_activity)
 
         // Извлекаем атрибуты из нажатого элемента
         const targetType = e.target.getAttribute('data-type');
@@ -274,6 +271,7 @@
         const targetColorText = selected_activity['color'];
         const beginDayAct = selected_activity['beginDay'];
         const endDayAct = selected_activity['endDay'];
+        const hideOn = selected_activity['hide'];
         const targetOnOffDays = selected_activity['onOffCells'].split(' ');
         const targetConn = JSON.parse(e.target.getAttribute('data-conn'));
 
@@ -289,6 +287,7 @@
         elements[4].value = targetName;
         elements[5].value = beginDayAct + 1;
         elements[6].value = endDayAct + 1;
+        elements[7].checked = hideOn;
 
         // Подстраиваем отображение на основе типа активности
         if (targetType === 'активности') {
@@ -575,14 +574,81 @@ document.querySelector('#openAll').addEventListener('click', function (evt) {
 </script>
 <script src="{% static 'js/html2canvas.js' %}"></script>
 <script>
+    window.takeScreenShot = function () {
+        openAllGroups();
+  const myTable = document.getElementById("myTable");
+  const tableWidth = myTable.offsetWidth;
+  const tableHeight = myTable.offsetHeight;
+
+  html2canvas(myTable, {
+        backgroundColor: '{{ settings.backgroundColor }}',
+        allowTaint: true,
+        useCORS: true,
+        width: tableWidth,
+        height: tableHeight,
+  })
+    .then((canvas) => {
+      document.body.appendChild(canvas);
+      let canvasObj = document.querySelector('canvas'); // Получить ссылку на элемент canvas
+        canvasObj.id = "asdf";
+        canvasObj.style.display = "none";
+        let dataURL = canvasObj.toDataURL('image/png'); // Получить данные из canvas в формате PNG
+                let img = new Image();
+                img.src = dataURL;
+
+                // Создать временный элемент для хранения изображения
+                let tempInput = document.createElement('input');
+                tempInput.type = 'text';
+                tempInput.value = dataURL;
+
+                // Добавить элемент в DOM (он не будет видимым на странице)
+                document.body.appendChild(tempInput);
+
+                // Выделить текст внутри элемента
+                tempInput.select();
+
+                // Копировать выделенный текст в буфер обмена
+                document.execCommand('copy');
+
+                // Удалить временный элемент
+                document.body.removeChild(tempInput);
+
+                setTimeout(downloadTable, 300)
+
+        function downloadTable() {
+            let canvas = document.getElementById("asdf");
+            let ctx = canvas.getContext("2d");
+            let imageData = canvas.toDataURL("image/png");
+            let tempLink = document.createElement("a");
+            tempLink.href = imageData;
+            tempLink.download = `productivum${Date.now()}.png`;
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
+            document.getElementById("myTable").style.backgroundColor = ''
+            setTimeout(function () {
+                window.location.reload();
+            }, 1000);
+        }
+    })
+};
+
 
 	window.onload = function() {
 
-		document.getElementById("screenShot").onclick = function() {
-            let table = document.getElementById("myTable")
-            openAllGroups()
-            table.style.backgroundColor = '#f0f0f0'
-			html2canvas(table).then(function(canvas) {
+        document.getElementById("screenShot").onclick = function () {
+            openAllGroups();
+            const myTable = document.getElementById("myTable");
+            const tableWidth = myTable.offsetWidth;
+            const tableHeight = myTable.offsetHeight;
+
+            html2canvas(myTable, {
+                backgroundColor: '{{ settings.backgroundColor }}',
+                allowTaint: true,
+                useCORS: true,
+                width: tableWidth,
+                height: tableHeight,
+            }).then(function (canvas) {
 
                 document.getElementById("screenShot").appendChild(canvas);
                 let canvasObj = document.querySelector('canvas'); // Получить ссылку на элемент canvas
@@ -620,7 +686,7 @@ document.querySelector('#openAll').addEventListener('click', function (evt) {
             let imageData = canvas.toDataURL("image/png");
             let tempLink = document.createElement("a");
             tempLink.href = imageData;
-            tempLink.download = "productivum.png";
+            tempLink.download = `productivum${Date.now()}.png`;
             document.body.appendChild(tempLink);
             tempLink.click();
             document.body.removeChild(tempLink);
@@ -653,7 +719,7 @@ function openAllGroups() {
             }
         } else {
             for (let elem of activities_clean) {
-                elem.style.display = 'none'
+                elem.style.display = ''
             }
             for (let elem of groups) {
                 if (!$(elem).hasClass('expand')) {
@@ -662,4 +728,60 @@ function openAllGroups() {
             }
         }
     }
+</script>
+<script>
+    document.querySelector('#hideActivities').addEventListener('click', function () {
+        let hide_activities = {{ hide_activities }};
+        for (let elem of document.querySelectorAll('p.paragraph')) {
+            for (let pk of hide_activities) {
+                if (pk === Number(elem.getAttribute('data-pk'))) {
+                    $(elem.parentNode.parentNode).toggleClass('hide')
+                }
+            }
+        }
+    })
+
+    document.querySelector('#selectSettings').addEventListener('change', function (evt) {
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'change_setting' %}',
+            data:
+                {
+                    setting: evt.target.value,
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                }
+        })
+        setTimeout(function () {
+            location.href = '{% url 'by_date' date %}';
+        }, 100)
+    })
+
+    document.querySelector('#addSetting').addEventListener('click', function () {
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'add_setting' %}',
+            data:
+                {
+                    nameSetting: document.querySelector('#nameSetting').value,
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                }
+        })
+        setTimeout(function () {
+            location.href = '{% url 'by_date' date %}';
+        }, 100)
+    })
+
+    document.querySelector('#delSetting').addEventListener('click', function () {
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'delete_setting' %}',
+            data:
+                {
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                }
+        })
+        setTimeout(function () {
+            location.href = '{% url 'by_date' date %}';
+        }, 100)
+    })
 </script>

@@ -2,6 +2,11 @@ html {
     display: table;
 }
 
+/*Убрать полосу прокрутки для всей страницы*/
+::-webkit-scrollbar {
+  width: 0;
+}
+
 label.toggle {
     /*position: absolute;*/
     cursor: pointer;
@@ -139,7 +144,7 @@ form[id=createActivity] {
     margin-top: 5px;
 }
 
-#buttonSettings, #screenShot {
+#buttonSettings, #screenShot, #hideActivities {
     padding: 0;
     width: 20px;
     height: 20px;
@@ -187,11 +192,15 @@ div.grid-container {
     font-size: 12px;
     font-weight: 600;
     display:grid;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: auto auto auto auto;
 }
 
 div.activityCell > label {
     margin-right: 10px;
+}
+
+.hide {
+    display: none;
 }
 
 div.activityCell {

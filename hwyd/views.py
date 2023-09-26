@@ -46,7 +46,7 @@ def by_date(request, picked_date):
 
     # Сохранение настроек
     if request.POST.get('data'):
-        settings = Settings.objects.get(user=request.user)
+        settings = Settings.objects.get(user=request.user, selected=True)
         data_values = request.POST['data'].split(',')
         lst = [val == 'true' for val in data_values]
 
@@ -60,6 +60,7 @@ def by_date(request, picked_date):
         settings.showActivityDayLight = lst[7]
         settings.showOpenAllGroups = lst[8]
         settings.showTabs = lst[9]
+        settings.name = request.POST['nameSetting']
 
         if request.POST['radioSettings'] == 'sort':
             settings.enableSortTable = True
@@ -89,10 +90,15 @@ def by_date(request, picked_date):
         return redirect('index')
     else:
         activities = Activities.objects.filter(user=request.user, date=picked_date)
+        hide_activities = [obj.pk for obj in activities if obj.hide]
         groups = [obj for obj in activities if obj.isGroup]
         groups_ids = [obj.pk for obj in groups]
         activated_groups = [obj for obj in activities if obj.isGroup and obj.isOpen]
-        settings = Settings.objects.get(user=request.user)
+        settings = Settings.objects.filter(user=request.user)
+        setting = ''
+        for s in settings:
+            if s.selected:
+                setting = s
 
         date_now = datetime.now()
         month_name = date(year, month, 1).strftime("%B")  # Имя месяца
@@ -149,11 +155,9 @@ def by_date(request, picked_date):
                         if activity.pk in connections:
                             activity.number = tmp_num + tmp_num_group
                             tmp_num += 1
-                            print('asdf')
                         else:
                             activity.number = tmp_num_group + tmp_num + 500
                             tmp_num += 1
-                            print('jkl;')
                     tmp_act_save.append(activity)
                 Activities.objects.bulk_update(tmp_act_save, ['number'])
             return redirect(redirect_url, picked_date)
@@ -180,6 +184,7 @@ def by_date(request, picked_date):
             activity.backgroundColor = request.POST['backgroundColor']
             activity.color = request.POST['color']
             activity.onOffCells = request.POST['onOffCells']
+            activity.hide = True if request.POST.get('hideOn', False) == 'on' else False
 
             if activity.isGroup:
                 group_id = activity.pk
@@ -321,11 +326,11 @@ def by_date(request, picked_date):
         test = json.dumps(list(activities.values()))
         context = {'range_activities': activities, 'range_days': range_days, 'weekends': weekends,
                    'cellsToClick': activated_cells, 'date': picked_date, 'onOffDays': [i for i in range(-1, days)][:-1],
-                   'settings': settings, 'progress': progress_activities, 'today': today, 'month_name': month_name,
+                   'settings': setting, 'progress': progress_activities, 'today': today, 'month_name': month_name,
                    'year': year, 'groups_ids': groups_ids, 'days': days, 'groupsToClick': activated_groups,
                    'groups_progress': groups_progress, 'groups_progress_add': groups_progress_add,
                    'lst_group_conns': group_to_activities, 'group_open': group_open, 'connections': connections,
-                   'weekdays': weekdays, 'test': test}
+                   'weekdays': weekdays, 'test': test, 'hide_activities': hide_activities, 'all_settings': settings}
 
         return render(request, 'hwyd/base.html', context=context)
 
@@ -371,7 +376,7 @@ def create_last_activities(request, picked_date):
         a = Activities(user=request.user, name=activity.name, date=picked_date, marks='False ' * days,
                        backgroundColor=activity.backgroundColor, number=activity.number, color=activity.color,
                        isGroup=activity.isGroup, isOpen=activity.isOpen, beginDay=0,
-                       endDay=days - 1, cellsComments='*|' * days, onOffCells='True ' * days)
+                       endDay=days - 1, cellsComments='*|' * days, onOffCells='True ' * days, hide=activity.hide)
         all_activities.append(a)
         if a.isGroup:
             new_groups.append(a)
@@ -424,7 +429,7 @@ def global_colors(request, picked_date):
     :return: перенаправляет в функцию by_date
     """
 
-    settings = get_object_or_404(Settings, user=request.user)
+    settings = Settings.objects.get(user=request.user, selected=True)
     settings.tableHeadColor = request.POST['tableHeadColor']
     settings.tableHeadColorWeekend = request.POST['tableHeadColorWeekend']
     settings.tableHeadTextColor = request.POST['tableHeadTextColor']
@@ -461,7 +466,7 @@ def create_activity(request, picked_date, is_group):
         Activities.objects.create(name=request.POST[inp], date=picked_date, color='#000000', backgroundColor='#ffffff',
                                   marks='False ' * days, onOffCells='True ' * days, number=number, isGroup=is_group,
                                   beginDay=0, endDay=days - 1, isOpen=False, cellsComments='*|' * days,
-                                  user=request.user)
+                                  user=request.user, hide=False)
 
     redirect_view = 'mobile_by_date' if '/m' in request.META.get('HTTP_REFERER') else 'by_date'
     return redirect(redirect_view, picked_date)
@@ -564,6 +569,53 @@ def delete_all(request, picked_date):
     return HttpResponse()
 
 
+def change_setting(request):
+    settings = Settings.objects.filter(user=request.user)
+    pk_sett = int(request.POST['setting'])
+    update_settings = []
+    for setting in settings:
+        if setting.selected:
+            setting.selected = False
+            update_settings.append(setting)
+        if setting.pk == pk_sett:
+            setting.selected = True
+            update_settings.append(setting)
+    Settings.objects.bulk_update(update_settings, fields=['selected'])
+
+    return HttpResponse()
+
+
+def add_setting(request):
+    setting = Settings.objects.get(user=request.user, selected=True)
+    setting.selected = False
+    setting.save()
+    Settings.objects.create(user=request.user, backgroundColor='#f0f0f0', tableHeadColorWeekend='#eeb3b3',
+                            tableHeadColor='#e6e4ce', tableHeadTextColor='#000000', showCalendar=True,
+                            showCreateActivity=True, showDeleteAllActivities=True,
+                            showDeleteActivity=False, showCreateActivityGroup=True, enableSortTable=False,
+                            enableOpenCloseGroups=True, onSounds=True, showRowColumnLight=True,
+                            showActivityDayLight=True, rowColumnLight='#e7e7e7', fontFamily='Inter',
+                            showOpenAllGroups=True, showTabs=True, selected=True, name=request.POST['nameSetting'])
+
+    return HttpResponse()
+
+
+def delete_setting(request):
+    settings = Settings.objects.filter(user=request.user)
+
+    check = True
+    if len(settings) > 1:
+        for setting in settings:
+            if setting.selected:
+                setting.delete()
+            elif not setting.selected and check:
+                setting.selected = True
+                check = False
+                setting.save(update_fields=['selected'])
+
+    return HttpResponse()
+
+
 def signin(request):
     """
     Функция для входа/регистрации пользователя
@@ -590,7 +642,7 @@ def signin(request):
                                         showDeleteActivity=True, showCreateActivityGroup=True, enableSortTable=True,
                                         enableOpenCloseGroups=False, onSounds=True, showRowColumnLight=True,
                                         showActivityDayLight=True, rowColumnLight='#e7e7e7', fontFamily='Inter',
-                                        showOpenAllGroups=True, showTabs=True)
+                                        showOpenAllGroups=True, showTabs=True, selected=True, name='default')
                 login(request, user)
                 return redirect('index')
             else:
