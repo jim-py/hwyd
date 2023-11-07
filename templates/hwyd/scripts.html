@@ -112,16 +112,13 @@
 
 {# Тоже что-то #}
 <script>
-    function submitActivitySettings(e) {
+    function submitActivitySettings() {
         let data = ''
-        for (let elem of document.querySelectorAll('[id*=day]')) {
+        for (let elem of document.querySelectorAll('.thisDay')) {
             if ($(elem).hasClass('on'))
                 data += 'True '
             else
                 data += 'False '
-        }
-        if (e === 'saveWithColor') {
-            document.querySelector('[name=saveWithColor]').value = 'true';
         }
         document.querySelector('[id=inputCells]').value = data;
         document.querySelector('form[id=formActivitySettings]').submit();
@@ -253,8 +250,15 @@
         const gridContainer = document.querySelector('div.grid-container');
         const beginDay = document.querySelector('div.beginDay');
         const endDay = document.querySelector('div.endDay');
-        const hrGridContainer = document.querySelector('hr.grid-container');
+        {#const hrGridContainer = document.querySelector('hr.grid-container');#}
         const btnSaveWithColor = document.querySelector('#saveWithColor');
+        const repaintActivities = document.querySelector('div.repaintActivities');
+        const addActivityToGroup = document.querySelector('div.addActivityToGroup');
+        const activateDayOfActivity = document.querySelector('div.activateDayOfActivity');
+        const upHr = document.querySelector('#upHr');
+        const downHr = document.querySelector('#downHr');
+        const activityNameLabel = document.querySelector('#activityNameLabel');
+        const hideOnLabel = document.querySelector('#hideOnLabel');
 
         let tmp = {{ test|safe }}, selected_activity;
         for (let activity of tmp) {
@@ -278,39 +282,50 @@
         // Заполняем поля ввода и обновляем текст на основе атрибутов активности
         document.querySelector('input#colorBackgroundFormText').value = targetColorActivity;
         document.querySelector('input#colorTextFormText').value = targetColorText;
-        elements[0].innerText = `Настройка ${targetType} ${targetName}`;
+        elements[0].innerText = `Настройка ${targetType}`;
         elements[1].value = targetPk;
-        elements[2].value = targetColorActivity;
-        elements[2].data = e.target;
-        elements[3].value = targetColorText;
-        elements[3].data = e.target;
-        elements[4].value = targetName;
-        elements[5].value = beginDayAct + 1;
-        elements[6].value = endDayAct + 1;
-        elements[7].checked = hideOn;
+        elements[2].value = targetName;
+        elements[3].checked = hideOn;
+        elements[4].value = targetColorActivity;
+        elements[4].data = e.target;
+        elements[5].value = targetColorText;
+        elements[5].data = e.target;
+        elements[6].value = beginDayAct + 1;
+        elements[7].value = endDayAct + 1;
 
         // Подстраиваем отображение на основе типа активности
         if (targetType === 'активности') {
             // Очищаем и прокликиваем кнопки связанные с отключением дней у активности
             for (let i = 0; i < {{ days }}; i += 1) {
                 const dayElement = document.querySelector(`[id=day${i + 1}]`);
-                dayElement.className = '';
+                $(dayElement).removeClass('on')
                 if (targetOnOffDays[i] === 'True') {
                     dayElement.click();
                 }
             }
             // Обновляем стили отображения под тип 'активность'
             onOffDaysDiv.style.display = 'inline-block';
-            onOffWeekdays.style.display = 'block';
+            onOffWeekdays.style.display = 'flex';
             gridContainer.style.display = 'none';
-            beginDay.style.display = 'block';
-            endDay.style.display = 'block';
-            hrGridContainer.style.display = 'none';
+            beginDay.style.display = 'flex';
+            endDay.style.display = 'flex';
+            {#hrGridContainer.style.display = 'none';#}
             btnSaveWithColor.style.display = 'none';
+            repaintActivities.style.display = 'none';
+            addActivityToGroup.style.display = 'none';
+            activateDayOfActivity.style.display = 'block';
+            upHr.style.margin = '10px';
+            downHr.style.margin = '10px';
+            activityNameLabel.innerText = 'Название активности:';
+            hideOnLabel.innerText = 'Добавить активность в скрытые';
         } else {
             // Очищаем и прокликиваем активности связанные с группой
             for (let elem of document.querySelectorAll('[id*=activityToGroup]')) {
-                elem.checked = targetConn.includes(Number(elem.name));
+                $(elem.parentNode).removeClass('activityOn');
+                if (targetConn.includes(Number(elem.name))){
+                    $(elem.parentNode).toggleClass('activityOn');
+                    elem.checked = true;
+                }
             }
             // Обновляем стили отображения под тип 'группа'
             onOffDaysDiv.style.display = 'none';
@@ -318,12 +333,37 @@
             gridContainer.style.display = 'grid';
             beginDay.style.display = 'none';
             endDay.style.display = 'none';
-            hrGridContainer.style.display = '';
-            btnSaveWithColor.style.display = 'inline-block';
+            {#hrGridContainer.style.display = '';#}
+            {#btnSaveWithColor.style.display = 'inline-block';#}
+            repaintActivities.style.display = 'block';
+            addActivityToGroup.style.display = 'block';
+            activateDayOfActivity.style.display = 'none';
+            upHr.style.margin = '20px';
+            downHr.style.margin = '20px';
+            activityNameLabel.innerText = 'Название группы:';
+            hideOnLabel.innerText = 'Добавить группу в скрытые';
         }
 
         // Отображаем модальный диалог
         dialog.showModal();
+        for (let span of document.querySelectorAll('.spanActivityName')) {
+            let divSize = span.parentElement.offsetWidth - 10;
+            let spanSize = span.offsetWidth + 10;
+            if(divSize - spanSize < 0) {
+                span.animate([
+                    // key frames
+                    {transform: `translateX(${divSize - spanSize}px)`},
+                    {transform: `translateX(0)`}
+                ], {
+                    // sync options
+                    direction: 'alternate-reverse',
+                    duration: 3000,
+                    iterations: Infinity
+                });
+            } else {
+                span.parentElement.style.justifyContent = 'center';
+            }
+        }
     }
 </script>
 
@@ -784,4 +824,12 @@ function openAllGroups() {
             location.href = '{% url 'by_date' date %}';
         }, 100)
     })
+
+    for (let elem of document.querySelectorAll('.activityCell')) {
+        elem.addEventListener('click', function () {
+            $(elem).toggleClass('activityOn');
+            let inputCheckbox = elem.querySelector('input');
+            inputCheckbox.checked = !inputCheckbox.checked;
+        })
+    }
 </script>

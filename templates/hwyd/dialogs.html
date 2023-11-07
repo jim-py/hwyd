@@ -142,72 +142,97 @@
     <img width="16" height="16" src="{% static 'photocam.png' %}"></button>  <!-- Кнопка скриншота -->
 <button id="hideActivities" type="button" style="margin-right: 10px;" class="">
     <img width="16" height="16" src="{% static 'eye.png' %}"></button>  <!-- Скрыть активности -->
+<button id="openGuide" type="button" onclick="window['dialogGuide'].showModal();" aria-controls="dialogGuide"
+        style="margin-right: 10px;" class="">
+    <img width="16" height="16" src="{% static 'guide.png' %}"></button>  <!-- Скрыть активности -->
 
 <dialog id="dialog" class="modalActivity">
-<div class="modal__header">
-    <h3 class="dialog__title elementActivitySettings"></h3>
-    <hr>
-</div>
+    <div class="modal__header">
+        <h3 class="dialog__title elementActivitySettings"></h3>
+        <img onclick="$('#closeSettingsActivity').click();" src="{% static 'cansel.svg' %}" width="25" height="25" alt="" style="float:right;">
+    </div>
+    <hr color="#c7c7c7" style="margin: 0;">
     <form id="formActivitySettings" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
-        <input type="hidden" name="saveWithColor">
         <input class="elementActivitySettings" type="hidden" name="activityPk"/>
         <div>
-            <label for="colorBackgroundForm">Цвет активности</label>
-            <input id="colorBackgroundForm" name="backgroundColor" class="colorBackgroundForm elementActivitySettings" type="color">
-            <input id="colorBackgroundFormText" maxlength="7" type="text">
-        </div>
-        <div>
-            <label for="colorTextForm">Цвет текста</label>
-            <input id="colorTextForm" name="color" class="colorTextForm elementActivitySettings" type="color">
-            <input id="colorTextFormText" maxlength="7" type="text">
-        </div>
-        <div>
-            <label for="activityName">Название</label>
-            <input class="elementActivitySettings" name="activityName" id="activityName" type="text">
-        </div>
-        <div class="beginDay">
-            <label for="beginDay">День начала</label>
-            <input name="beginDay" id="beginDay" type="number" min="1" max="{{ days }}" class="elementActivitySettings">
-        </div>
-        <div class="endDay">
-            <label for="endDay">День конца</label>
-            <input name="endDay" id="endDay" type="number" min="1" max="{{ days }}" class="elementActivitySettings">
+            <label id="activityNameLabel" for="activityName">Название группы:</label>
+            <div style="margin-bottom: 7px;"></div>
+            <input class="elementActivitySettings inputSettings" name="activityName" id="activityName" type="text">
         </div>
         <div class="hideOn">
-            <label for="hideOn">Спрятать</label>
+            <label id="hideOnLabel" for="hideOn">Добавить группу в скрытые</label>
             <input name="hideOn" id="hideOn" type="checkbox" class="elementActivitySettings">
         </div>
-        <hr class="grid-container">
+        <hr id="upHr" color="#ffffff" style="margin: 20px;">
+        <div style="display: flex; justify-content: space-between">
+            <label for="colorBackgroundForm">Цвет заливки:</label>
+            <div style="margin-bottom: 7px;"></div>
+            <input style="margin-right: 20px;" id="colorBackgroundForm" name="backgroundColor" class="colorBackgroundForm elementActivitySettings" type="color">
+            <input id="colorBackgroundFormText" class="inputSettingsColor" maxlength="7" type="text">
+        </div>
+        <div style="display: flex; justify-content: space-between">
+            <label for="colorTextForm">Цвет текста:</label>
+            <div style="margin-bottom: 7px;"></div>
+            <input style="margin-right: 20px;" id="colorTextForm" name="color" class="colorTextForm elementActivitySettings" type="color">
+            <input id="colorTextFormText" class="inputSettingsColor" maxlength="7" type="text">
+        </div>
+        <div class="repaintActivities">
+            <label for="choiceColor">Перекрасить:</label>
+            <div style="margin-bottom: 7px;"></div>
+            <select id="choiceColor" name="saveWithColor" class="selectColor selectPicker">
+                <option value="false">Только цвет группы</option>
+                <option value="true">Цвет группы и цвет её активностей</option>
+            </select>
+        </div>
+        <hr id="downHr" color="#ffffff" style="margin: 20px;">
+        <div class="beginDay">
+            <label for="beginDay">День начала:</label>
+            <input name="beginDay" id="beginDay" type="number" min="1" max="{{ days }}" class="elementActivitySettings inputSettingsColor">
+        </div>
+        <div class="endDay">
+            <label for="endDay">День конца:</label>
+            <input name="endDay" id="endDay" type="number" min="1" max="{{ days }}" class="elementActivitySettings inputSettingsColor">
+        </div>
+        <div class="addActivityToGroup">Привязать активности к группе:</div>
         <div class="grid-container">
             {% for activity in range_activities %}
                 {% if not activity.isGroup %}
-                    <div class="activityCell">
-                        <label for="activityToGroup{{ activity.pk }}">{{ activity.name }}</label>
-                        <input id="activityToGroup{{ activity.pk }}" class="elementActivitySettings" type="checkbox" name="{{ activity.pk }}">
+                    <div class="activityCell marquee"><span class="spanActivityName">{{ activity.name }}</span>
+                        <label for="activityToGroup{{ activity.pk }}"></label>
+                        <input id="activityToGroup{{ activity.pk }}" class="elementActivitySettings" style="display: none" type="checkbox" name="{{ activity.pk }}">
                     </div>
                 {% endif %}
             {% endfor %}
         </div>
         <input type="hidden" id="inputCells" name="onOffCells">
-        <div class="onOffDaysDiv">
-            {% for day in onOffDays %}
-                <p id="day{{ forloop.counter }}">{{ forloop.counter }}</p>
-                {% if day == 13 %}
-                    <p></p>
-                {% endif %}
-            {% endfor %}
-        </div>
+        <div class="activateDayOfActivity">Выбрать дни активности:</div>
         <div class="onOffWeekdays">
             {% for day in weekdays.keys %}
-                <p style="background-color: #ffffff" id="weekday{{ forloop.counter }}" data-day="{{ day }}">{{ day }}</p>
+                <p class="calendarWeek" id="weekday{{ forloop.counter }}" data-day="{{ day }}">{{ day }}</p>
+            {% endfor %}
+        </div>
+        <div class="onOffDaysDiv">
+            {% for week in calendar %}
+                <div style="display: flex">
+                    {% for day in week %}
+                        {% if day.month == month %}
+                            <p id="day{{ day.day }}" class="calendarDay thisDay">{{ day.day }}</p>
+                        {% else %}
+                            <p class="calendarDay">{{ day.day }}</p>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             {% endfor %}
         </div>
     </form>
-    <hr>
-    <button class="button-6" onclick="submitActivitySettings('default');" role="button" style="background-color:#dfffdf;">Сохранить</button>
-    <button id="saveWithColor" onclick="submitActivitySettings('saveWithColor');" class="button-6" role="button" style="background-color:#fffcdf; width: auto">Сохранить с переносом цвета</button>
-    <form method="dialog" id="closeDialog">
+    <hr color="#ffffff" style="margin: 0;">
+    <div style="padding: 15px">
+    <button class="button-save" onclick="submitActivitySettings();" role="button">Сохранить изменения</button>
+    </div>
+    <button class="button-6" onclick="submitActivitySettings('default');" role="button" style="background-color:#dfffdf;display:none;">Сохранить</button>
+    <button id="saveWithColor" onclick="submitActivitySettings('saveWithColor');" class="button-6" role="button" style="background-color:#fffcdf; width: auto; display:none;">Сохранить с переносом цвета</button>
+    <form style="display: none" method="dialog" id="closeDialog">
         <button id="closeSettingsActivity" class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
     </form>
 </dialog>  <!-- Диалоговое окно настроек группы/активности -->
@@ -215,8 +240,8 @@
 <dialog id="dialogHead" class="modalColors">
     <div class="modal__header">
     <h3 class="dialog__title dialogHeadSettings">Глобальные настройки цвета</h3>
-    <hr>
     </div>
+    <hr>
     <form id="formColorSettings" action="{% url 'global_colors' date %}" method="post">
         {% csrf_token %}
         <div>
@@ -247,11 +272,13 @@
 
     </form>
     <hr>
+    <div id="buttonsFooter">
     <button class="button-6" onclick="document.querySelector('form[id=formColorSettings]').submit();"
             role="button" style="background-color:#dfffdf;">Сохранить</button>
     <form method="dialog" id="closeDialog">
         <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
     </form>
+        </div>
 </dialog>  <!-- Диалоговое окно глобальных настроек цвета -->
 
 <dialog id="dialogCell">
@@ -276,3 +303,95 @@
         <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
     </form>
 </dialog>  <!-- Диалоговое окно текста клетки -->
+
+<style>
+
+    .tabs {
+      font-size: 0;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .tabs>input[type="radio"] {
+      display: none;
+    }
+
+    .tabs>div {
+      /* скрыть контент по умолчанию */
+      display: none;
+      border: 1px solid #e0e0e0;
+      padding: 10px 15px;
+      font-size: 16px;
+    }
+
+    /* отобразить контент, связанный с выбранной радиокнопкой (input type="radio") */
+    #tab-btn-1:checked~#content-1,
+    #tab-btn-2:checked~#content-2,
+    #tab-btn-3:checked~#content-3,
+    #tab-btn-4:checked~#content-4 {
+      display: block;
+    }
+
+    .tabs>label {
+      display: inline-block;
+      text-align: center;
+      vertical-align: middle;
+      user-select: none;
+      background-color: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      padding: 2px 8px;
+      font-size: 16px;
+      line-height: 1.5;
+      transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+      cursor: pointer;
+      position: relative;
+      top: 1px;
+    }
+
+    .tabs>label:not(:first-of-type) {
+      border-left: none;
+    }
+
+    .tabs>input[type="radio"]:checked+label {
+      background-color: #fff;
+      border-bottom: 1px solid #fff;
+    }
+  </style>
+
+<dialog id="dialogGuide" class="modalColors">
+    <div class="modal__header">
+    <h3 class="dialog__title dialogHeadSettings">Гайд</h3>
+    <hr>
+    </div>
+<div class="tabs">
+    <input type="radio" name="tab-btn" id="tab-btn-1" value="" checked>
+    <label for="tab-btn-1">Настройки</label>
+    <input type="radio" name="tab-btn" id="tab-btn-2" value="">
+    <label for="tab-btn-2">Глобальные настройки цвета</label>
+    <input type="radio" name="tab-btn" id="tab-btn-3" value="">
+    <label for="tab-btn-3">Настройки активности/группы</label>
+    <input type="radio" name="tab-btn" id="tab-btn-4" value="">
+    <label for="tab-btn-4">Настройки клетки</label>
+
+    <div id="content-1">
+      Содержимое 1...
+    </div>
+    <div id="content-2">
+      Содержимое 2...
+    </div>
+    <div id="content-3">
+      Содержимое 3...
+    </div>
+    <div id="content-4">
+      <div><img width="750" src="{% static 'guide2.jpg' %}" alt=""></div>
+      <div><img width="750" src="{% static 'guide2.jpg' %}" alt=""></div>
+
+    </div>
+  </div>
+    <hr>
+    <form method="dialog" id="closeDialog">
+        <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
+    </form>
+</dialog>  <!-- Диалоговое окно глобальных настроек цвета -->
+
+

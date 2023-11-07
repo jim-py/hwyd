@@ -13,12 +13,15 @@
     </style>
 {% endif %}
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@600&family=Istok+Web&family=JetBrains+Mono:wght@600&family=Montserrat+Alternates:wght@600&family=Montserrat:wght@600&family=Roboto+Mono:wght@600&family=Ubuntu:wght@300&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Istok+Web&family=JetBrains+Mono:wght@400;500;600&family=Montserrat+Alternates:wght@400;500;600&family=Montserrat:wght@400;500;600&family=Roboto+Mono:wght@400;500;600&family=Ubuntu:wght@300&display=swap');
 
     body {
         font-family: '{{ settings.fontFamily }}', serif;
         display: table-cell;
         vertical-align: middle;
+    }
+    body * {
+        font-family: '{{ settings.fontFamily }}', serif;
     }
     .button-6 {
         font-family: '{{ settings.fontFamily }}', serif;
@@ -49,19 +52,18 @@
         border-width: 0 1px 0 0;
     }
 
-    p[id*=day] {
-        background-color: #ffdfdf;
-        text-align: center;
-        display: inline-block;
-        margin: 0;
-        width: 24px;
-        border-radius: 3px;
-        border: 1px solid black;
-        cursor: pointer;
-    }
-
+    {#p[id*=day] {#}
+    {#    background-color: #ffdfdf;#}
+    {#    text-align: center;#}
+    {#    display: inline-block;#}
+    {#    margin: 0;#}
+    {#    width: 24px;#}
+    {#    border-radius: 3px;#}
+    {#    border: 1px solid black;#}
+    {#    cursor: pointer;}#}
+    {##}
     p.on {
-        background-color: #dfffdf;
+        background-color: #ffffff;
     }
 
     p.headParagraph {
@@ -176,6 +178,13 @@
 
     .modal__header {
         cursor: move;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .modal__header img {
+        cursor: pointer;
     }
 
     #dialogHead, #dialog {
@@ -186,8 +195,9 @@
 
     {% if not '/m' in request.path %}
         #dialogHead, #dialog {
-            left: 35%;
-            top: 25%;
+            left: 40%;
+            {#top: 25%;#}
+            padding: 0;
         }
     {% endif %}
 

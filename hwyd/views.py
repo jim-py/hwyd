@@ -1,7 +1,7 @@
 # Импорты из стандартной библиотеки
 import json
 from copy import deepcopy
-from calendar import monthrange, day_name, weekday
+from calendar import monthrange, day_name, weekday, Calendar
 from datetime import datetime, date
 from locale import setlocale, LC_ALL
 
@@ -226,7 +226,7 @@ def by_date(request, picked_date):
                             tmp_number += 1
                         Activities.objects.bulk_update(tmp_conns, fields=['number'])
 
-                if request.POST['saveWithColor']:
+                if request.POST['saveWithColor'] == 'true':
                     act_tmp = []
                     for connection in act_connections.filter(group_id=group_id):
                         connection.activity.color = request.POST['color']
@@ -330,7 +330,8 @@ def by_date(request, picked_date):
                    'year': year, 'groups_ids': groups_ids, 'days': days, 'groupsToClick': activated_groups,
                    'groups_progress': groups_progress, 'groups_progress_add': groups_progress_add,
                    'lst_group_conns': group_to_activities, 'group_open': group_open, 'connections': connections,
-                   'weekdays': weekdays, 'test': test, 'hide_activities': hide_activities, 'all_settings': settings}
+                   'weekdays': weekdays, 'test': test, 'hide_activities': hide_activities, 'all_settings': settings,
+                   'calendar': Calendar().monthdatescalendar(year, month), 'month': month}
 
         return render(request, 'hwyd/base.html', context=context)
 

@@ -28,3 +28,20 @@
     color: rgba(0, 0, 0, 0.65);
     transform: translateY(0);
 }
+
+.button-save {
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 18px;
+    border: 0;
+    width: 100%;
+    height: 55px;
+    border-radius: 8px;
+    color: white;
+    background-color: #4071F4;
+    transition: background-color 250ms ease-out;
+}
+
+.button-save:hover {
+    background-color: rgba(64, 113, 244, 0.9);
+}
