@@ -3,6 +3,11 @@ from django.db import models
 from django.forms.models import model_to_dict
 
 
+class CustomFieldsUser(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    lastActive = models.DateTimeField()
+
+
 class ActivitiesConnection(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Владелец')
     group = models.ForeignKey('Activities', on_delete=models.CASCADE, verbose_name='Группа', related_name='group')

@@ -14,8 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 # Импорты из локальных модулей приложения
 from .forms import LoginForm, RegisterForm
-from .models import Activities, ActivitiesConnection, Settings
-
+from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser
 
 setlocale(
     category=LC_ALL,
@@ -33,6 +32,12 @@ def by_date(request, picked_date):
     :param picked_date: полученная дата из маршрута формата 'YYYY-MM' '2023-10'
     :return: отправка контекста в html шаблон
     """
+    try:
+        activity_user = CustomFieldsUser.objects.get(user=request.user)
+        activity_user.lastActive = datetime.now()
+        activity_user.save()
+    except CustomFieldsUser.DoesNotExist:
+        CustomFieldsUser.objects.create(user=request.user, lastActive=datetime.now())
 
     # Просмотр данных поста
     if request.POST:
