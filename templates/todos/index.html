@@ -1,0 +1,250 @@
+{% extends 'todos/base.html' %}
+{% load static %}
+
+{% block title %}<title>TODO</title>{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- Календарь -->
+    <div class="row mb-3">
+        <div class="offset-md-2 col-lg-9">
+            <input type="date" id="calendar" class="form-control mb-2" value="{{ selected_date|date:'Y-m-d' }}">
+        </div>
+    </div>
+
+    <!-- JSON подсказка -->
+    <div class="json-prompt">
+        <p id="promptText">
+            Привет, ChatGPT! Сгенерируй, пожалуйста, JSON с задачами.
+            У каждой задачи должны быть три поля:
+            <b>title</b> (название), <b>description</b> (описание),
+            <b>task_date</b> (дата в формате YYYY-MM-DD).
+            Заполни список из 5 задач на дату 2025-10-05.
+        </p>
+        <button onclick="copyPrompt()">Скопировать подсказку</button>
+    </div>
+
+    <!-- JSON загрузка -->
+    <div class="row mb-3">
+        <div class="offset-md-2 col-lg-9">
+            <textarea id="jsonInput" placeholder="Вставьте сюда JSON" class="form-control mb-2"></textarea>
+            <button id="uploadBtn" class="btn btn-outline-secondary">Отправить JSON</button>
+        </div>
+    </div>
+
+    <!-- Заголовок задач -->
+    <div class="row mb-3">
+        <div class="offset-md-2 col-lg-9">
+            <h2>Задачи</h2>
+        </div>
+    </div>
+
+    <!-- Форма добавления задачи -->
+    <div class="row mb-3">
+        <div class="offset-md-2 col-lg-9">
+            <form id="addTodoForm">
+                {% csrf_token %}
+                <div class="input-group">
+                    <input type="text" id="newTodoTitle" class="form-control" placeholder="Название" required>
+                    <button type="submit" class="btn btn-outline-primary">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <hr />
+
+    <!-- Список задач -->
+    <div class="row">
+        <div class="offset-md-2 col-lg-6">
+            <div class="list-group" id="todoList">
+                {% for todo in todo_all %}
+                <div class="list-group-item {% if todo.checked %}todo-complete{% endif %}" data-id="{{ todo.id }}">
+                    <span>
+                        <input type="checkbox" class="todo-status-checkbox"
+                            onchange="updateTaskStatus(this, {{ todo.id }})" {% if todo.checked %}checked{% endif %}>
+                        {{ todo.title }}
+                    </span>
+                    <i class="fa fa-trash delete-icon" onclick="deleteTask({{ todo.id }}, this)"></i>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const todoList = document.getElementById('todoList');
+        const addForm = document.getElementById('addTodoForm');
+        const newTodoTitle = document.getElementById('newTodoTitle');
+
+        // CSRF токен
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                document.cookie.split(';').forEach(cookie => {
+                    const c = cookie.trim();
+                    if (c.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(c.substring(name.length + 1));
+                    }
+                });
+            }
+            return cookieValue;
+        }
+
+        // Добавление новой задачи
+        addForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = newTodoTitle.value.trim();
+            if (!title) return;
+
+            const response = await fetch("{% url 'todos:add' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ title })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                const taskHtml = `
+                <div class="list-group-item" data-id="${data.id}">
+                    <span>
+                        <input type="checkbox" class="todo-status-checkbox" onchange="updateTaskStatus(this, ${data.id})">
+                        ${title}
+                    </span>
+                    <i class="fa fa-trash delete-icon" onclick="deleteTask(${data.id}, this)"></i>
+                </div>`;
+                todoList.insertAdjacentHTML('afterbegin', taskHtml);
+                newTodoTitle.value = '';
+            } else {
+                alert("Ошибка при добавлении задачи: " + data.error);
+            }
+        });
+
+        // Обновление статуса задачи
+        window.updateTaskStatus = async (checkbox, taskId) => {
+            const isChecked = checkbox.checked;
+            const listItem = checkbox.closest('.list-group-item');
+
+            try {
+                const response = await fetch(`/todos/${taskId}/update/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ isCompleted: isChecked })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    listItem.classList.toggle('todo-complete', isChecked);
+                } else {
+                    alert("Ошибка обновления задачи: " + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        // Загрузка JSON
+        document.getElementById("uploadBtn").addEventListener("click", async () => {
+            const jsonText = document.getElementById("jsonInput").value;
+            let todos;
+            try {
+                todos = JSON.parse(jsonText);
+            } catch (err) {
+                showToast("Некорректный JSON!");
+                return;
+            }
+
+            try {
+                const response = await fetch("/todos/load-todos/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie('csrftoken')
+                    },
+                    body: JSON.stringify(todos)
+                });
+
+                if (response.ok) {
+                    showToast("Успешно загружено!");
+                } else {
+                    const data = await response.json();
+                    showToast(data.message || "Ошибка при загрузке JSON!");
+                }
+
+            } catch (err) {
+                console.error(err);
+                showToast("Ошибка сети при загрузке JSON!");
+            }
+        });
+
+        // Удаление задачи
+        window.deleteTask = async (taskId, iconElement) => {
+
+            try {
+                const response = await fetch(`/todos/${taskId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    const listItem = iconElement.closest('.list-group-item');
+                    listItem.remove();
+                } else {
+                    alert("Ошибка при удалении: " + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        // Смена даты в календаре
+        document.getElementById('calendar').addEventListener('change', function () {
+            const selected = this.value; // формат "YYYY-MM-DD"
+            if (selected) {
+                window.location.href = '/todos/' + selected + '/';
+            }
+        });
+
+        // Копирование промпта
+        window.copyPrompt = function () {
+            const text = document.getElementById("promptText").innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Подсказка скопирована!");
+            });
+        };
+
+        // Функция для показа всплывающего сообщения
+        function showToast(message) {
+            const toast = document.createElement("div");
+            toast.className = "toast-message";
+            toast.innerText = message;
+            document.body.appendChild(toast);
+
+            // плавное появление
+            setTimeout(() => toast.classList.add("show"), 100);
+
+            // убрать через 2 секунды
+            setTimeout(() => {
+                toast.classList.remove("show");
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+    });
+</script>
+{% endblock %}

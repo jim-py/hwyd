@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личная страница</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'general_app/font.css' %}" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .navbar {
+            background-color: #007bff;
+        }
+
+        .navbar-brand {
+            color: #fff;
+        }
+
+        .navbar-brand:hover {
+            color: #d4d4d4;
+        }
+
+        .container {
+            margin-top: 30px;
+        }
+
+        .profile-img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 50%;
+            box-shadow: 0 0 3px rgb(0, 0, 0);
+        }
+
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .span-card {
+            background-color: #d4f8ff;
+            border-radius: 3px;
+            padding: 3px;
+            border: 2px solid #abc6cc;
+        }
+
+        .card-title {
+            background-color: #d4f8ff;
+            border-radius: 5px;
+            padding: 10px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+{% if request.user_agent.is_mobile %}
+    {% include 'navibarMobile.html' %}
+{% else %}
+    {% include 'navibar.html' %}
+{% endif %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <img src="{% static 'iam.jpg' %}" alt="Я" class="profile-img">
+            <h1 class="my-4 font-weight-bold">Дмитрий</h1>
+            <p class="lead"><span class="span-card">1С</span> <span class="span-card">Django</span> <span
+                    class="span-card">Саморазвитие</span></p>
+        </div>
+    </div>
+    <div class="card-grid">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title">Обо мне</h3>
+                <p class="card-text">Живу в Ярославле, заканчиваю университет. 7 месяцев 1С-разработка, 1.5 года
+                    Django-разработка (как хобби), 2.5 года в теме саморазвития.</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title">Благодарности</h3>
+                <p class="card-text"><b>Всем участникам Простого Сообщества</b>, которые непосредственно участвовали в
+                    тестировании и обратной связи. Особая благодарность <b>Арине</b>, которая на чистом энтузиазме
+                    помогла сделать дизайн для некоторых окошек в <a href="{% url 'index' %}">Habitus</a>.</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title">Про Productivum</h3>
+                <p class="card-text">Экосистема Productivum начиналась с трекера привычек, который ныне называется
+                    <a href="{% url 'index' %}">Habitus</a>. Основная идея была взята с сайта <a href="https://hwyd.me">hwyd.me</a>.
+                    Я же от себя добавил большое количество кастомизаций и возможность объединять привычки в группы.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 from django import template
+from datetime import datetime
 register = template.Library()
 
 
@@ -73,3 +74,13 @@ def get_days(obj):
 @register.filter
 def get_one_day(obj, day):
     return True if obj.onOffCells.split()[day] == 'True' else False
+
+
+@register.simple_tag(takes_context=True)
+def get_class_on(context):
+    return str(context['forloop']['parentloop']['counter0']) + '-' + str(context['j']) in context['cellsToClick']
+
+
+@register.simple_tag(takes_context=False)
+def get_date_y_m():
+    return datetime.today().strftime('%Y-%m')

@@ -1,0 +1,116 @@
+body {
+    background-color: #f9f9f9;
+}
+
+.page-header {
+    margin-top: 30px;
+}
+
+.fa-trash {
+    color: rgba(255, 0, 0, 0.7);
+    float: right;
+    cursor: pointer;
+}
+
+.fa-inbox {
+    color: rgba(0, 111, 255, 0.7);
+    float: right;
+    cursor: pointer;
+}
+
+
+.todo-complete {
+    text-decoration: line-through;
+}
+
+.todo-status-checkbox {
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+span.todo-date {
+    float: right;
+    font-size: smaller;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.disabled {
+    display: none;
+}
+
+.navbar {
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    width: 600px;
+    justify-content: space-evenly;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: -20px;
+    margin-right: -20px;
+}
+
+.navbar a {
+    float: left;
+    display: block;
+    color: #5a5a5a;
+    text-align: center;
+    padding: 8px 10px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.navbar button {
+    float: left;
+    display: block;
+    color: #5a5a5a;
+    text-align: center;
+    padding: 8px 10px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    background-color: #f8f9fa;
+}
+
+.navbar button:hover, .navbar button.active {
+    background-color: #e2e6ea;
+    color: #333;
+}
+
+.navbar button:focus {
+    outline: none;
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        background-color: #ffffff;
+        flex-direction: column;
+        padding: 5px 0;
+        width: 100%;
+        box-shadow: none;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .navbar button {
+        background-color: #f8f9fa;
+        text-align: center;
+        padding: 10px;
+        margin-top: 5px;
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
+    .page-header {
+        margin-top: 15px;
+        text-align: center;
+    }
+
+    .form-row {
+        flex-wrap: nowrap;
+    }
+}

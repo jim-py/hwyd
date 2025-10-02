@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Редактирование категории</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+    <link rel="stylesheet" href="{% static 'budget/css/add_edit_form.css' %}">
+</head>
+<body>
+<div class="form-container">
+    <h2>Категория</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        <div style="text-align:center;">
+            <button type="submit" class="submit-btn">Сохранить категорию</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://kit.fontawesome.com/03c2a52bd5.js" crossorigin="anonymous"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const colorInput = document.getElementById('id_color');
+    colorInput.style.backgroundColor = '{{ category.color }}';
+
+    colorInput.addEventListener('input', function() {
+        colorInput.style.backgroundColor = this.value;
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Подтверждение удаления</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+    <link rel="stylesheet" href="{% static 'budget/css/delete_form.css' %}">
+</head>
+<body>
+    <div class="confirm-delete-container">
+        <h2>Вы уверены, что хотите удалить эту транзакцию?</h2>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-confirm">Удалить</button>
+            <a href="{% url 'budget:transaction-list' %}" class="btn-cancel">Отмена</a>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404</title>
+    <link rel="stylesheet" href="{% static '404.css' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
+</head>
+<body>
+<div class="main-container">
+    <div class="error-page">
+        {% if 'budget' in request.path %}
+            <h1>В разработке!</h1>
+            <h2>777 - Страница на ремонте</h2>
+        {% else %}
+            <h1>Ой!</h1>
+            <h2>404 - Страница не найдена</h2>
+        {% endif %}
+        <img src="{% static 'favicon.png' %}" alt="Habitus" width="50" height="50">
+        <p>Кажется, мы не можем найти то, что вы ищете.</p>
+        <p>Возможно, она была перемещена, или вы ввели неверный адрес. Попробуйте вернуться на <a
+                href="{% url 'home' %}">главную страницу</a>.</p>
+    </div>
+</div>
+</body>
+</html>

@@ -2,27 +2,67 @@
 import json
 from copy import deepcopy
 from calendar import monthrange, day_name, weekday, Calendar
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from locale import setlocale, LC_ALL
 
 # Импорты из сторонних библиотек
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import get_object_or_404, redirect, render
+from django.db.models import Value, BooleanField
+from django_user_agents.utils import get_user_agent
 
 # Импорты из локальных модулей приложения
 from .forms import LoginForm, RegisterForm
 from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser
 
-setlocale(
-    category=LC_ALL,
-    locale="Russian"
-)
+setlocale(category=LC_ALL, locale="Russian")
 
 
-@login_required(login_url='start')
+def activity_users(request):
+    template_date = "%Y-%m-%d"
+    users = CustomFieldsUser.objects.all().select_related('user')
+    if request.POST:
+        date_post = datetime.strptime(request.POST['trip-start'], template_date)
+        input_date = date_post.date()
+        date_choice = date_post.strftime(template_date)
+    else:
+        input_date = datetime.now().date()
+        date_choice = datetime.now().strftime(template_date)
+    
+    seven_days_ago = input_date - timedelta(days=7)
+    
+    right_users = []
+    for user in users:
+        username = user.user.username
+        if username == 'unbroken0886' or username == 'Zg4mdYXd_Kb6gE+sEmCSvr@zrpL8Bf':
+            continue
+        user_login = user.lastActive.date()
+        if seven_days_ago <= user_login:
+            right_users.append(user)
+    right_users_sorted = sorted(right_users, key=lambda x: x.lastActive, reverse=True)
+
+    return render(request, 'hwyd/activityUsers.html', context={'users': right_users_sorted, 'date_choice': date_choice})
+
+
+def questionnaire(request):
+    if request.POST:
+        answer = ''
+        for post in request.POST:
+            if post != 'csrfmiddlewaretoken':
+                answer += f'{post}: {request.POST[post]} ~~~~~~~~~~ '
+        cus_user = CustomFieldsUser.objects.get(user=request.user)
+        cus_user.answers = answer
+        cus_user.save()
+        current_date = datetime.today()
+        return redirect('by_date', f'{current_date.year}-{current_date.month:0>2}')
+    return render(request, 'hwyd/questionnaire.html')
+
+
+@login_required(login_url='entry')
 def by_date(request, picked_date):
     """
     Основная функция для отображения таблицы привычек и для обработки POST-запросов, которые
@@ -36,18 +76,16 @@ def by_date(request, picked_date):
         activity_user = CustomFieldsUser.objects.get(user=request.user)
         activity_user.lastActive = datetime.now()
         activity_user.save()
+        # if activity_user.answers == '':
+        # return redirect('questionnaire')
     except CustomFieldsUser.DoesNotExist:
-        CustomFieldsUser.objects.create(user=request.user, lastActive=datetime.now())
+        CustomFieldsUser.objects.create(user=request.user, lastActive=datetime.now(), answers='')
 
     # Просмотр данных поста
-    if request.POST:
+    if request.META['HTTP_HOST'] == '127.0.0.1:8000':
         print(request.POST)
-
-    # Определение версии сайта (мобильная или компьютерная)
-    try:
-        redirect_url = 'mobile_by_date' if '/m' in request.META.get('HTTP_REFERER') else 'by_date'
-    except TypeError:
-        redirect_url = 'by_date'
+    
+    redirect_url = 'by_date'
 
     # Сохранение настроек
     if request.POST.get('data'):
@@ -75,6 +113,7 @@ def by_date(request, picked_date):
             settings.enableOpenCloseGroups = True
 
         settings.fontFamily = request.POST['selectFont']
+        settings.vanishing = request.POST['selectFade']
         settings.save()
         return redirect(redirect_url, picked_date)
 
@@ -99,6 +138,16 @@ def by_date(request, picked_date):
         groups = [obj for obj in activities if obj.isGroup]
         groups_ids = [obj.pk for obj in groups]
         activated_groups = [obj for obj in activities if obj.isGroup and obj.isOpen]
+        settings = Settings.objects.filter(user=request.user)
+        if len(settings) == 0:
+            Settings.objects.create(user=request.user, backgroundColor='#f0f0f0', tableHeadColorWeekend='#eeb3b3',
+                                    tableHeadColor='#e6e4ce', tableHeadTextColor='#000000', showCalendar=True,
+                                    showCreateActivity=True, showDeleteAllActivities=True,
+                                    showDeleteActivity=True, showCreateActivityGroup=True, enableSortTable=True,
+                                    enableOpenCloseGroups=False, onSounds=True, showRowColumnLight=True,
+                                    showActivityDayLight=True, rowColumnLight='#e7e7e7', fontFamily='Inter',
+                                    showOpenAllGroups=True, showTabs=True, selected=True, name='default',
+                                    vanishing='off')
         settings = Settings.objects.filter(user=request.user)
         setting = ''
         for s in settings:
@@ -320,7 +369,7 @@ def by_date(request, picked_date):
 
         # Отправка правильного количество дней для мобильной версии
         range_days = [i for i in range(-1, days)]
-        if '/m' in request.path:
+        if request.user_agent.is_mobile:
             if not range_days[today - 4:today + 2]:
                 range_days = range_days[0:6]
             elif len(range_days[today - 4:today + 2]) == 5 and range_days[-1] in range_days[today - 4:today + 2]:
@@ -328,20 +377,25 @@ def by_date(request, picked_date):
             else:
                 range_days = range_days[today - 4:today + 2]
 
-        test = json.dumps(list(activities.values()))
+        activities = activities.annotate(todayCheck=Value(False, BooleanField()))
+        for a in activities:
+            a.todayCheck = a.marks.split(' ')[today - 1]
+
+        json_activities = json.dumps(list(activities.values()))
         context = {'range_activities': activities, 'range_days': range_days, 'weekends': weekends,
                    'cellsToClick': activated_cells, 'date': picked_date, 'onOffDays': [i for i in range(-1, days)][:-1],
                    'settings': setting, 'progress': progress_activities, 'today': today, 'month_name': month_name,
                    'year': year, 'groups_ids': groups_ids, 'days': days, 'groupsToClick': activated_groups,
                    'groups_progress': groups_progress, 'groups_progress_add': groups_progress_add,
                    'lst_group_conns': group_to_activities, 'group_open': group_open, 'connections': connections,
-                   'weekdays': weekdays, 'test': test, 'hide_activities': hide_activities, 'all_settings': settings,
-                   'calendar': Calendar().monthdatescalendar(year, month), 'month': month}
+                   'weekdays': weekdays, 'hide_activities': hide_activities, 'all_settings': settings,
+                   'calendar': Calendar().monthdatescalendar(year, month), 'month': month,
+                   'jsonActivities': json_activities}
 
         return render(request, 'hwyd/base.html', context=context)
 
 
-@login_required(login_url='start')
+@login_required(login_url='entry')
 def start(request):
     """
     Функция перехода с пустого маршрута '/' на маршрут нынешнего месяца '/2023-10'
@@ -354,7 +408,7 @@ def start(request):
     return redirect('by_date', f'{current_date.year}-{current_date.month:0>2}')
 
 
-@login_required(login_url='start')
+@login_required(login_url='entry')
 def create_last_activities(request, picked_date):
     """
     Функция для создания активностей прошлого месяца
@@ -375,20 +429,21 @@ def create_last_activities(request, picked_date):
                                                date=f'{year}-{month - 1:0>2}')
 
     # Создаёт активности прошлого месяца и заносит их в списки
-    new_activities = []
     all_activities = []
-    new_groups = []
     for activity in activities:
-        a = Activities(user=request.user, name=activity.name, date=picked_date, marks='False ' * days,
+        new_activity = Activities(user=request.user, name=activity.name, date=picked_date, marks='False ' * days,
                        backgroundColor=activity.backgroundColor, number=activity.number, color=activity.color,
                        isGroup=activity.isGroup, isOpen=activity.isOpen, beginDay=0,
                        endDay=days - 1, cellsComments='*|' * days, onOffCells='True ' * days, hide=activity.hide)
-        all_activities.append(a)
-        if a.isGroup:
-            new_groups.append(a)
-        else:
-            new_activities.append(a)
+        all_activities.append(new_activity)
     Activities.objects.bulk_create(all_activities)
+
+    # Извлекаем сохраненные объекты из базы данных
+    saved_activities = Activities.objects.filter(user=request.user, date=picked_date)
+
+    # Разделяем активности на группы и обычные активности
+    new_groups = [activity for activity in saved_activities if activity.isGroup]
+    new_activities = [activity for activity in saved_activities if not activity.isGroup]
 
     # Создаёт словарь пар связей активностей прошлого месяца
     old_dict_pare = {}
@@ -408,11 +463,10 @@ def create_last_activities(request, picked_date):
                         all_activities_connections.append(a)
     ActivitiesConnection.objects.bulk_create(all_activities_connections)
 
-    redirect_view = 'mobile_by_date' if '/m' in request.META.get('HTTP_REFERER') else 'by_date'
-    return redirect(redirect_view, picked_date)
+    return redirect('by_date', picked_date)
 
 
-@login_required(login_url='start')
+@login_required(login_url='entry')
 def delete_activity(request):
     """
     Функция удаления активности
@@ -425,7 +479,7 @@ def delete_activity(request):
     return HttpResponse()
 
 
-@login_required(login_url='start')
+@login_required(login_url='entry')
 def global_colors(request, picked_date):
     """
     Функция для сохранения настроек цветов
@@ -442,11 +496,11 @@ def global_colors(request, picked_date):
     settings.backgroundColor = request.POST['backgroundColor']
     settings.rowColumnLight = request.POST['rowColumnLight']
     settings.save()
-    redirect_view = 'mobile_by_date' if '/m' in request.META.get('HTTP_REFERER') else 'by_date'
-    return redirect(redirect_view, picked_date)
+
+    return redirect('by_date', picked_date)
 
 
-@login_required(login_url='start')
+@login_required(login_url='entry')
 def create_activity(request, picked_date, is_group):
     """
     Функция для создания активности
@@ -474,11 +528,10 @@ def create_activity(request, picked_date, is_group):
                                   beginDay=0, endDay=days - 1, isOpen=False, cellsComments='*|' * days,
                                   user=request.user, hide=False)
 
-    redirect_view = 'mobile_by_date' if '/m' in request.META.get('HTTP_REFERER') else 'by_date'
-    return redirect(redirect_view, picked_date)
+    return redirect('by_date', picked_date)
 
 
-@login_required(login_url='start')
+@login_required(login_url='entry')
 def get_comments(request, picked_date):
     """
     Функция получения комментариев активности
@@ -492,7 +545,7 @@ def get_comments(request, picked_date):
     return HttpResponse(activity.cellsComments)
 
 
-@login_required(login_url='start')
+@login_required(login_url='entry')
 def check_cell(request, picked_date):
     """
     Функция для отметки в базе данных нажатой клетки
@@ -510,7 +563,7 @@ def check_cell(request, picked_date):
     return HttpResponse()
 
 
-@login_required(login_url='start')
+@login_required(login_url='entry')
 def open_group(request):
     """
     Функция для сохранения открытия группы в базе данных
@@ -525,7 +578,7 @@ def open_group(request):
     return HttpResponse()
 
 
-@login_required(login_url='start')
+@login_required(login_url='entry')
 def open_all(request, picked_date):
     """
     Функция для сохранения открытия всех групп в базе даннах
@@ -561,7 +614,7 @@ def get_activity_day(cell, user, picked_date):
     return activities[activity_day[0]], activity_day[1]
 
 
-@login_required(login_url='start')
+@login_required(login_url='entry')
 def delete_all(request, picked_date):
     """
     Функция удаления всех активностей
@@ -648,7 +701,8 @@ def signin(request):
                                         showDeleteActivity=True, showCreateActivityGroup=True, enableSortTable=True,
                                         enableOpenCloseGroups=False, onSounds=True, showRowColumnLight=True,
                                         showActivityDayLight=True, rowColumnLight='#e7e7e7', fontFamily='Inter',
-                                        showOpenAllGroups=True, showTabs=True, selected=True, name='default')
+                                        showOpenAllGroups=True, showTabs=True, selected=True, name='default',
+                                        vanishing='off')
                 login(request, user)
                 return redirect('index')
             else:
@@ -673,7 +727,7 @@ def signin(request):
     return render(request, 'hwyd/index.html', context=context)
 
 
-@login_required(login_url='start')
+@login_required(login_url='entry')
 def user_logout(request):
     """
     Функция для выхода пользователя
@@ -683,4 +737,101 @@ def user_logout(request):
     """
 
     logout(request)
-    return redirect('start')
+    return redirect('entry')
+
+
+@login_required(login_url='entry')
+def export_data_as_json(request):
+    user = request.user
+
+    # Фильтруем привычки (isGroup=False) и сортируем по дате, затем по имени
+    habits = Activities.objects.filter(user=user, isGroup=False).values(
+        'id', 'name', 'color', 'date', 'marks'
+    ).order_by('date', 'name')
+
+    # Фильтруем группы (isGroup=True) и сортируем по дате, затем по имени
+    groups_query = Activities.objects.filter(user=user, isGroup=True).values(
+        'id', 'name', 'color', 'date'
+    ).order_by('date', 'name')
+
+    # Фильтруем связи между группами и привычками
+    connections = ActivitiesConnection.objects.filter(user=user).values('group_id', 'activity_id')
+
+    result = []  # Список для привычек
+    groups = []  # Список для групп
+
+    # Обработка привычек
+    for activity in habits:
+        name = activity["name"]
+        color = activity["color"]
+        date = activity["date"]  # Формат даты: YYYY-MM
+        marks = activity["marks"].split(sep=" ")  # Разделяем отметки "False True False"
+
+        # Преобразуем дату в объект datetime для обработки дней
+        year, month = map(int, date.split('-'))
+        days_in_month = monthrange(year, month)[1]  # Определяем количество дней в месяце
+        base_date = datetime(year, month, 1)  # Начало месяца
+
+        # Найти группу, к которой принадлежит активность
+        group_name = None  # Название группы
+        related_groups = [conn['group_id'] for conn in connections if conn['activity_id'] == activity['id']]
+        if related_groups:
+            # Получить название первой группы (если активность принадлежит нескольким группам, можно изменить логику)
+            group_name = Activities.objects.filter(id=related_groups[0]).values_list('name', flat=True).first()
+
+        # Ограничиваем обработку только количеством дней в месяце
+        for index, mark in enumerate(marks[:days_in_month]):  # Отсекаем лишние дни
+            day_date = base_date + timedelta(days=index)  # Вычисляем дату для каждой отметки
+            result.append({
+                "name": name,
+                "color": color,
+                "date": day_date.strftime("%Y-%m-%d"),  # Преобразуем дату в строку
+                "mark": mark,  # True или False
+                "group": group_name  # Название группы
+            })
+
+    # Обработка групп
+    for group in groups_query:
+        group_id = group['id']
+        group_name = group['name']
+        group_color = group['color']
+        group_date = group['date']
+
+        # Найти все связанные привычки для группы
+        related_activities = [activity for activity in habits if activity['id'] in [
+            conn['activity_id'] for conn in connections if conn['group_id'] == group_id
+        ]]
+
+        # Расчет процента выполнения группы по дням
+        days_in_month = monthrange(*map(int, group_date.split('-')))[1]  # Количество дней в месяце
+        total_days = days_in_month
+        day_completion = [0] * total_days  # Массив для учета выполнения по дням
+
+        for activity in related_activities:
+            marks = activity['marks'].split(sep=" ")[:total_days]  # Ограничиваем количеством дней месяца
+            for day_index, mark in enumerate(marks):
+                if mark == "True":
+                    day_completion[day_index] += 1
+
+        # Рассчитываем общий процент выполнения группы по дням
+        overall_percentage = round(sum(day_completion) / (total_days * len(related_activities)) * 100) if related_activities else 0
+
+        # Добавляем данные о группе
+        groups.append({
+            "name": group_name,
+            "color": group_color,
+            "date": group_date,
+            "completion_percentage": overall_percentage,
+            "daily_completion": [
+                {
+                    "day": day_index + 1,
+                    "completed": day_completion[day_index],
+                    "total": len(related_activities),
+                    "percentage": round(day_completion[day_index] / len(related_activities) * 100) if len(related_activities) > 0 else 0
+                }
+                for day_index in range(total_days)
+            ]
+        })
+
+    # Возвращаем данные в формате JSON
+    return JsonResponse({"activities": result, "groups": groups})

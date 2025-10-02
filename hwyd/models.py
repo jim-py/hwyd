@@ -5,7 +5,15 @@ from django.forms.models import model_to_dict
 
 class CustomFieldsUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    lastActive = models.DateTimeField()
+    lastActive = models.DateTimeField(verbose_name='Последнее посещение')
+    answers = models.TextField('Ответы')
+
+    class Meta:
+        verbose_name = 'Кастомные поля'
+        verbose_name_plural = 'Кастомные поля'
+
+    def __str__(self):
+        return f'Пользователь {self.user}, последний заход в {self.lastActive.strftime("%d.%m.%Y %H:%M:%S")} ответил {self.answers != ""}'
 
 
 class ActivitiesConnection(models.Model):
@@ -80,6 +88,7 @@ class Settings(models.Model):
     showOpenAllGroups = models.BooleanField(verbose_name='Открыть/закрыть группы')
     showTabs = models.BooleanField(verbose_name='Вкладки')
     selected = models.BooleanField(verbose_name='Выбрана настройка')
+    vanishing = models.CharField(max_length=50, verbose_name='Тип исчезновения')
 
     class Meta:
         verbose_name = 'Настройку'

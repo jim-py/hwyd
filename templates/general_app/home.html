@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivum</title>
+    <link rel="stylesheet" href="{% static 'general_app/font.css' %}">
+    <link rel="stylesheet" href="{% static 'general_app/home.css' %}">
+    <link rel="stylesheet" href="{% static 'general_app/scroll.css' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
+    <script
+            src="https://code.jquery.com/jquery-3.6.3.js"
+            integrity="sha256-nQLuAZGRRcILA+6dMBOvcRh5Pe310sBpanc6+QBmyVM="
+            crossorigin="anonymous">
+    </script>
+    <style>
+        .modal {
+            display: none; /* Скрыть модальное окно по умолчанию */
+            position: fixed; /* Оставаться на месте при прокрутке */
+            z-index: 1; /* Сидеть на верху */
+            left: 0;
+            top: 0;
+            width: 100%; /* Полная ширина */
+            height: 100%; /* Полная высота */
+            overflow: auto; /* Включить прокрутку, если нужно */
+            background-color: rgb(0, 0, 0); /* Цвет фона */
+            background-color: rgba(0, 0, 0, 0.4); /* Цвет фона с немного прозрачностью */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% от верхней части экрана и по центру по горизонтали */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Можно настроить ширину модального окна */
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .feature:hover .custom-hr {
+            background-color: #5f99e8;
+        }
+
+        .custom-hr {
+            height: 1px;
+            background-color: #888;
+            margin: 8px 0;
+        }
+
+        .text-feature {
+            text-align: center
+        }
+
+        h2 {
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    {% include 'general_app/navbar.html' %}
+</header>
+<main>
+    <section class="intro">
+        <h1>Добро пожаловать в нашу экосистему приложений!</h1>
+        <p>Управляйте своими задачами, привычками и бюджетом в одном месте.</p>
+    </section>
+    <section class="section features">
+        <article class="feature" id="hwyd">
+            <h2>Habitus</h2>
+            <p>
+            <div class="text-feature">Трекер привычек
+                <div class="custom-hr"></div>
+                Создавайте и отслеживайте свои привычки для достижения целей.
+            </div>
+        </article>
+        <article class="feature" id="budget">
+            <h2>Nummus</h2>
+            <p>
+            <div class="text-feature">Трекер бюджета
+                <div class="custom-hr"></div>
+                Контролируйте свои доходы и расходы для лучшего финансового планирования.
+            </div>
+        </article>
+        <article class="feature" id="todoapp">
+            <h2>Actus</h2>
+            <p>
+            <div class="text-feature">Трекер задач
+                <div class="custom-hr"></div>
+                Записывайте задачи и следите за их исполнением, чтобы ничего не упустить.
+            </div>
+        </article>
+        <article class="feature" id="knowledgebase">
+            <h2>Mentis</h2>
+            <div class="text-feature">База знаний
+                <div class="custom-hr"></div>
+                Идеальный ресурс для исследования, обучения и углубления знаний.
+            </div>
+        </article>
+        <article class="feature" id="pomodorotimer">
+            <h2>Focusi</h2>
+            <div class="text-feature">Трекер концентрации
+                <div class="custom-hr"></div>
+                Используйте метод Помодоро для улучшения управления временем и повышения продуктивности.
+            </div>
+        </article>
+        <article class="feature" id="mathtraining">
+            <h2>Algeo</h2>
+            <div class="text-feature">Математический тренажёр
+                <div class="custom-hr"></div>
+                Решайте математические примеры на скорость для поддержания мозговой активности.
+            </div>
+        </article>
+    </section>
+    <section class="section company-section">
+        <h2>О компании Productivum</h2>
+        <div class="company-content">
+            <img src="{% static 'general_app/image.png' %}" alt="Фото Философа" class="philosopher-photo">
+            <div class="company-text">
+                <p>Компания Productivum укрепляет мост между древней мудростью и современной технологией, вдохновляясь
+                    бесценными идеями великих мыслителей.</p>
+                <p>Мы стремимся к гармонии в цифровом мире, где скорость и эффективность уравновешиваются обдуманностью
+                    и стратегическим мышлением.</p>
+                <p>Продуктивность — это искусство максимизации вашего потенциала. Наши решения помогают культивировать
+                    самодисциплину и рациональность, ради достижения высоких результатов в работе и личной жизни.</p>
+                <p>Присоединяйтесь к диалогу разумов с Productivum, и пусть каждый ваш день будет наполнен озарениями и
+                    открытиями.</p>
+            </div>
+        </div>
+    </section>
+    <section class="section news-section">
+        <h2>Обновления</h2>
+        <article class="news-item">
+            <h3>Небольшие исправления!</h3>
+            <p class="news-date">20.04.2025</p>
+            <p>Исправлен небольшой баг в Habitus</p>
+        </article>
+        <article class="news-item">
+            <h3>Помодоро таймер!</h3>
+            <p class="news-date">24.05.2024</p>
+            <p>С сегодняшнего дня доступен таймер помодоро! Пока что мало функций, но они будут добавляться и расширяться.</p>
+        </article>
+        <article class="news-item">
+            <h3>Мы открылись!</h3>
+            <p class="news-date">03.05.2024</p>
+            <p>Ура! Экосистема Productivum и дальше будет улучшаться!</p>
+        </article>
+    </section>
+</main>
+<footer>
+    <p>&copy; 2025 - Productivum</p>
+</footer>
+
+<!-- Модальное окно -->
+<div id="myModal" class="modal">
+    <!-- Содержимое модального окна -->
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>В разработке</p>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('myModal');
+
+    document.getElementById('hwyd').addEventListener('click', function () {
+        window.location.href = '{% url 'index' %}';
+    });
+    document.getElementById('todoapp').addEventListener('click', function () {
+        window.location.href = '{% url 'todos:index' %}';
+    });
+    document.getElementById('budget').addEventListener('click', function () {
+        {% comment %} window.location.href = '{% url 'budget:index' %}'; {% endcomment %}
+        modal.style.display = "block";
+    });
+    document.getElementById('mathtraining').addEventListener('click', function () {
+        window.location.href = '{% url 'mathtraining' %}';
+    });
+    document.getElementById('pomodorotimer').addEventListener('click', function () {
+        window.location.href = '{% url 'pomodoro:base' %}';
+    });
+
+    document.getElementById('knowledgebase').addEventListener('click', function () {
+        modal.style.display = "block";
+    });
+    const span = document.getElementsByClassName("close")[0];
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+    window.onclick = function (event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+<script src="{% static 'general_app/navbar_open.js' %}"></script>
+</body>
+</html>

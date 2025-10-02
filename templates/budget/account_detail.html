@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Подключение Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Детали Счета</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .bank-card {
+            margin-top: 50px;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .bank-card .card-title {
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .bank-card-detail {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .bank-card-detail span {
+            margin-left: 5px;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="bank-card">
+                <div class="card-body">
+                    <h3 class="card-title">{{ account.name }}</h3>
+                    <p class="bank-card-detail">Счет ID<span>{{ account.id }}</span></p>
+                    <p class="bank-card-detail">Тип счета<span>{{ account.account_type.name }}</span></p>
+                    <p class="bank-card-detail">Валюта<span>{{ account.currency.name }}</span></p>
+                    <p class="bank-card-detail">Баланс<span>{{ account.balance }}</span></p>
+                    <p class="bank-card-detail">Дата открытия<span>{{ account.opening_date }}</span></p>
+                    <p class="bank-card-detail">Дата закрытия<span>{{ account.closing_date }}</span></p>
+                    <p class="bank-card-detail">Начальный баланс<span>{{ account.initial_balance }}</span></p>
+                    <p class="bank-card-detail">Процентная ставка<span>{{ account.interest_rate }}</span></p>
+                    <p class="bank-card-detail">Кредитный лимит<span>{{ account.credit_limit }}</span></p>
+                    <!-- Добавьте ссылки для редактирования и удаления, если необходимо -->
+                    <a href="{% url 'budget:account_edit' pk=account.pk %}" class="mr-3 mt-3"><i
+                            style="color: #8ab9ff; margin-right: 7px" class="fa-solid fa-pen-to-square"></i></a>
+                    <a href="{% url 'budget:account_delete' pk=account.pk %}" class="mt-3"><i
+                            style="color: #ff8a8a" class="fa-solid fa-trash"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Подключение Bootstrap JS и зависимостей -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://kit.fontawesome.com/03c2a52bd5.js" crossorigin="anonymous"></script>
+</body>
+</html>

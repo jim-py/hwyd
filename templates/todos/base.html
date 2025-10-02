@@ -1,0 +1,35 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    {% block title %}<title></title>{% endblock %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="{% static 'external/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'main.css' %}">
+    <link rel="stylesheet" href="{% static 'external/all.min.css' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
+    <script src="{% static 'js/jquery.js' %}"></script>
+    {% block extracss %}{% endblock %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+{% if request.user_agent.is_mobile %}
+    {% include 'navibarMobile.html' %}
+{% else %}
+    {% include 'navibar.html' %}
+{% endif %}
+
+{% block content %}{% endblock %}
+
+<script src="{% static 'external/jquery-3.4.1.slim.min.js' %}"></script>
+<script src="{% static 'external/popper.min.js' %}"></script>
+<script src="{% static 'external/bootstrap.min.js' %}"></script>
+<script src="{% static 'external/kitfor.js' %}"></script>
+
+{% block extrajs %}{% endblock %}
+
+</body>
+</html>

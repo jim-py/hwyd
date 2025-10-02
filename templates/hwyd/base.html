@@ -1,19 +1,29 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ru">
+<html id="html" lang="ru">
 <head>
     <meta http-equiv="cache-control" content="no-cache">
     <meta http-equiv="expires" content="0">
-    <title>HWYD</title>
+    <title>Habitus</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" href="{% static 'css/tableCells.css' %}">
     <link rel="stylesheet" href="{% static 'css/buttons.css' %}">
     <script src="{% static 'js/jquery.js' %}"></script>
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
     {% include 'hwyd/styles.html' %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
+
+{% if settings.showTabs %}
+    {% if request.user_agent.is_mobile %}
+        {% include 'navibarMobile.html' %}
+    {% else %}
+        {% include 'navibar.html' %}
+    {% endif %}
+{% endif %}
 
 {% include 'hwyd/dialogs.html' %}
 

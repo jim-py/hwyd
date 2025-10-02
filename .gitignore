@@ -1,0 +1,24 @@
+# Python кэш и временные файлы
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+*.pyo
+*.pyd
+
+# Виртуальная среда
+venv/
+env/
+.env
+
+# Django
+*.log
+db.sqlite3
+/staticfiles/
+media/
+
+# IDE и редакторы
+.vscode/
+.idea/
+*.swp

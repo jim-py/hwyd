@@ -1,5 +1,6 @@
 {% load static %}
 {% load tags %}
+<link rel="stylesheet" href="{% static 'css/footer.css' %}">
 
 <div>
     {% if settings.enableSortTable %}
@@ -28,13 +29,13 @@
     </thead>
     <tbody>
     {% for activity in range_activities %}
-        <tr style="{% if not activity.isGroup and activity|group_is_open:group_open and settings.enableOpenCloseGroups %} display: none; {% endif %}"
+        <tr style="{% if not activity.isGroup and activity|group_is_open:group_open and settings.enableOpenCloseGroups or settings.vanishing != 'off' and activity.todayCheck == 'True' %} display: none; {% endif %}"
             class="{% if activity.isGroup %}isGroup{{ activity.pk }}{% else %}group{{ activity|get_group_id:connections }}-{{ activity.pk }}{% endif %}">
             {% for j in range_days %}
                 {% if forloop.first %}
                     <td class="header {% if activity.isOpen %} expand {% endif %} {% if activity.isGroup %} isGroup{{ activity.pk }} {% else %} group{{ activity|get_group_id:connections }}-{{ activity.pk }} {% endif %}">
-                        <p class="paragraph" id="p{{ forloop.parentloop.counter0 }}{% if '/m' in request.path and j != -1 %}-{% endif %}{{ j }}" data-pk="{{ activity.pk }}"
-                           style="{% if not activity|get_group_id:connections == None %} margin-left: 10px; {% endif %}{% if '/m' in request.path %}font-size: 12px;{% endif %}" data-conn="{{ activity|connection_group:lst_group_conns }}" data-type="{% if activity.isGroup %}группы{% else %}активности{% endif %}" data-name="{{ activity.name }}">
+                        <p class="paragraph" id="p{{ forloop.parentloop.counter0 }}{% if request.user_agent.is_mobile and j != -1 %}-{% endif %}{{ j }}" data-pk="{{ activity.pk }}"
+                           style="{% if not activity|get_group_id:connections == None %} margin-left: 10px; {% endif %}{% if request.user_agent.is_mobile %}font-size: 12px;{% endif %}" data-conn="{{ activity|connection_group:lst_group_conns }}" data-type="{% if activity.isGroup %}группы{% else %}активности{% endif %}" data-name="{{ activity.name }}">
                             {% if settings.showDeleteActivity %}
                                 <a class="deleteActivityButt">
                                     <button class="deleteActivity" type="button">
@@ -60,7 +61,7 @@
                         {% else %}
                             {% if activity.beginDay <= j and j <= activity.endDay and activity|get_one_day:j %}
                                 <div id="{{ forloop.parentloop.counter0 }}-{{ j }}" {% get_comments as res %} data-title="{{ res }}"
-                                     class="divClick {% if today|add:-1 == j %}today{% endif %} {% if res %}hasText{% endif %} {% if j > 15 %}bigger15{% endif %}">{% get_symbols %}</div>
+                                     class="divClick {% if today|add:-1 == j %}today{% endif %} {% if res %}hasText{% endif %} {% get_class_on as checked %}{% if checked %}on{% endif %} {% if j > 15 %}bigger15{% endif %}">{% get_symbols %}</div>
                             {% endif %}
                         {% endif %}
                     </td>
@@ -69,9 +70,19 @@
         </tr>
     {% endfor %}
     </tbody>
-</table>
+{#    <tfoot>#}
+{#    <tr>#}
+{#        {% for day_count in range_days %}#}
+{#            {% if forloop.first %}#}
+{#                <td></td>#}
+{#            {% else %}#}
+{#                <td><div id="number{{ forloop.counter0|add:-1 }}" class="number">0</div></td>#}
+{#            {% endif %}#}
+{#        {% endfor %}#}
+{#    </tr>#}
+{#    </tfoot>#}
+    </table>
 </div>  <!-- Таблица активностей -->
-
 
 <button id="deleteAll" class="button-6" role="button" style="background-color:#ffdfdf;width: auto; display:{% if range_activities and settings.showDeleteAllActivities %}block;{% else %}none;{% endif %}">Очистить все активности</button>
 <!-- Кнопка удаления всех активностей -->

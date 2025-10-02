@@ -1,28 +1,24 @@
 {% load static %}
-{% if not '/m' in request.path %}
+{% if not request.user_agent.is_mobile %}
     <style>
         html {
             margin: auto;
         }
     </style>
-{% else %}
-    <style>
-        html {
-            zoom: 250%;
-        }
-    </style>
 {% endif %}
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Istok+Web&family=JetBrains+Mono:wght@400;500;600&family=Montserrat+Alternates:wght@400;500;600&family=Montserrat:wght@400;500;600&family=Roboto+Mono:wght@400;500;600&family=Ubuntu:wght@300&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Istok+Web&family=JetBrains+Mono:wght@400;500;600&family=Montserrat+Alternates:wght@400;500;600&family=Montserrat:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&family=Ubuntu:wght@300&display=swap');
 
     body {
         font-family: '{{ settings.fontFamily }}', serif;
         display: table-cell;
         vertical-align: middle;
     }
+
     body * {
         font-family: '{{ settings.fontFamily }}', serif;
     }
+
     .button-6 {
         font-family: '{{ settings.fontFamily }}', serif;
     }
@@ -153,10 +149,11 @@
     {% endif %}
 </style>
 <style>
-    .divClick.hasText.bigger15:hover::before{
+    .divClick.hasText.bigger15:hover::before {
         left: auto;
         right: 105%;
     }
+
     .divClick.hasText:hover::before {
         content: attr(data-title);
         position: absolute;
@@ -193,16 +190,14 @@
         right: auto;
     }
 
-    {% if not '/m' in request.path %}
+    {% if not request.user_agent.is_mobile %}
         #dialogHead, #dialog {
             left: 40%;
-            {#top: 25%;#}
-            padding: 0;
+        {#top: 25%;#} padding: 0;
         }
     {% endif %}
 
     .ui-sortable-handle {
         cursor: move !important;
     }
-
 </style>

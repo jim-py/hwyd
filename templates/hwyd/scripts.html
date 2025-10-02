@@ -3,59 +3,96 @@
 
 {# Скрипты таблицы #}
 <script>
-    for (let elem of document.querySelectorAll('div.divClick')) {
-        elem.addEventListener('click', function () {
-            $(this).toggleClass('on');
-        })
-        elem.oncontextmenu = function (e) {
-            e.preventDefault();
-            let dialog = document.getElementById('dialogCell');
-            document.querySelector('input#cellNum').value = e.target.id
-            $.ajax({
-                type: 'POST',
-                url: '{% url 'get_comments' date %}',
-                data:
-                    {
-                        cell: e.target.id,
-                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-                    }
-            }).done(function(data){
-                data = data.split('|')[e.target.id.split('-')[1]].split('*');
-                document.querySelector('input#symbolsOnCell').value = data[0]
-                document.querySelector('textarea#commentOnCell').value = data[1]
+
+    {# Подгон под размер телефона #}
+    document.querySelector('#openGuide').style.display = 'none';
+    
+    {% if request.user_agent.is_mobile %}
+        let zoomHTML = Math.round(window.innerWidth / document.body.offsetWidth * 100) - 1;
+        html.style.zoom = `${zoomHTML}%`;
+        
+        zoomDialogs = `${Math.round(window.innerWidth / document.body.offsetWidth * 60) - 1}%`;
+        document.querySelector('#dialog').style.zoom = zoomDialogs;
+        document.querySelector('#dialogHead').style.zoom = zoomDialogs;
+        document.querySelector('#some-modal-id').style.zoom = zoomDialogs;
+        
+        window.addEventListener('resize', function (event) {
+            zoomHTML = Math.round(window.innerWidth / document.body.offsetWidth * 100) - 1;
+            html.style.zoom = `${zoomHTML}%`;
+        }, true);
+    {% endif %}
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const numberElements = document.querySelectorAll('.number');
+        numberElements.forEach(function (element) {
+            element.addEventListener('click', function () {
+                let newValue = parseInt(element.textContent) + 10;
+                const brightness = 255 - (newValue / 100) * 255;
+                element.textContent = newValue.toString();
+                element.style.backgroundColor = "rgba(0, 255, 0, " + (newValue / 100) + ")";
+                element.style.color = "rgb(" + (brightness) + ", " + (brightness) + ", " + (brightness) + ")";
             });
-            dialog.showModal();
-        }
-    }
-
-    for (let cell of {{ cellsToClick|safe }}) {
-        try {
-            document.getElementById(cell).click();
-        } catch (err) {
-        }
-    }  //При заходе на сайт нажимает отмеченные ранее клетки таблицы
+        });
+    });
 
     for (let elem of document.querySelectorAll('div.divClick')) {
         elem.addEventListener('click', function () {
-            {% if settings.onSounds %}
-            let music
-            if ($(this).hasClass('on')) {
-                music = new Audio("{% static 'on.MP3' %}");
-            } else {
-                music = new Audio("{% static 'off.MP3' %}");
+            const object = $(this);
+            let currentDate = new Date();
+            let currentDay = currentDate.getDate() - 1;
+            let divId = this.id;
+
+            object.toggleClass('on');
+
+            {#let counter = '#number' + divId.split('-').pop(), newValue;#}
+            {#const element = document.querySelector(counter);#}
+            {#let amountPercent = 100 / {{ range_activities|length }};#}
+
+            let cellChecked = this.classList.contains('on')
+            if (cellChecked) {
+                {#newValue = Math.floor(parseInt(element.textContent) + amountPercent);#}
+                {% if settings.vanishing != "off" %}
+                    {% if settings.vanishing == "smooth" %}
+                        if (divId.includes('-' + currentDay.toString())) {
+                            setTimeout(function () {
+                                object.parent().parent().fadeOut(1000);
+                            }, 1000);
+                        }
+                    {% elif settings.vanishing == "sharp" %}
+                        if (divId.includes('-' + currentDay.toString())) {
+                            object.parent().parent().fadeOut(700);
+                        }
+                    {% endif %}
+                {% endif %}
             }
-            music.volume = 0.5;
-            music.play();
+            {# } else {#}
+            {#    newValue = Math.floor(parseInt(element.textContent) - amountPercent);#}
+            {# }#}
+
+            {#const brightness = Math.floor(255 - (newValue / 100) * 255);#}
+            {#element.textContent = newValue.toString();#}
+            {#element.style.backgroundColor = "rgba(0, 255, 0, " + (newValue / 100) + ")";#}
+            {#element.style.color = "rgb(" + brightness + ", " + brightness + ", " + brightness + ")";#}
+
+            {% if settings.onSounds %}
+                let music
+                if (object.hasClass('on')) {
+                    music = new Audio("{% static 'on.MP3' %}");
+                } else {
+                    music = new Audio("{% static 'off.MP3' %}");
+                }
+                music.volume = 0.5;
+                music.play();
             {% endif %}
             let group_id = $(this.parentNode.parentNode)[0].className.match(/[0-9-]+/g)[0].split('-')[0]
             if (group_id) {
                 let day = Number(this.id.split('-')[1]) + 1, newWidth, progress
                 let groups_progress_add = {% progress_cell_add %};
-                {% if '/m' in request.path %}
-                let tmp = {{ range_days }};
-                progress = document.querySelector('tr.isGroup' + group_id).children[tmp.indexOf(day - 1)].children[0]
+                {% if request.user_agent.is_mobile %}
+                    let tmp = {{ range_days }};
+                    progress = document.querySelector('tr.isGroup' + group_id).children[tmp.indexOf(day - 1)].children[0]
                 {% else %}
-                progress = document.querySelector('tr.isGroup' + group_id).children[day].children[0]
+                    progress = document.querySelector('tr.isGroup' + group_id).children[day].children[0]
                 {% endif %}
                 let progress_bar = progress.children[0]
                 let width = progress_bar.style.width
@@ -71,7 +108,7 @@
                     $(progress_bar).toggleClass('notFull')
                 }
 
-                if ($(this).hasClass('on')) {
+                if (object.hasClass('on')) {
                     newWidth = Number(width.substring(0, width.length - 1)) + groups_progress_add[group_id][day - 1];
                     if (newWidth > 99)
                         progress_bar.style.width = '100%'
@@ -107,7 +144,26 @@
                     }
             })
         })
-    }
+        elem.oncontextmenu = function (e) {
+            e.preventDefault();
+            let dialog = document.getElementById('dialogCell');
+            document.querySelector('input#cellNum').value = e.target.id
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'get_comments' date %}',
+                data:
+                    {
+                        cell: e.target.id,
+                        csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                    }
+            }).done(function (data) {
+                data = data.split('|')[e.target.id.split('-')[1]].split('*');
+                document.querySelector('input#symbolsOnCell').value = data[0]
+                document.querySelector('textarea#commentOnCell').value = data[1]
+            });
+            dialog.showModal();
+        }
+    } //При заходе на сайт добавляет действия на нажатие привычки и проставляет комментарии
 </script>
 
 {# Тоже что-то #}
@@ -260,7 +316,7 @@
         const activityNameLabel = document.querySelector('#activityNameLabel');
         const hideOnLabel = document.querySelector('#hideOnLabel');
 
-        let tmp = {{ test|safe }}, selected_activity;
+        let tmp = {{ jsonActivities|safe }}, selected_activity;
         for (let activity of tmp) {
             if (activity['name'] === e.target.getAttribute('data-name')) {
                 selected_activity = activity
@@ -775,9 +831,36 @@ function openAllGroups() {
         for (let elem of document.querySelectorAll('p.paragraph')) {
             for (let pk of hide_activities) {
                 if (pk === Number(elem.getAttribute('data-pk'))) {
-                    $(elem.parentNode.parentNode).toggleClass('hide')
+                    const object = $(elem.parentNode.parentNode);
+                    object.toggleClass('hide');
                 }
             }
+        }
+    })
+    document.querySelector('#hideCompleteActivities').addEventListener('click', function () {
+        let trElements = document.querySelectorAll('tbody tr'), check = true;
+        let currentDate = new Date();
+        let currentDay = currentDate.getDate() - 1;
+
+        trElements.forEach(function (tr) {
+            let trHide = tr.classList.contains('hide')
+            let displayStyle = window.getComputedStyle(tr).getPropertyValue('display');
+            if (!trHide) {
+                if (displayStyle === 'none') {
+                    tr.style.display = '';
+                    check = false;
+                }
+            }
+        });
+        if (check === true) {
+            let divElements = document.querySelectorAll('div.on');
+            divElements.forEach(function (div) {
+                let divId = div.id;
+                if (divId.includes('-' + currentDay.toString())) {
+                    let grandParent = div.parentElement.parentElement;
+                    grandParent.style.display = 'none';
+                }
+            });
         }
     })
 
@@ -832,4 +915,19 @@ function openAllGroups() {
             inputCheckbox.checked = !inputCheckbox.checked;
         })
     }
+
+    document.addEventListener('keydown', function (event) {
+        let isAltPressed = event.altKey;
+        let isSPressed = event.key === 's' || event.keyCode === 83;
+        if (isAltPressed && isSPressed) {
+            let divButtons = document.getElementById('divButtons');
+            if (divButtons) {
+                divButtons.style.display = 'none';
+            }
+        }
+    });
+
+{#    {% if user.username == 'unbroken0886' %}#}
+{#    location.reload(true);#}
+{#    {% endif %}#}
 </script>

@@ -1,40 +1,45 @@
+{% load tags %}
+{% get_date_y_m as by_date %}
 {% if settings.showCalendar %}
     <form id="chooseDate" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
         <input type="month" id="chooseDate" name="chooseDate" min="2020-01" max="2030-12" value="{{ date }}">
     </form>
 {% endif %}  <!-- Календарь для выбора месяца -->
-{% if settings.showTabs %}
-    <style>
-        li{
-            display: inline-block;
-        }
-        ul{
-            margin: 0;
-            padding: 0;
-            display: inline-block;
-        }
-        .link {
-        display: inline-block;
-        background: #8C959D;
-        color: #fff;
-        padding: 0 1.5rem;
-        text-decoration: none;
-        border-radius: 3px;
-       }
-        .active{
-            background: #75beff;
-        }
-    </style>
-    <ul>
-        <li><a href="{% url 'test' %}" class="link">To-Do</a></li>
-        <li><a href="{% url 'by_date' '2023-09' %}" class="link">HWYD</a></li>
-    </ul>
-    <script>
-        for (let elem of document.querySelectorAll('.link')) {
-            if (elem.href === location.href){
-                $(elem).toggleClass('active')
-            }
-        }
-    </script>
-{% endif %}
+{#{% if settings.showTabs %}#}
+{#    <style>#}
+{#        li{#}
+{#            display: inline-block;#}
+{#        }#}
+{#        ul{#}
+{#            margin: 0;#}
+{#            padding: 0;#}
+{#            display: inline-block;#}
+{#        }#}
+{#        .link {#}
+{#        display: inline-block;#}
+{#        background: #8C959D;#}
+{#        color: #fff;#}
+{#        padding: 0 1.5rem;#}
+{#        text-decoration: none;#}
+{#        border-radius: 3px;#}
+{#       }#}
+{#        .active{#}
+{#            background: #75beff;#}
+{#        }#}
+{#    </style>#}
+{#    <ul>#}
+{#        <li><a href="{% url 'home' %}" class="link">Главная</a></li>#}
+{#        <li><a href="{% url 'by_date' by_date %}" class="link">Habitus</a></li>#}
+{#        <li><a href="{% url 'todos:index'  %}" class="link">To-Do</a></li>#}
+{#        <li><a href="/budget/" class="link">Budget</a></li>#}
+{#    </ul>#}
+{#    <script>#}
+{#        for (let elem of document.querySelectorAll('.link')) {#}
+            {#console.log(elem.href, location.href)#}
+{#            if (elem.href === location.href){#}
+{#                $(elem).toggleClass('active')#}
+{#            }#}
+{#        }#}
+{#    </script>#}
+{#{% endif %}#}

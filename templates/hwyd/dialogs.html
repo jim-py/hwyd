@@ -1,4 +1,5 @@
 {% load static %}
+<link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
 
 <dialog class="dialog" id="some-modal-id">
     <h3 class="dialog__title">Настройки</h3>
@@ -105,6 +106,16 @@
                         {% if settings.showRowColumnLight %} checked {% endif %}>
             </div>
         </div>
+
+        <div>
+            <label for="selectFade">Пропадание при выполнении привычки</label>
+            <select name="selectFade" id="selectFade">
+                <option {% if settings.vanishing == 'off' %}selected{% endif %} value="off">Выключено</option>
+                <option {% if settings.vanishing == 'sharp' %}selected{% endif %} value="sharp">Резко</option>
+                <option {% if settings.vanishing == 'smooth' %}selected{% endif %} value="smooth">Плавно</option>
+            </select>
+        </div>
+
         <p></p>
         <hr>
         <input id="data" name="data">
@@ -114,6 +125,37 @@
     <form id="closeDialog" method="dialog" style="margin-right: 35px;">
         <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
     </form>
+
+    <style>
+        .jsonBtn {
+            text-decoration: none; /* Убирает подчеркивание текста */
+            color: black;
+            padding: 2px 5px;
+        }
+    </style>
+    <a href="#" class="button-6 jsonBtn" id="downloadJson">
+        <img src="https://cdn-icons-png.flaticon.com/512/4239/4239049.png" height=16px width=16px alt="Download" class="icon"> JSON
+    </a>
+
+    <script>
+        document.getElementById('downloadJson').addEventListener('click', function () {
+            fetch('/habitus/export-json/')
+                .then(response => response.json())
+                .then(data => {
+                    // Создаем файл JSON для скачивания
+                    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'data.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                })
+                .catch(error => console.error('Ошибка:', error));
+        });
+    </script>
 
     <button onclick="location.href='{% url 'user_logout' %}';" class="button-6" style="width: auto; float: right">Выйти</button>
 <div style="float: right; margin-right: 10px">
@@ -125,26 +167,31 @@
 </div>
 </dialog>  <!-- Диалоговое окно настроек сайта -->
 
-<button id="buttonSettings" type="button"
+<div id="divButtons">
+<button id="buttonSettings" type="button" title="Настройки"
         onclick="window['some-modal-id'].showModal();" aria-controls="some-modal-id">
     <img width="16" height="16" src="{% static 'settings.png' %}"></button>  <!-- Кнопка настроек -->
 
-{% if '/m' in request.path %}
-<button id="buttonSettings" type="button" style="margin-right: 10px;"
-        onclick="location.href = '{% url 'by_date' date %}';">
-    <img width="16" height="16" src="{% static 'pc.png' %}"></button>  <!-- Компьютерная версия -->
-{% else %}
-<button id="buttonSettings" type="button" style="margin-right: 10px;"
-        onclick="location.href = '{% url 'mobile_by_date' date %}';">
-    <img width="16" height="16" src="{% static 'phone.png' %}"></button>  <!-- Мобильная версия -->
-{% endif %}
-<button id="screenShot" type="button" style="margin-right: 10px;">
+{#{% if request.user_agent.is_mobile %}#}
+{#<button id="buttonSettings" type="button" style="margin-right: 10px;" title="Компьютерная версия"#}
+{#        onclick="location.href = '{% url 'by_date' date %}';">#}
+{#    <img width="16" height="16" src="{% static 'pc.png' %}"></button>  <!-- Компьютерная версия -->#}
+{#{% else %}#}
+{#<button id="buttonSettings" type="button" style="margin-right: 10px;" title="Мобильная версия"#}
+{#        onclick="location.href = '{% url 'mobile_by_date' date %}';">#}
+{#    <img width="16" height="16" src="{% static 'phone.png' %}"></button>  <!-- Мобильная версия -->#}
+{#{% endif %}#}
+
+<button id="screenShot" type="button" style="margin-right: 10px;" title="Сделать скриншот">
     <img width="16" height="16" src="{% static 'photocam.png' %}"></button>  <!-- Кнопка скриншота -->
-<button id="hideActivities" type="button" style="margin-right: 10px;" class="">
+<button id="hideActivities" type="button" style="margin-right: 10px;" title="Скрыть для фото">
     <img width="16" height="16" src="{% static 'eye.png' %}"></button>  <!-- Скрыть активности -->
+<button id="hideCompleteActivities" type="button" style="margin-right: 10px;" title="Показать выполненные">
+    <img width="16" height="16" src="{% static 'eye.png' %}"></button>  <!-- Показать выполненные активности -->
 <button id="openGuide" type="button" onclick="window['dialogGuide'].showModal();" aria-controls="dialogGuide"
-        style="margin-right: 10px;" class="">
-    <img width="16" height="16" src="{% static 'guide.png' %}"></button>  <!-- Скрыть активности -->
+        style="margin-right: 10px;" title="Справка">
+    <img width="16" height="16" src="{% static 'guide.png' %}"></button>  <!-- Справка -->
+</div>
 
 <dialog id="dialog" class="modalActivity">
     <div class="modal__header">
@@ -305,58 +352,57 @@
 </dialog>  <!-- Диалоговое окно текста клетки -->
 
 <style>
-
     .tabs {
-      font-size: 0;
-      margin-left: auto;
-      margin-right: auto;
+        font-size: 0;
+        margin-left: auto;
+        margin-right: auto;
     }
 
-    .tabs>input[type="radio"] {
-      display: none;
+    .tabs > input[type="radio"] {
+        display: none;
     }
 
-    .tabs>div {
-      /* скрыть контент по умолчанию */
-      display: none;
-      border: 1px solid #e0e0e0;
-      padding: 10px 15px;
-      font-size: 16px;
+    .tabs > div {
+        /* скрыть контент по умолчанию */
+        display: none;
+        border: 1px solid #e0e0e0;
+        padding: 10px 15px;
+        font-size: 16px;
     }
 
     /* отобразить контент, связанный с выбранной радиокнопкой (input type="radio") */
-    #tab-btn-1:checked~#content-1,
-    #tab-btn-2:checked~#content-2,
-    #tab-btn-3:checked~#content-3,
-    #tab-btn-4:checked~#content-4 {
-      display: block;
+    #tab-btn-1:checked ~ #content-1,
+    #tab-btn-2:checked ~ #content-2,
+    #tab-btn-3:checked ~ #content-3,
+    #tab-btn-4:checked ~ #content-4 {
+        display: block;
     }
 
-    .tabs>label {
-      display: inline-block;
-      text-align: center;
-      vertical-align: middle;
-      user-select: none;
-      background-color: #f5f5f5;
-      border: 1px solid #e0e0e0;
-      padding: 2px 8px;
-      font-size: 16px;
-      line-height: 1.5;
-      transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
-      cursor: pointer;
-      position: relative;
-      top: 1px;
+    .tabs > label {
+        display: inline-block;
+        text-align: center;
+        vertical-align: middle;
+        user-select: none;
+        background-color: #f5f5f5;
+        border: 1px solid #e0e0e0;
+        padding: 2px 8px;
+        font-size: 16px;
+        line-height: 1.5;
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+        cursor: pointer;
+        position: relative;
+        top: 1px;
     }
 
-    .tabs>label:not(:first-of-type) {
-      border-left: none;
+    .tabs > label:not(:first-of-type) {
+        border-left: none;
     }
 
-    .tabs>input[type="radio"]:checked+label {
-      background-color: #fff;
-      border-bottom: 1px solid #fff;
+    .tabs > input[type="radio"]:checked + label {
+        background-color: #fff;
+        border-bottom: 1px solid #fff;
     }
-  </style>
+</style>
 
 <dialog id="dialogGuide" class="modalColors">
     <div class="modal__header">
@@ -384,8 +430,6 @@
     </div>
     <div id="content-4">
       <div><img width="750" src="{% static 'guide2.jpg' %}" alt=""></div>
-      <div><img width="750" src="{% static 'guide2.jpg' %}" alt=""></div>
-
     </div>
   </div>
     <hr>
@@ -393,5 +437,3 @@
         <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
     </form>
 </dialog>  <!-- Диалоговое окно глобальных настроек цвета -->
-
-

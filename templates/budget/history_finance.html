@@ -1,0 +1,336 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>История финансов</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+
+    <!-- Chart.js CDN link -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Ваш CSS для стилизации страницы -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .chart-container {
+            width: 600px;
+            margin: 15px;
+        }
+
+        /* Добавьте сюда любые другие стили, которые вам нужны */
+    </style>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 10px;
+        }
+
+        .date-picker-form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+            margin: 30px auto;
+            position: absolute;
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        .form-group input[type="submit"] {
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .form-group input[type="submit"]:hover {
+            background-color: #4cae4c;
+        }
+
+        .open {
+            display: block;
+        }
+    </style>
+    <style>
+        .transaction-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 8px;
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            width: auto;
+            min-height: 80px;
+            min-width: 265px;
+        }
+
+        @media (max-width: 768px) {
+            .transaction-card {
+                margin: 10px;
+                width: calc(100% - 20px) !important;
+            }
+
+        }
+
+        .transaction-card .category {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: #6c757d;
+            padding: 0 5px;
+            border-radius: 3px;
+        }
+
+        .transaction-card .line {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 8px 0;
+        }
+
+        .transaction-card .details {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .transaction-card .details .amount {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .transaction-card .details .description {
+            color: #555;
+            font-size: 0.8rem;
+        }
+
+        .transaction-card .actions {
+            margin-top: 10px;
+            text-align: right;
+        }
+
+        .transaction-card .btn {
+            padding: 0;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+<div class="chart-container" style="justify-content: space-evenly; display:block;align-items: center">
+    <h2>История транзакций</h2>
+    <button type="button" id="dates-button" class="submit-btn">Выбрать даты</button>
+    <form action="{% url 'budget:history-finance' %}" method="post" class="date-picker-form" id="dates">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="start-date">Начальная дата:</label>
+            <input type="date" id="start-date" name="start-date">
+        </div>
+        <div class="form-group">
+            <label for="end-date">Конечная дата:</label>
+            <input type="date" id="end-date" name="end-date">
+        </div>
+        <div class="form-group" style="margin: 0">
+            <input type="submit" value="Отправить">
+        </div>
+    </form>
+    <canvas id="transactionsChart"></canvas>
+</div>
+
+
+    <div class="row" style="justify-content: center; display:flex;">
+        <!-- Доходы -->
+        <div class="col-sm-12 col-md-6 col-lg-3">
+            <h2>Доходы</h2>
+            {% for transaction in incomes %}
+                <div class="transaction-card col-sm-12 col-md-6 col-lg-3">
+                    <div class="details">
+                        <div class="category"
+                             style="background-color: {{ transaction.category.color }}">{{ transaction.category }}</div>
+                        {% if not 'permanent' in request.path %}
+                            <div class="date category">{{ transaction.date }}</div>{% endif %}
+                    </div>
+                    <div class="line"></div>
+                    <div class="details">
+                        <span class="amount"><span class="currency-symbol">₽</span> {{ transaction.amount }}</span>
+                        <span class="description">{{ transaction.description }}</span>
+                    </div>
+                </div>
+            {% empty %}
+                <p>Доходных транзакций не найдено.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Расходы -->
+        <div>
+            <h2>Расходы</h2>
+            {% for transaction in expenses %}
+                <div class="transaction-card col-sm-12 col-md-6 col-lg-3">
+                    <div class="details">
+                        <div class="category"
+                             style="background-color: {{ transaction.category.color }}">{{ transaction.category }}</div>
+                        {% if not 'permanent' in request.path %}
+                            <div class="date category">{{ transaction.date }}</div>{% endif %}
+                    </div>
+                    <div class="line"></div>
+                    <div class="details">
+                        <span class="amount"><span class="currency-symbol">₽</span> {{ transaction.amount }}</span>
+                        <span class="description">{{ transaction.description }}</span>
+                    </div>
+                </div>
+            {% empty %}
+                <p>Расходных транзакций не найдено.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Переводы -->
+        <div>
+            <h2>Переводы</h2>
+            {% for transaction in transfers %}
+                <div class="transaction-card col-sm-12 col-md-6 col-lg-3">
+                    <div class="details">
+                        <div class="category"
+                             style="background-color: {{ transaction.category.color }}">{{ transaction.category }}</div>
+                        {% if not 'permanent' in request.path %}
+                            <div class="date category">{{ transaction.date }}</div>{% endif %}
+                    </div>
+                    <div class="line"></div>
+                    <div class="details">
+                        <span class="amount"><span class="currency-symbol">₽</span> {{ transaction.amount }}</span>
+                        <span class="description">{{ transaction.description }}</span>
+                    </div>
+                </div>
+            {% empty %}
+                <p>Транзакций по переводам не найдено.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/moment/min/moment-with-locales.min.js"></script>
+<script>
+    // Установить локаль для moment.js, чтобы даты форматировались в вашем языковом стандарте
+    moment.locale('ru'); // для русского языка
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const toggleButton = document.getElementById('dates-button');
+        const sidebar = document.querySelector('#dates');
+        toggleButton.addEventListener('click', function () {
+            sidebar.classList.toggle('open');
+        });
+
+        // Переданные данные для различных типов транзакций из Django
+        const incomesData = JSON.parse('{{ incomes_json|safe }}');
+        const expensesData = JSON.parse('{{ expenses_json|safe }}');
+        const transfersData = JSON.parse('{{ transfers_json|safe }}');
+
+        // Собираем все даты в один массив
+        const allDates = [].concat(
+            incomesData.map(function (tran) {
+                return tran.date;
+            }),
+            expensesData.map(function (tran) {
+                return tran.date;
+            }),
+            transfersData.map(function (tran) {
+                return tran.date;
+            })
+        );
+
+        // Удаление дубликатов и сортировка дат
+        const uniqueSortedDates = Array.from(new Set(allDates)).sort(function (a, b) {
+            return new Date(a) - new Date(b);
+        });
+
+        const uniqueSortedDatesFormatted = uniqueSortedDates.map(function (date) {
+            return moment(date).format('LL');
+        });
+
+        // Функция для заполнения данных по уникальным датам
+        function fillDataForDates(data) {
+            return uniqueSortedDates.map(function (date) {
+                var entry = data.find(tran => tran.date === date);
+                return entry ? entry.amount : 0;
+            });
+        }
+
+        // Получить контекст для элемента canvas
+        const ctx = document.getElementById('transactionsChart').getContext('2d');
+        const transactionsChart = new Chart(ctx, {
+            type: 'bar', // Тип графика - линейный
+            data: {
+                labels: uniqueSortedDatesFormatted,
+                datasets: [
+                    {
+                        label: 'Доход',
+                        backgroundColor: 'rgba(40, 167, 69, 0.5)', // Пример цвета для доходов
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        data: fillDataForDates(incomesData),
+                        fill: false,
+                    },
+                    {
+                        label: 'Расход',
+                        backgroundColor: 'rgba(255, 0, 0, 0.5)', // Пример цвета для расходов
+                        borderColor: 'rgba(255, 0, 0, 1)',
+                        data: fillDataForDates(expensesData),
+                        fill: false,
+                    },
+                    {
+                        label: 'Перевод',
+                        backgroundColor: 'rgba(0, 123, 255, 0.5)', // Пример цвета для переводов
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        data: fillDataForDates(transfersData),
+                        fill: false,
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        type: 'logarithmic',
+                        beginAtZero: false, // Важно для логарифмической шкалы, где начальное значение не может быть 0.
+                        ticks: {
+                            callback: function (value, index, ticks) {
+                                // Проверяем, определено ли значение, прежде чем вызывать toString
+                                return value ? value.toString() : '';
+                            }
+                        },
+                        afterBuildTicks: function (chart) {
+                            chart.ticks = chart.ticks.filter(tick => tick !== 0); // Исключаем 0, так как log(0) не определен
+                            if (chart.ticks.length > 0) {
+                                let minTick = Math.floor(Math.log10(chart.ticks[0]));
+                                let maxTick = Math.ceil(Math.log10(chart.ticks[chart.ticks.length - 1]));
+                                chart.ticks = Array.from({length: maxTick - minTick + 1}, (_, i) => Math.pow(10, i + minTick));
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

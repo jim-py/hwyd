@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Подключение Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Список Счетов</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .card-container {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-gap: 20px;
+        }
+
+        .bank-card {
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .bank-card h5 {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .bank-card-details {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="my-4 text-center">Банковские счета</h1>
+    <div class="card-container">
+        {% for account in accounts %}
+            <div class="bank-card">
+                <div>
+                    <h5>{{ account.name }}</h5>
+                    <hr>
+                    <p class="bank-card-details">Тип счета: {{ account.account_type.name }}</p>
+                    <p class="bank-card-details">Валюта: {{ account.currency.name }}</p>
+                    <p class="bank-card-details">Баланс: {{ account.balance }}</p>
+                    <!-- Дополнительные сведения о счетах, если необходимо -->
+                </div>
+                <div>
+                    <a href="{% url 'budget:account_detail' pk=account.pk %}" class="btn btn-primary">Просмотр</a>
+                </div>
+            </div>
+        {% empty %}
+            <p>Счета отсутствуют</p>
+        {% endfor %}
+    </div>
+</div>
+<!-- Подключение Bootstrap JS и зависимостей -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

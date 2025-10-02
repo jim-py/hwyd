@@ -1,0 +1,671 @@
+@import 'bootstrap/bootstrap';
+@import 'bootstrap/variables';
+@import 'bootstrap/mixins';
+
+$font-primary: 'Poppins',Arial, sans-serif;
+
+
+@mixin transition($transition) {
+  -moz-transition: all $transition ease;
+  -o-transition: all $transition ease;
+  -webkit-transition: all $transition ease;
+  -ms-transition: all $transition ease;
+  transition: all $transition ease;
+}
+
+$primary: #4f81c7;
+$secondary: #40bfc1;
+$tertiary: #48da79;
+$quarternary: #ff78ae;
+body{
+	font-family: $font-primary;
+	font-size: 15px;
+	line-height: 1.8;
+	font-weight: normal;
+}
+a {
+	transition: .3s all ease;
+	color: $primary;
+	&:hover, &:focus {
+		text-decoration: none !important;
+		outline: none !important;
+		box-shadow: none;
+	}
+}
+button {
+	transition: .3s all ease;
+	&:hover, &:focus {
+		text-decoration: none !important;
+		outline: none !important;
+		box-shadow: none !important;
+	}
+}
+h1, h2, h3, h4, h5,
+.h1, .h2, .h3, .h4, .h5 {
+	line-height: 1.5;
+	font-weight: 400;
+	font-family: $font-primary;
+}
+
+
+.ftco-section{
+	padding: 7em 0;
+}
+
+.ftco-no-pt{
+	padding-top: 0;
+}
+.ftco-no-pb{
+	padding-bottom: 0;
+}
+//HEADING SECTION
+.heading-section{
+	font-size: 32px;
+
+	small{
+		font-size: 16px;
+		
+	}
+}
+
+//BUTTONS
+.btn {
+	padding: 12px 16px;
+	cursor: pointer;
+	border-width: 1px;
+	border-radius: 5px;
+	font-size: 14px;
+	font-weight: 500;
+	-webkit-box-shadow: 0px 5px 0px 0px darken($white,8%);
+	-moz-box-shadow: 0px 5px 0px 0px darken($white,8%);
+	box-shadow: 0px 5px 0px 0px darken($white,8%);
+	overflow: hidden;
+	position: relative;
+	@include transition(.3s);
+	&:hover, &:active, &:focus {
+		outline: none !important;
+	}
+	small{
+		background: lighten($black,90%);
+		padding: 2px 8px;
+		color: rgba(0,0,0,.3);
+	}
+	.icon{
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 50px;
+		bottom: 0;
+		background: rgba(0,0,0,.1);
+		i{
+			font-size: 20px;
+		}
+	}
+	&.btn-primary {
+		background: $primary;
+		border-color: $primary;
+		color: $white;
+		-webkit-box-shadow: 3px 5px 0px 0px darken($primary,5%);
+		-moz-box-shadow: 3px 5px 0px 0px darken($primary,5%);
+		box-shadow: 3px 5px 0px 0px darken($primary,5%);
+		&:hover,&:focus{
+			border-color: darken($primary,10%) !important;
+			background: darken($primary,10%) !important;
+		}
+		&.btn-link{
+			background: transparent;
+			color: $white;
+			border:none;
+			box-shadow: none;
+		}
+	}
+	&.btn-outline-primary{
+		background: $white;
+		color: $primary;
+		border-color: $primary;
+		-webkit-box-shadow: 3px 5px 0px 0px lighten($primary,10%);
+		-moz-box-shadow: 3px 5px 0px 0px lighten($primary,10%);
+		box-shadow: 3px 5px 0px 0px lighten($primary,10%);
+		&:hover, &:focus{
+			color: $white;
+			background: $primary;
+		}
+	}
+
+
+	&.btn-secondary{
+		color: $white;
+		border-color: $secondary;
+		background: $secondary;
+		-webkit-box-shadow: 3px 5px 0px 0px darken($secondary,5%);
+		-moz-box-shadow: 3px 5px 0px 0px darken($secondary,5%);
+		box-shadow: 3px 5px 0px 0px darken($secondary,5%);
+		&:hover,&:focus{
+			border-color: darken($secondary,10%) !important;
+			background: darken($secondary,10%) !important;
+		}
+		&.btn-link{
+			color: $secondary;
+			background: transparent;
+		}
+	}
+	&.btn-outline-secondary{
+		background: $white;
+		color: $secondary;
+		border-color: $secondary;
+		-webkit-box-shadow: 3px 5px 0px 0px lighten($secondary,10%);
+		-moz-box-shadow: 3px 5px 0px 0px lighten($secondary,10%);
+		box-shadow: 3px 5px 0px 0px lighten($secondary,10%);
+		&:hover, &:focus{
+			color: $white;
+			background: $secondary;
+		}
+	}
+
+
+	&.btn-tertiary{
+		color: $white;
+		background: $tertiary;
+		border-color: $tertiary;
+		-webkit-box-shadow: 3px 5px 0px 0px darken($tertiary,5%);
+		-moz-box-shadow: 3px 5px 0px 0px darken($tertiary,5%);
+		box-shadow: 3px 5px 0px 0px darken($tertiary,5%);
+		&:hover,&:focus{
+			border-color: darken($tertiary,10%) !important;
+			background: darken($tertiary,10%) !important;
+		}
+		&.btn-link{
+			color: $tertiary;
+			background: transparent;
+		}
+	}
+	&.btn-outline-tertiary{
+		background: $white;
+		color: $tertiary;
+		border-color: $tertiary;
+		-webkit-box-shadow: 3px 5px 0px 0px lighten($tertiary,10%);
+		-moz-box-shadow: 3px 5px 0px 0px lighten($tertiary,10%);
+		box-shadow: 3px 5px 0px 0px lighten($tertiary,10%);
+		&:hover, &:focus{
+			color: $white;
+			background: $tertiary;
+		}
+	}
+
+
+	&.btn-quarternary{
+		color: $white;
+		border-color: $quarternary;
+		background: $quarternary;
+		-webkit-box-shadow: 3px 5px 0px 0px darken($quarternary,5%);
+		-moz-box-shadow: 3px 5px 0px 0px darken($quarternary,5%);
+		box-shadow: 3px 5px 0px 0px darken($quarternary,5%);
+		&:hover,&:focus{
+			border-color: darken($quarternary,10%) !important;
+			background: darken($quarternary,10%) !important;
+		}
+		&.btn-link{
+			color: $quarternary;
+			background: transparent;
+		}
+	}
+	&.btn-outline-quarternary{
+		background: $white;
+		color: $quarternary;
+		border-color: $quarternary;
+		-webkit-box-shadow: 3px 5px 0px 0px lighten($quarternary,10%);
+		-moz-box-shadow: 3px 5px 0px 0px lighten($quarternary,10%);
+		box-shadow: 3px 5px 0px 0px lighten($quarternary,10%);
+		&:hover, &:focus{
+			color: $white;
+			background: $quarternary;
+		}
+	}
+	&.btn-white {
+		background: $white;
+		border-color: $white;
+		color: $black;
+	}
+	&.btn-round{
+		@include border-radius(40px);
+	}
+	&.btn-link{
+		border:none;
+		box-shadow: none;
+		color: $black;
+	}
+	//SIZE
+	&.btn-sm{
+		padding: 5px 20px;
+		font-size: 12px;
+	}
+	&.btn-lg{
+		padding: 17px 24px;
+		font-size: 16px;
+	}
+
+
+	//SOCIAL BUTTON
+	&.btn-fb{
+		background: #4f69a2;
+		border-color: #4f69a2;
+		color: $white;
+	}
+	//TWITTER
+	&.btn-twitter{
+		background: #69b6f0;
+		border-color: #69b6f0;
+		color: $white;
+	}
+	//LINKEDIN
+	&.btn-linkedin{
+		background: #2884ba;
+		border-color: #2884ba;
+		color: $white;
+	}
+	//PINTEREST
+	&.btn-pinterest{
+		background: #d03940;
+		border-color: #d03940;
+		color: $white;
+	}
+	//DRIBBLE
+	&.btn-dribbble{
+		background: #ea6294;
+		border-color: #ea6294;
+		color: $white;
+	}
+
+	&.btn-outline{
+		border: 1px solid rgba(0,0,0,.1);
+		color: $black;
+		background: transparent;
+		&:hover{
+			color: rgba(0,0,0,.5);
+			border-color: rgba(0,0,0,.05);
+		}
+	}
+}
+
+.dropdown{
+	.dropdown-menu{
+		border: none;
+		background: $white;
+		-webkit-box-shadow: 0px 10px 34px -20px rgba(0,0,0,0.41);
+		-moz-box-shadow: 0px 10px 34px -20px rgba(0,0,0,0.41);
+		box-shadow: 0px 10px 34px -20px rgba(0,0,0,0.41);
+		.dropdown-item{
+			font-size: 13px;
+			color: rgba(0,0,0,.7);
+			font-weight: 400;
+			i{
+				color: rgba(0,0,0,.4);
+			}
+			&:hover, &:focus{
+				background: rgba(0,0,0,.05);
+				color: $black;
+			}
+		}
+	}
+}
+
+
+
+//SPECIAL BUTTONS
+
+
+
+//CHECKBOXES
+.checkbox-wrap{
+	.checkbox-primary input[type="checkbox"]:checked:after {
+	  color: $primary;
+	}
+	.checkbox-secondary input[type="checkbox"]:checked:after {
+	  color: $secondary;
+	}
+	.checkbox-tertiary input[type="checkbox"]:checked:after {
+	  color: $tertiary;
+	}
+	.checkbox-quarternary input[type="checkbox"]:checked:after {
+	  color: $quarternary;
+	}
+	.checkbox-dark input[type="checkbox"]:checked:after {
+	  color: $dark;
+	}
+	.checkbox-primary{
+	  color: $primary;
+	}
+	.checkbox-secondary{
+	  color: $secondary;
+	}
+	.checkbox-tertiary{
+	  color: $tertiary;
+	}
+	.checkbox-quarternary{
+	  color: $quarternary;
+	}
+	.checkbox-dark{
+	  color: $dark;
+	}
+	.checkbox{
+		span{
+			margin-left: 35px;
+		}
+	}
+
+	.checkbox input[type=checkbox], // Needed to overwrite bootstraps styles.
+	input[type="checkbox"] {
+	  position: absolute;
+	  visibility: hidden;
+	  margin-top: 0;
+	  margin-left: 0;
+	  &:disabled {
+	    opacity: 0.65;
+	  }
+	}
+
+	input[type="checkbox"]:checked:after,
+	input[type="checkbox"]:after {
+	  visibility: visible;
+	  font-family: 'Ionicons';
+	  display: inline-block;
+	  color: rgba(0,0,0,.2);
+	  line-height: 1;
+	  margin-top: 0;
+	  &:disabled {
+	    cursor: not-allowed;
+	    opacity: 0.65;
+	  }
+	}
+
+	input[type="checkbox"]:checked:after {
+	  font-size: 30px;
+	  content: '\f148';
+	  line-height: .4;
+	  margin-top: 7px;
+	}
+
+	input[type="checkbox"]:after {
+	  font-size: 37px;
+	  content: '\f15c';
+	  line-height: .4;
+	  margin-top: 6px;
+	}
+}
+
+
+
+
+//RADIO BUTTONS
+input[type="radio"]:checked,
+input[type="radio"]:not(:checked) {
+    position: absolute;
+    left: -9999px;
+}
+input[type="radio"]:checked + label,
+input[type="radio"]:not(:checked) + label
+{
+    position: relative;
+    padding-left: 28px;
+    cursor: pointer;
+    line-height: 20px;
+    display: inline-block;
+}
+input[type="radio"]:checked + label:before,
+input[type="radio"]:not(:checked) + label:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(0,0,0,.1);
+    border-radius: 100%;
+    background: #fff;
+}
+input[type="radio"]:checked + label:after,
+input[type="radio"]:not(:checked) + label:after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    border-radius: 100%;
+    -webkit-transition: all 0.2s ease;
+    transition: all 0.2s ease;
+}
+input[type="radio"]:not(:checked) + label:after {
+    opacity: 0;
+    -webkit-transform: scale(0);
+    transform: scale(0);
+}
+input[type="radio"]:checked + label:after {
+    opacity: 1;
+    -webkit-transform: scale(1);
+    transform: scale(1);
+}
+
+.radio-primary{
+	color: $primary;
+}
+.radio-secondary{
+	color: $secondary;
+}
+.radio-tertiary{
+	color: $tertiary;
+}
+.radio-quarternary{
+	color: $quarternary;
+}
+.radio-dark{
+	color: $dark;
+}
+
+.radio-primary input[type="radio"]:checked + label:after {
+  background: $primary;
+  border-color: $primary
+}
+.radio-secondary input[type="radio"]:checked + label:after {
+  background: $secondary;
+  border-color: $secondary;
+}
+.radio-tertiary input[type="radio"]:checked + label:after {
+  background: $tertiary;
+  border-color: $tertiary;
+}
+.radio-quarternary input[type="radio"]:checked + label:after {
+  background: $quarternary;
+  border-color: $quarternary;
+}
+.radio-dark input[type="radio"]:checked + label:after {
+  background: $dark;
+  border-color: $dark;
+}
+
+
+
+.radio-primary input[type="radio"]:checked + label:before {
+  border-color: $primary
+}
+.radio-secondary input[type="radio"]:checked + label:before {
+  border-color: $secondary;
+}
+.radio-tertiary input[type="radio"]:checked + label:before {
+  border-color: $tertiary;
+}
+.radio-quarternary input[type="radio"]:checked + label:before {
+  border-color: $quarternary;
+}
+.radio-dark input[type="radio"]:checked + label:before {
+  border-color: $dark;
+}
+
+
+//SLIDE BUTTONS
+.slide-button{
+	.toggle-button-cover
+	{
+	    // display: table-cell;
+	    position: relative;
+	    width: 100%;
+	    height: 40px;
+	    box-sizing: border-box;
+	    margin-bottom: 20px;
+	}
+
+	.button-cover
+	{
+		// border: 1px solid red;
+	    height: 40px;
+	    margin-right: 20px;
+	    background-color: #fff;
+	    // box-shadow: 0 10px 20px -8px #c5d6d6;
+	}
+
+	.button-cover, .knobs, .layer
+	{
+	    position: absolute;
+	    top: 0;
+	    right: 0;
+	    bottom: 0;
+	    left: 0;
+	}
+
+	.button
+	{
+	    position: relative;
+	    // top: 50%;
+	    width: 74px;
+	    height: 36px;
+	    // margin: -20px auto 0 auto;
+	    overflow: hidden;
+	}
+
+	.button.r, .button.r .layer
+	{
+	    border-radius: 100px;
+	}
+
+	.checkbox
+	{
+	  position: relative;
+	  width: 100%;
+	  height: 100%;
+	  padding: 0;
+	  margin: 0;
+	  opacity: 0;
+	  cursor: pointer;
+	  z-index: 3;
+	}
+
+	.knobs
+	{
+	    z-index: 2;
+	}
+
+	.layer
+	{
+	    width: 100%;
+	    background-color: #ebf7fc;
+	    transition: 0.3s ease all;
+	    z-index: 1;
+	}
+
+	/* Button 1 */
+	#button-1 .knobs:before
+	{
+	  content: 'ON';
+	  position: absolute;
+	  top: 4px;
+	  left: 4px;
+	  width: 28px;
+	  height: 28px;
+	  color: #fff;
+	  font-size: 10px;
+	  font-weight: bold;
+	  text-align: center;
+	  line-height: 1;
+	  padding: 9px 4px;
+	  background-color: #03A9F4;
+	  border-radius: 50%;
+	  transition: 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15) all;
+	}
+
+	#button-1 .checkbox:checked + .knobs:before
+	{
+	  content: 'OFF';
+	  left: 42px;
+	  background-color: #f44336;
+	}
+
+	#button-1 .checkbox:checked ~ .layer
+	{
+	  background-color: #fcebeb;
+	}
+
+	#button-1 .knobs, #button-1 .knobs:before, #button-1 .layer
+	{
+	  transition: 0.3s ease all;
+	}
+
+	/* Button 10 */
+#button-10 .knobs:before, #button-10 .knobs:after, #button-10 .knobs span
+{
+  position: absolute;
+  top: 4px;
+  width: 28px;
+  height: 28px;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1;
+  padding: 9px 4px;
+  border-radius: 50%;
+  transition: 0.3s ease all;
+}
+
+#button-10 .knobs:before
+{
+  content: '';
+  left: 4px;
+  background-color: #03A9F4;
+}
+
+#button-10 .knobs:after
+{
+  content: 'OFF';
+  right: 4px;
+  color: #4e4e4e;
+}
+
+#button-10 .knobs span
+{
+  display: inline-block;
+  left: 4px;
+  color: #fff;
+  z-index: 1;
+}
+
+#button-10 .checkbox:checked + .knobs span
+{
+  color: #4e4e4e;
+}
+
+#button-10 .checkbox:checked + .knobs:before
+{
+  left: 42px;
+  background-color: #F44336;
+}
+
+#button-10 .checkbox:checked + .knobs:after
+{
+  color: #fff;
+}
+
+#button-10 .checkbox:checked ~ .layer
+{
+  background-color: #fcebeb;
+}
+
+}
