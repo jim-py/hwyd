@@ -1,9 +1,68 @@
+/* ==========================================================================
+   Основные стили страницы
+   ========================================================================== */
+
 body {
     background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
 }
 
+/* Заголовки */
 .page-header {
     margin-top: 30px;
+}
+
+/* ==========================================================================
+   Стили для списка задач (todo)
+   ========================================================================== */
+
+/* Элемент списка */
+.list-group-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    border-radius: 6px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.2s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f1f1f1;
+}
+
+/* Завершённая задача */
+.todo-complete {
+    text-decoration: line-through;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+/* Чекбокс задачи */
+.todo-status-checkbox {
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+/* Дата задачи */
+span.todo-date {
+    float: right;
+    font-size: smaller;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+/* Иконки */
+.delete-icon {
+    margin-left: 10px;
+    color: rgba(255, 0, 0, 0.7);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    font-size: 18px;
+}
+
+.delete-icon:hover {
+    color: rgba(255, 0, 0, 1);
 }
 
 .fa-trash {
@@ -18,99 +77,159 @@ body {
     cursor: pointer;
 }
 
+/* ==========================================================================
+   JSON загрузка
+   ========================================================================== */
 
-.todo-complete {
-    text-decoration: line-through;
-}
-
-.todo-status-checkbox {
-    cursor: pointer;
-    margin-right: 10px;
-}
-
-span.todo-date {
-    float: right;
-    font-size: smaller;
-    color: rgba(0, 0, 0, 0.5);
-}
-
-.disabled {
-    display: none;
-}
-
-.navbar {
-    background-color: #f8f9fa;
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+#jsonInput {
+    width: 100%;
+    min-height: 120px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
     font-size: 14px;
-    width: 600px;
-    justify-content: space-evenly;
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: -20px;
-    margin-right: -20px;
+    resize: vertical;
+    margin-bottom: 10px;
+    box-sizing: border-box;
 }
 
-.navbar a {
-    float: left;
-    display: block;
-    color: #5a5a5a;
-    text-align: center;
-    padding: 8px 10px;
-    text-decoration: none;
+#uploadBtn {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
     transition: background-color 0.3s ease;
-    border-radius: 5px;
-    border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
-.navbar button {
-    float: left;
-    display: block;
-    color: #5a5a5a;
-    text-align: center;
+#uploadBtn:hover {
+    background-color: #5a6268;
+}
+
+/* ==========================================================================
+   Календарь
+   ========================================================================== */
+
+#calendar {
+    width: 100%;
+    max-width: 250px;
     padding: 8px 10px;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
-    border-radius: 5px;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    background-color: #f8f9fa;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.navbar button:hover, .navbar button.active {
-    background-color: #e2e6ea;
+#calendar:focus {
+    border-color: #80bdff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* ==========================================================================
+   JSON подсказка для ChatGPT
+   ========================================================================== */
+
+.json-prompt {
+    background-color: #f4f6f8;
+    border: 1px solid #d1d5da;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    font-size: 14px;
+    line-height: 1.5;
+    position: relative;
+    margin: 0 auto 20px auto;
+    max-width: 600px;
+}
+
+.json-prompt p {
+    margin: 0 0 10px 0;
+    word-break: break-word;
+}
+
+.json-prompt b {
     color: #333;
 }
 
-.navbar button:focus {
-    outline: none;
+.json-prompt button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-@media (max-width: 768px) {
-    .navbar {
-        background-color: #ffffff;
-        flex-direction: column;
-        padding: 5px 0;
-        width: 100%;
-        box-shadow: none;
-        margin-left: 0;
-        margin-right: 0;
-    }
+.json-prompt button:hover {
+    background-color: #0056b3;
+}
 
-    .navbar button {
-        background-color: #f8f9fa;
-        text-align: center;
-        padding: 10px;
-        margin-top: 5px;
-        width: 100%;
-        box-sizing: border-box;
-        border: 1px solid rgba(0, 0, 0, 0.2);
-    }
+/* ==========================================================================
+   Toast-сообщения (копирование подсказки и др.)
+   ========================================================================== */
+
+.toast-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #333;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(20px);
+    z-index: 9999;
+    font-size: 14px;
+}
+
+.toast-message.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ==========================================================================
+   Адаптивность (мобильные устройства)
+   ========================================================================== */
+@media (max-width: 768px) {
 
     .page-header {
         margin-top: 15px;
         text-align: center;
     }
 
+    #calendar {
+        max-width: 100%;
+        font-size: 13px;
+        padding: 6px 8px;
+    }
+
+    #jsonInput {
+        min-height: 100px;
+        font-size: 13px;
+    }
+
+    #uploadBtn {
+        width: 100%;
+        padding: 10px;
+        font-size: 15px;
+    }
+
     .form-row {
         flex-wrap: nowrap;
+    }
+
+    .list-group-item {
+        font-size: 14px;
+        padding: 10px;
     }
 }

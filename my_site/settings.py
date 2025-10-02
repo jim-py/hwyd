@@ -17,7 +17,6 @@ STATIC_URL = '/static/'
 
 # Проверка выполнения кода на сервере хостинга или локально
 hosting = str(BASE_DIR).find('Productivum') == -1
-hosting = False
 if hosting:
     if test_server:
         direction = dir_test
@@ -91,12 +90,42 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'my_site.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if hosting:
+    if test_server:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': 'a0853298_test',
+                'USER': 'a0853298_test',
+                'PASSWORD': 'kwriCWcr3AQw5PxK2hKN7WUdTTF7gd',
+                'HOST': 'localhost',
+                'PORT': '3306',
+                'OPTIONS': {
+                    'charset': 'utf8mb4',
+                },
+            }
+        }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': 'a0853298_productivum',
+                'USER': 'a0853298_productivum',
+                'PASSWORD': 'JzwEambciu86h9EoJYfNy7LofL5nAw',
+                'HOST': 'localhost',
+                'PORT': '3306',
+                'OPTIONS': {
+                    'charset': 'utf8mb4',
+                },
+            }
+        }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
