@@ -120,7 +120,6 @@ span.todo-date {
     border: 1px solid #ccc;
     border-radius: 6px;
     box-sizing: border-box;
-    margin-bottom: 15px;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -200,6 +199,21 @@ span.todo-date {
 /* ==========================================================================
    Адаптивность (мобильные устройства)
    ========================================================================== */
+
+/* iOS Safari */
+@supports (-webkit-touch-callout: none) {
+    #calendar {
+        padding: 0;
+    }
+}
+
+/* Android */
+@supports not (-webkit-touch-callout: none) {
+    #calendar {
+        padding: 6px 8px;
+    }
+}
+
 @media (max-width: 768px) {
 
     .page-header {
@@ -208,9 +222,10 @@ span.todo-date {
     }
 
     #calendar {
-        max-width: 100%;
-        font-size: 13px;
-        padding: 6px 8px;
+        max-width: 40%;
+        font-size: 16px;
+        background-color: #f4f6f8;
+        margin-bottom: 0;
     }
 
     #jsonInput {

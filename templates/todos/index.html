@@ -6,30 +6,41 @@
 {% block content %}
 <div class="container">
 
-    <!-- Календарь -->
-    <div class="row mb-3">
-        <div class="offset-md-2 col-lg-9">
-            <input type="date" id="calendar" class="form-control mb-2" value="{{ selected_date|date:'Y-m-d' }}">
+    <!-- Календарь + Кнопка Инструменты -->
+    <div class="row mb-3 mt-2 align-items-center">
+        <div class="offset-md-2 col-lg-9 d-flex align-items-center gap-2">
+            <input type="date" id="calendar" class="mr-2" value="{{ selected_date|date:'Y-m-d' }}">
+            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#toolsCollapse"
+                aria-expanded="false" aria-controls="toolsCollapse">
+                Загрузка задач
+            </button>
         </div>
     </div>
 
-    <!-- JSON подсказка -->
-    <div class="json-prompt">
-        <p id="promptText">
-            Привет, ChatGPT! Сгенерируй, пожалуйста, JSON с задачами.
-            У каждой задачи должны быть три поля:
-            <b>title</b> (название), <b>description</b> (описание),
-            <b>task_date</b> (дата в формате YYYY-MM-DD).
-            Заполни список из 5 задач на дату 2025-10-03.
-        </p>
-        <button onclick="copyPrompt()">Скопировать подсказку</button>
-    </div>
+    <!-- Сворачиваемый блок -->
+    <div class="collapse mb-3" id="toolsCollapse">
+        <div class="card card-body offset-md-2 col-lg-9">
 
-    <!-- JSON загрузка -->
-    <div class="row mb-3">
-        <div class="offset-md-2 col-lg-9">
-            <textarea id="jsonInput" placeholder="Вставьте сюда JSON" class="form-control mb-2"></textarea>
-            <button id="uploadBtn" class="btn btn-outline-secondary">Отправить JSON</button>
+            <!-- JSON подсказка -->
+            <div class="json-prompt">
+                <p id="promptText">
+                    Привет, ChatGPT! Сгенерируй, пожалуйста, JSON с задачами.
+                    У каждой задачи должны быть три поля:
+                    <b>title</b> (название), <b>description</b> (описание),
+                    <b>task_date</b> (дата в формате YYYY-MM-DD).
+                    Заполни список из 5 задач на дату {{ selected_date|date:'Y-m-d' }}.
+                </p>
+                <button onclick="copyPrompt()">Скопировать подсказку</button>
+            </div>
+
+            <!-- JSON загрузка -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <textarea id="jsonInput" placeholder="Вставьте сюда JSON" class="form-control mb-2"></textarea>
+                    <button id="uploadBtn" class="btn btn-outline-secondary">Отправить JSON</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -47,7 +58,7 @@
                 {% csrf_token %}
                 <div class="input-group">
                     <input type="text" id="newTodoTitle" class="form-control" placeholder="Название" required>
-                    <button type="submit" class="btn btn-outline-primary">Добавить</button>
+                    <!-- <button type="submit" class="btn btn-outline-primary">Добавить</button> -->
                 </div>
             </form>
         </div>
