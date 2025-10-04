@@ -1,20 +1,67 @@
 /* Variable definitions */
 :root {
     /* Font families are the same as in Django admin/css/base.css */
-    --djdt-font-family-primary: "Segoe UI", system-ui, Roboto, "Helvetica Neue",
-        Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-        "Segoe UI Symbol", "Noto Color Emoji";
-    --djdt-font-family-monospace: ui-monospace, Menlo, Monaco, "Cascadia Mono",
+    --djdt-font-family-primary:
+        "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+    --djdt-font-family-monospace:
+        ui-monospace, Menlo, Monaco, "Cascadia Mono",
         "Segoe UI Mono", "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace",
         "Source Code Pro", "Fira Mono", "Droid Sans Mono", "Courier New",
         monospace, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
         "Noto Color Emoji";
 }
 
+:root,
+#djDebug[data-theme="light"] {
+    --djdt-font-color: black;
+    --djdt-background-color: white;
+    --djdt-panel-content-background-color: #eee;
+    --djdt-panel-content-table-background-color: var(--djdt-background-color);
+    --djdt-panel-title-background-color: #ffc;
+    --djdt-djdt-panel-content-table-strip-background-color: #f5f5f5;
+    --djdt--highlighted-background-color: lightgrey;
+    --djdt-toggle-template-background-color: #bbb;
+
+    --djdt-sql-font-color: #333;
+    --djdt-pre-text-color: #555;
+    --djdt-path-and-locals: #777;
+    --djdt-stack-span-color: black;
+    --djdt-template-highlight-color: #333;
+
+    --djdt-table-border-color: #ccc;
+    --djdt-button-border-color: var(--djdt-table-border-color);
+    --djdt-pre-border-color: var(--djdt-table-border-color);
+    --djdt-raw-border-color: var(--djdt-table-border-color);
+}
+
+#djDebug[data-theme="dark"] {
+    --djdt-font-color: #f8f8f2;
+    --djdt-background-color: #1e293bff;
+    --djdt-panel-content-background-color: #0f1729ff;
+    --djdt-panel-content-table-background-color: var(--djdt-background-color);
+    --djdt-panel-title-background-color: #242432;
+    --djdt-djdt-panel-content-table-strip-background-color: #324154ff;
+    --djdt--highlighted-background-color: #2c2a7dff;
+    --djdt-toggle-template-background-color: #282755;
+
+    --djdt-sql-font-color: var(--djdt-font-color);
+    --djdt-pre-text-color: var(--djdt-font-color);
+    --djdt-path-and-locals: #65758cff;
+    --djdt-stack-span-color: #7c8fa4;
+    --djdt-template-highlight-color: var(--djdt-stack-span-color);
+
+    --djdt-table-border-color: #324154ff;
+    --djdt-button-border-color: var(--djdt-table-border-color);
+    --djdt-pre-border-color: var(--djdt-table-border-color);
+    --djdt-raw-border-color: var(--djdt-table-border-color);
+}
+
 /* Debug Toolbar CSS Reset, adapted from Eric Meyer's CSS Reset */
 #djDebug {
-    color: #000;
-    background: #fff;
+    color: var(--djdt-font-color);
+    background: var(--djdt-background-color);
 }
 #djDebug,
 #djDebug div,
@@ -81,13 +128,15 @@
 #djDebug button {
     margin: 0;
     padding: 0;
-    min-width: 0;
+    min-width: auto;
     width: auto;
+    min-height: auto;
+    height: auto;
     border: 0;
     outline: 0;
     font-size: 12px;
     line-height: 1.5em;
-    color: #000;
+    color: var(--djdt-font-color);
     vertical-align: baseline;
     background-color: transparent;
     font-family: var(--djdt-font-family-primary);
@@ -100,7 +149,7 @@
 #djDebug button {
     background-color: #eee;
     background-image: linear-gradient(to bottom, #eee, #cccccc);
-    border: 1px solid #ccc;
+    border: 1px solid var(--djdt-button-border-color);
     border-bottom: 1px solid #bbb;
     border-radius: 3px;
     color: #333;
@@ -234,7 +283,7 @@
     font-size: 22px;
     font-weight: bold;
     background: #000;
-    opacity: 0.5;
+    opacity: 0.6;
 }
 
 #djDebug #djShowToolBarButton:hover {
@@ -268,10 +317,10 @@
 
 #djDebug pre {
     white-space: pre-wrap;
-    color: #555;
-    border: 1px solid #ccc;
+    color: var(--djdt-pre-text-color);
+    border: 1px solid var(--djdt-pre-border-color);
     border-collapse: collapse;
-    background-color: #fff;
+    background-color: var(--djdt-background-color);
     padding: 2px 3px;
     margin-bottom: 3px;
 }
@@ -283,7 +332,7 @@
     right: 220px;
     bottom: 0;
     left: 0px;
-    background-color: #eee;
+    background-color: var(--djdt-panel-content-background-color);
     color: #666;
     z-index: 100000000;
 }
@@ -294,7 +343,7 @@
 
 #djDebug .djDebugPanelTitle {
     position: absolute;
-    background-color: #ffc;
+    background-color: var(--djdt-panel-title-background-color);
     color: #666;
     padding-left: 20px;
     top: 0;
@@ -357,16 +406,16 @@
 }
 
 #djDebug .djdt-panelContent table {
-    border: 1px solid #ccc;
+    border: 1px solid var(--djdt-table-border-color);
     border-collapse: collapse;
     width: 100%;
-    background-color: #fff;
+    background-color: var(--djdt-panel-content-table-background-color);
     display: table;
     margin-top: 0.8em;
     overflow: auto;
 }
 #djDebug .djdt-panelContent tbody > tr:nth-child(odd):not(.djdt-highlighted) {
-    background-color: #f5f5f5;
+    background-color: var(--djdt-panel-content-table-strip-background-color);
 }
 #djDebug .djdt-panelContent tbody td,
 #djDebug .djdt-panelContent tbody th {
@@ -392,7 +441,7 @@
 }
 
 #djDebug .djTemplateContext {
-    background-color: #fff;
+    background-color: var(--djdt-background-color);
 }
 
 #djDebug .djdt-panelContent .djDebugClose {
@@ -433,7 +482,7 @@
 
 #djDebug a.toggleTemplate {
     padding: 4px;
-    background-color: #bbb;
+    background-color: var(--djdt-toggle-template-background-color);
     border-radius: 3px;
 }
 
@@ -445,11 +494,11 @@
 }
 
 #djDebug .djDebugCollapsed {
-    color: #333;
+    color: var(--djdt-sql-font-color);
 }
 
 #djDebug .djDebugUncollapsed {
-    color: #333;
+    color: var(--djdt-sql-font-color);
 }
 
 #djDebug .djUnselected {
@@ -483,67 +532,530 @@
 }
 
 #djDebug .highlight {
-    color: #000;
+    color: var(--djdt-font-color);
 }
 #djDebug .highlight .err {
-    color: #000;
+    color: var(--djdt-font-color);
 } /* Error */
-#djDebug .highlight .g {
-    color: #000;
-} /* Generic */
-#djDebug .highlight .k {
-    color: #000;
+
+/*
+Styles for pygments HTMLFormatter
+
+- This should match debug_toolbar/panels/templates/views.py::template_source
+- Each line needs to be prefixed with #djDebug .highlight as well.
+- The .w definition needs to include:
+    white-space: pre-wrap
+
+To regenerate:
+
+    from pygments.formatters import HtmlFormatter
+    print(HtmlFormatter(wrapcode=True).get_style_defs())
+ */
+#djDebug[data-theme="light"] .highlight pre {
+    line-height: 125%;
+}
+#djDebug[data-theme="light"] .highlight td.linenos .normal {
+    color: inherit;
+    background-color: transparent;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+#djDebug[data-theme="light"] .highlight span.linenos {
+    color: inherit;
+    background-color: transparent;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+#djDebug[data-theme="light"] .highlight td.linenos .special {
+    color: #000000;
+    background-color: #ffffc0;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+#djDebug[data-theme="light"] .highlight span.linenos.special {
+    color: #000000;
+    background-color: #ffffc0;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+#djDebug[data-theme="light"] .highlight .hll {
+    background-color: #ffffcc;
+}
+#djDebug[data-theme="light"] .highlight .c {
+    color: #3d7b7b;
+    font-style: italic;
+} /* Comment */
+#djDebug[data-theme="light"] .highlight .err {
+    border: 1px solid #ff0000;
+} /* Error */
+#djDebug[data-theme="light"] .highlight .k {
+    color: #008000;
     font-weight: bold;
 } /* Keyword */
-#djDebug .highlight .o {
-    color: #000;
+#djDebug[data-theme="light"] .highlight .o {
+    color: #666666;
 } /* Operator */
-#djDebug .highlight .n {
-    color: #000;
-} /* Name */
-#djDebug .highlight .mi {
-    color: #000;
+#djDebug[data-theme="light"] .highlight .ch {
+    color: #3d7b7b;
+    font-style: italic;
+} /* Comment.Hashbang */
+#djDebug[data-theme="light"] .highlight .cm {
+    color: #3d7b7b;
+    font-style: italic;
+} /* Comment.Multiline */
+#djDebug[data-theme="light"] .highlight .cp {
+    color: #9c6500;
+} /* Comment.Preproc */
+#djDebug[data-theme="light"] .highlight .cpf {
+    color: #3d7b7b;
+    font-style: italic;
+} /* Comment.PreprocFile */
+#djDebug[data-theme="light"] .highlight .c1 {
+    color: #3d7b7b;
+    font-style: italic;
+} /* Comment.Single */
+#djDebug[data-theme="light"] .highlight .cs {
+    color: #3d7b7b;
+    font-style: italic;
+} /* Comment.Special */
+#djDebug[data-theme="light"] .highlight .gd {
+    color: #a00000;
+} /* Generic.Deleted */
+#djDebug[data-theme="light"] .highlight .ge {
+    font-style: italic;
+} /* Generic.Emph */
+#djDebug[data-theme="light"] .highlight .ges {
     font-weight: bold;
-} /* Literal.Number.Integer */
-#djDebug .highlight .l {
-    color: #000;
-} /* Literal */
-#djDebug .highlight .x {
-    color: #000;
-} /* Other */
-#djDebug .highlight .p {
-    color: #000;
-} /* Punctuation */
-#djDebug .highlight .m {
-    color: #000;
+    font-style: italic;
+} /* Generic.EmphStrong */
+#djDebug[data-theme="light"] .highlight .gr {
+    color: #e40000;
+} /* Generic.Error */
+#djDebug[data-theme="light"] .highlight .gh {
+    color: #000080;
     font-weight: bold;
+} /* Generic.Heading */
+#djDebug[data-theme="light"] .highlight .gi {
+    color: #008400;
+} /* Generic.Inserted */
+#djDebug[data-theme="light"] .highlight .go {
+    color: #717171;
+} /* Generic.Output */
+#djDebug[data-theme="light"] .highlight .gp {
+    color: #000080;
+    font-weight: bold;
+} /* Generic.Prompt */
+#djDebug[data-theme="light"] .highlight .gs {
+    font-weight: bold;
+} /* Generic.Strong */
+#djDebug[data-theme="light"] .highlight .gu {
+    color: #800080;
+    font-weight: bold;
+} /* Generic.Subheading */
+#djDebug[data-theme="light"] .highlight .gt {
+    color: #0044dd;
+} /* Generic.Traceback */
+#djDebug[data-theme="light"] .highlight .kc {
+    color: #008000;
+    font-weight: bold;
+} /* Keyword.Constant */
+#djDebug[data-theme="light"] .highlight .kd {
+    color: #008000;
+    font-weight: bold;
+} /* Keyword.Declaration */
+#djDebug[data-theme="light"] .highlight .kn {
+    color: #008000;
+    font-weight: bold;
+} /* Keyword.Namespace */
+#djDebug[data-theme="light"] .highlight .kp {
+    color: #008000;
+} /* Keyword.Pseudo */
+#djDebug[data-theme="light"] .highlight .kr {
+    color: #008000;
+    font-weight: bold;
+} /* Keyword.Reserved */
+#djDebug[data-theme="light"] .highlight .kt {
+    color: #b00040;
+} /* Keyword.Type */
+#djDebug[data-theme="light"] .highlight .m {
+    color: #666666;
 } /* Literal.Number */
-#djDebug .highlight .s {
-    color: #333;
+#djDebug[data-theme="light"] .highlight .s {
+    color: #ba2121;
 } /* Literal.String */
-#djDebug .highlight .w {
-    color: #888888;
-} /* Text.Whitespace */
-#djDebug .highlight .il {
-    color: #000;
-    font-weight: bold;
-} /* Literal.Number.Integer.Long */
-#djDebug .highlight .na {
-    color: #333;
+#djDebug[data-theme="light"] .highlight .na {
+    color: #687822;
 } /* Name.Attribute */
-#djDebug .highlight .nt {
-    color: #000;
+#djDebug[data-theme="light"] .highlight .nb {
+    color: #008000;
+} /* Name.Builtin */
+#djDebug[data-theme="light"] .highlight .nc {
+    color: #0000ff;
+    font-weight: bold;
+} /* Name.Class */
+#djDebug[data-theme="light"] .highlight .no {
+    color: #880000;
+} /* Name.Constant */
+#djDebug[data-theme="light"] .highlight .nd {
+    color: #aa22ff;
+} /* Name.Decorator */
+#djDebug[data-theme="light"] .highlight .ni {
+    color: #717171;
+    font-weight: bold;
+} /* Name.Entity */
+#djDebug[data-theme="light"] .highlight .ne {
+    color: #cb3f38;
+    font-weight: bold;
+} /* Name.Exception */
+#djDebug[data-theme="light"] .highlight .nf {
+    color: #0000ff;
+} /* Name.Function */
+#djDebug[data-theme="light"] .highlight .nl {
+    color: #767600;
+} /* Name.Label */
+#djDebug[data-theme="light"] .highlight .nn {
+    color: #0000ff;
+    font-weight: bold;
+} /* Name.Namespace */
+#djDebug[data-theme="light"] .highlight .nt {
+    color: #008000;
     font-weight: bold;
 } /* Name.Tag */
-#djDebug .highlight .nv {
-    color: #333;
+#djDebug[data-theme="light"] .highlight .nv {
+    color: #19177c;
 } /* Name.Variable */
-#djDebug .highlight .s2 {
-    color: #333;
+#djDebug[data-theme="light"] .highlight .ow {
+    color: #aa22ff;
+    font-weight: bold;
+} /* Operator.Word */
+#djDebug[data-theme="light"] .highlight .w {
+    color: #bbbbbb;
+    white-space: pre-wrap;
+} /* Text.Whitespace */
+#djDebug[data-theme="light"] .highlight .mb {
+    color: #666666;
+} /* Literal.Number.Bin */
+#djDebug[data-theme="light"] .highlight .mf {
+    color: #666666;
+} /* Literal.Number.Float */
+#djDebug[data-theme="light"] .highlight .mh {
+    color: #666666;
+} /* Literal.Number.Hex */
+#djDebug[data-theme="light"] .highlight .mi {
+    color: #666666;
+} /* Literal.Number.Integer */
+#djDebug[data-theme="light"] .highlight .mo {
+    color: #666666;
+} /* Literal.Number.Oct */
+#djDebug[data-theme="light"] .highlight .sa {
+    color: #ba2121;
+} /* Literal.String.Affix */
+#djDebug[data-theme="light"] .highlight .sb {
+    color: #ba2121;
+} /* Literal.String.Backtick */
+#djDebug[data-theme="light"] .highlight .sc {
+    color: #ba2121;
+} /* Literal.String.Char */
+#djDebug[data-theme="light"] .highlight .dl {
+    color: #ba2121;
+} /* Literal.String.Delimiter */
+#djDebug[data-theme="light"] .highlight .sd {
+    color: #ba2121;
+    font-style: italic;
+} /* Literal.String.Doc */
+#djDebug[data-theme="light"] .highlight .s2 {
+    color: #ba2121;
 } /* Literal.String.Double */
-#djDebug .highlight .cp {
-    color: #333;
+#djDebug[data-theme="light"] .highlight .se {
+    color: #aa5d1f;
+    font-weight: bold;
+} /* Literal.String.Escape */
+#djDebug[data-theme="light"] .highlight .sh {
+    color: #ba2121;
+} /* Literal.String.Heredoc */
+#djDebug[data-theme="light"] .highlight .si {
+    color: #a45a77;
+    font-weight: bold;
+} /* Literal.String.Interpol */
+#djDebug[data-theme="light"] .highlight .sx {
+    color: #008000;
+} /* Literal.String.Other */
+#djDebug[data-theme="light"] .highlight .sr {
+    color: #a45a77;
+} /* Literal.String.Regex */
+#djDebug[data-theme="light"] .highlight .s1 {
+    color: #ba2121;
+} /* Literal.String.Single */
+#djDebug[data-theme="light"] .highlight .ss {
+    color: #19177c;
+} /* Literal.String.Symbol */
+#djDebug[data-theme="light"] .highlight .bp {
+    color: #008000;
+} /* Name.Builtin.Pseudo */
+#djDebug[data-theme="light"] .highlight .fm {
+    color: #0000ff;
+} /* Name.Function.Magic */
+#djDebug[data-theme="light"] .highlight .vc {
+    color: #19177c;
+} /* Name.Variable.Class */
+#djDebug[data-theme="light"] .highlight .vg {
+    color: #19177c;
+} /* Name.Variable.Global */
+#djDebug[data-theme="light"] .highlight .vi {
+    color: #19177c;
+} /* Name.Variable.Instance */
+#djDebug[data-theme="light"] .highlight .vm {
+    color: #19177c;
+} /* Name.Variable.Magic */
+#djDebug[data-theme="light"] .highlight .il {
+    color: #666666;
+} /* Literal.Number.Integer.Long */
+
+#djDebug[data-theme="dark"] .highlight .hll {
+    background-color: #f1fa8c;
+}
+#djDebug[data-theme="dark"] .highlight {
+    background: #282a36;
+    color: #f8f8f2;
+}
+#djDebug[data-theme="dark"] .highlight .c {
+    color: #6272a4;
+} /* Comment */
+#djDebug[data-theme="dark"] .highlight .err {
+    color: #f8f8f2;
+} /* Error */
+#djDebug[data-theme="dark"] .highlight .g {
+    color: #f8f8f2;
+} /* Generic */
+#djDebug[data-theme="dark"] .highlight .k {
+    color: #ff79c6;
+} /* Keyword */
+#djDebug[data-theme="dark"] .highlight .l {
+    color: #f8f8f2;
+} /* Literal */
+#djDebug[data-theme="dark"] .highlight .n {
+    color: #f8f8f2;
+} /* Name */
+#djDebug[data-theme="dark"] .highlight .o {
+    color: #ff79c6;
+} /* Operator */
+#djDebug[data-theme="dark"] .highlight .x {
+    color: #f8f8f2;
+} /* Other */
+#djDebug[data-theme="dark"] .highlight .p {
+    color: #f8f8f2;
+} /* Punctuation */
+#djDebug[data-theme="dark"] .highlight .ch {
+    color: #6272a4;
+} /* Comment.Hashbang */
+#djDebug[data-theme="dark"] .highlight .cm {
+    color: #6272a4;
+} /* Comment.Multiline */
+#djDebug[data-theme="dark"] .highlight .cp {
+    color: #ff79c6;
 } /* Comment.Preproc */
+#djDebug[data-theme="dark"] .highlight .cpf {
+    color: #6272a4;
+} /* Comment.PreprocFile */
+#djDebug[data-theme="dark"] .highlight .c1 {
+    color: #6272a4;
+} /* Comment.Single */
+#djDebug[data-theme="dark"] .highlight .cs {
+    color: #6272a4;
+} /* Comment.Special */
+#djDebug[data-theme="dark"] .highlight .gd {
+    color: #8b080b;
+} /* Generic.Deleted */
+#djDebug[data-theme="dark"] .highlight .ge {
+    color: #f8f8f2;
+    text-decoration: underline;
+} /* Generic.Emph */
+#djDebug[data-theme="dark"] .highlight .gr {
+    color: #f8f8f2;
+} /* Generic.Error */
+#djDebug[data-theme="dark"] .highlight .gh {
+    color: #f8f8f2;
+    font-weight: bold;
+} /* Generic.Heading */
+#djDebug[data-theme="dark"] .highlight .gi {
+    color: #f8f8f2;
+    font-weight: bold;
+} /* Generic.Inserted */
+#djDebug[data-theme="dark"] .highlight .go {
+    color: #44475a;
+} /* Generic.Output */
+#djDebug[data-theme="dark"] .highlight .gp {
+    color: #f8f8f2;
+} /* Generic.Prompt */
+#djDebug[data-theme="dark"] .highlight .gs {
+    color: #f8f8f2;
+} /* Generic.Strong */
+#djDebug[data-theme="dark"] .highlight .gu {
+    color: #f8f8f2;
+    font-weight: bold;
+} /* Generic.Subheading */
+#djDebug[data-theme="dark"] .highlight .gt {
+    color: #f8f8f2;
+} /* Generic.Traceback */
+#djDebug[data-theme="dark"] .highlight .kc {
+    color: #ff79c6;
+} /* Keyword.Constant */
+#djDebug[data-theme="dark"] .highlight .kd {
+    color: #8be9fd;
+    font-style: italic;
+} /* Keyword.Declaration */
+#djDebug[data-theme="dark"] .highlight .kn {
+    color: #ff79c6;
+} /* Keyword.Namespace */
+#djDebug[data-theme="dark"] .highlight .kp {
+    color: #ff79c6;
+} /* Keyword.Pseudo */
+#djDebug[data-theme="dark"] .highlight .kr {
+    color: #ff79c6;
+} /* Keyword.Reserved */
+#djDebug[data-theme="dark"] .highlight .kt {
+    color: #8be9fd;
+} /* Keyword.Type */
+#djDebug[data-theme="dark"] .highlight .ld {
+    color: #f8f8f2;
+} /* Literal.Date */
+#djDebug[data-theme="dark"] .highlight .m {
+    color: #bd93f9;
+} /* Literal.Number */
+#djDebug[data-theme="dark"] .highlight .s {
+    color: #f1fa8c;
+} /* Literal.String */
+#djDebug[data-theme="dark"] .highlight .na {
+    color: #50fa7b;
+} /* Name.Attribute */
+#djDebug[data-theme="dark"] .highlight .nb {
+    color: #8be9fd;
+    font-style: italic;
+} /* Name.Builtin */
+#djDebug[data-theme="dark"] .highlight .nc {
+    color: #50fa7b;
+} /* Name.Class */
+#djDebug[data-theme="dark"] .highlight .no {
+    color: #f8f8f2;
+} /* Name.Constant */
+#djDebug[data-theme="dark"] .highlight .nd {
+    color: #f8f8f2;
+} /* Name.Decorator */
+#djDebug[data-theme="dark"] .highlight .ni {
+    color: #f8f8f2;
+} /* Name.Entity */
+#djDebug[data-theme="dark"] .highlight .ne {
+    color: #f8f8f2;
+} /* Name.Exception */
+#djDebug[data-theme="dark"] .highlight .nf {
+    color: #50fa7b;
+} /* Name.Function */
+#djDebug[data-theme="dark"] .highlight .nl {
+    color: #8be9fd;
+    font-style: italic;
+} /* Name.Label */
+#djDebug[data-theme="dark"] .highlight .nn {
+    color: #f8f8f2;
+} /* Name.Namespace */
+#djDebug[data-theme="dark"] .highlight .nx {
+    color: #f8f8f2;
+} /* Name.Other */
+#djDebug[data-theme="dark"] .highlight .py {
+    color: #f8f8f2;
+} /* Name.Property */
+#djDebug[data-theme="dark"] .highlight .nt {
+    color: #ff79c6;
+} /* Name.Tag */
+#djDebug[data-theme="dark"] .highlight .nv {
+    color: #8be9fd;
+    font-style: italic;
+} /* Name.Variable */
+#djDebug[data-theme="dark"] .highlight .ow {
+    color: #ff79c6;
+} /* Operator.Word */
+#djDebug[data-theme="dark"] .highlight .w {
+    color: #f8f8f2;
+} /* Text.Whitespace */
+#djDebug[data-theme="dark"] .highlight .mb {
+    color: #bd93f9;
+} /* Literal.Number.Bin */
+#djDebug[data-theme="dark"] .highlight .mf {
+    color: #bd93f9;
+} /* Literal.Number.Float */
+#djDebug[data-theme="dark"] .highlight .mh {
+    color: #bd93f9;
+} /* Literal.Number.Hex */
+#djDebug[data-theme="dark"] .highlight .mi {
+    color: #bd93f9;
+} /* Literal.Number.Integer */
+#djDebug[data-theme="dark"] .highlight .mo {
+    color: #bd93f9;
+} /* Literal.Number.Oct */
+#djDebug[data-theme="dark"] .highlight .sa {
+    color: #f1fa8c;
+} /* Literal.String.Affix */
+#djDebug[data-theme="dark"] .highlight .sb {
+    color: #f1fa8c;
+} /* Literal.String.Backtick */
+#djDebug[data-theme="dark"] .highlight .sc {
+    color: #f1fa8c;
+} /* Literal.String.Char */
+#djDebug[data-theme="dark"] .highlight .dl {
+    color: #f1fa8c;
+} /* Literal.String.Delimiter */
+#djDebug[data-theme="dark"] .highlight .sd {
+    color: #f1fa8c;
+} /* Literal.String.Doc */
+#djDebug[data-theme="dark"] .highlight .s2 {
+    color: #f1fa8c;
+} /* Literal.String.Double */
+#djDebug[data-theme="dark"] .highlight .se {
+    color: #f1fa8c;
+} /* Literal.String.Escape */
+#djDebug[data-theme="dark"] .highlight .sh {
+    color: #f1fa8c;
+} /* Literal.String.Heredoc */
+#djDebug[data-theme="dark"] .highlight .si {
+    color: #f1fa8c;
+} /* Literal.String.Interpol */
+#djDebug[data-theme="dark"] .highlight .sx {
+    color: #f1fa8c;
+} /* Literal.String.Other */
+#djDebug[data-theme="dark"] .highlight .sr {
+    color: #f1fa8c;
+} /* Literal.String.Regex */
+#djDebug[data-theme="dark"] .highlight .s1 {
+    color: #f1fa8c;
+} /* Literal.String.Single */
+#djDebug[data-theme="dark"] .highlight .ss {
+    color: #f1fa8c;
+} /* Literal.String.Symbol */
+#djDebug[data-theme="dark"] .highlight .bp {
+    color: #f8f8f2;
+    font-style: italic;
+} /* Name.Builtin.Pseudo */
+#djDebug[data-theme="dark"] .highlight .fm {
+    color: #50fa7b;
+} /* Name.Function.Magic */
+#djDebug[data-theme="dark"] .highlight .vc {
+    color: #8be9fd;
+    font-style: italic;
+} /* Name.Variable.Class */
+#djDebug[data-theme="dark"] .highlight .vg {
+    color: #8be9fd;
+    font-style: italic;
+} /* Name.Variable.Global */
+#djDebug[data-theme="dark"] .highlight .vi {
+    color: #8be9fd;
+    font-style: italic;
+} /* Name.Variable.Instance */
+#djDebug[data-theme="dark"] .highlight .vm {
+    color: #8be9fd;
+    font-style: italic;
+} /* Name.Variable.Magic */
+#djDebug[data-theme="dark"] .highlight .il {
+    color: #bd93f9;
+} /* Literal.Number.Integer.Long */
 
 #djDebug svg.djDebugLineChart {
     width: 100%;
@@ -595,13 +1107,13 @@
 }
 
 #djDebug .djdt-stack span {
-    color: #000;
+    color: var(--djdt-stack-span-color);
     font-weight: bold;
 }
 #djDebug .djdt-stack span.djdt-path,
 #djDebug .djdt-stack pre.djdt-locals,
 #djDebug .djdt-stack pre.djdt-locals span {
-    color: #777;
+    color: var(--djdt-path-and-locals);
     font-weight: normal;
 }
 #djDebug .djdt-stack span.djdt-code {
@@ -612,7 +1124,7 @@
 }
 #djDebug .djdt-raw {
     background-color: #fff;
-    border: 1px solid #ccc;
+    border: 1px solid var(--djdt-raw-border-color);
     margin-top: 0.8em;
     padding: 5px;
     white-space: pre-wrap;
@@ -631,7 +1143,7 @@
     max-height: 100%;
 }
 #djDebug .djdt-highlighted {
-    background-color: lightgrey;
+    background-color: var(--djdt--highlighted-background-color);
 }
 #djDebug tr.djdt-highlighted.djdt-profile-row {
     background-color: #ffc;
@@ -653,4 +1165,20 @@
 
 .djdt-hidden {
     display: none;
+}
+
+#djDebug #djDebugToolbar a#djToggleThemeButton {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+#djToggleThemeButton > svg {
+    margin-left: auto;
+}
+#djDebug[data-user-theme="light"] #djToggleThemeButton svg.theme-light,
+#djDebug[data-user-theme="dark"] #djToggleThemeButton svg.theme-dark,
+#djDebug[data-user-theme="auto"] #djToggleThemeButton svg.theme-auto {
+    display: block;
+    height: 1rem;
+    width: 1rem;
 }
