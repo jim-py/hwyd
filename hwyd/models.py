@@ -3,6 +3,24 @@ from django.db import models
 from django.forms.models import model_to_dict
 
 
+from django.db import models
+from django.contrib.auth.models import User
+
+class UserActivityLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activity_logs')
+    date = models.DateField(verbose_name='Дата посещения')
+    first_visit = models.DateTimeField(verbose_name='Первое посещение', auto_now_add=True)
+    last_visit = models.DateTimeField(verbose_name='Последнее посещение', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Лог активности пользователя'
+        verbose_name_plural = 'Логи активности пользователей'
+        unique_together = ('user', 'date')  # чтобы один день был только один раз
+
+    def __str__(self):
+        return f"{self.user.username} — {self.date}: {self.first_visit.time()} — {self.last_visit.time()}"
+
+
 class CustomFieldsUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     lastActive = models.DateTimeField(verbose_name='Последнее посещение')

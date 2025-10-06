@@ -17,35 +17,30 @@ from django_user_agents.utils import get_user_agent
 
 # Импорты из локальных модулей приложения
 from .forms import LoginForm, RegisterForm
-from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser
+from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, UserActivityLog
 
 setlocale(category=LC_ALL, locale="Russian")
 
 
 def activity_users(request):
-    template_date = "%Y-%m-%d"
-    users = CustomFieldsUser.objects.all().select_related('user')
-    if request.POST:
-        date_post = datetime.strptime(request.POST['trip-start'], template_date)
-        input_date = date_post.date()
-        date_choice = date_post.strftime(template_date)
-    else:
-        input_date = datetime.now().date()
-        date_choice = datetime.now().strftime(template_date)
-    
-    seven_days_ago = input_date - timedelta(days=7)
-    
-    right_users = []
-    for user in users:
-        username = user.user.username
-        if username == 'unbroken0886' or username == 'Zg4mdYXd_Kb6gE+sEmCSvr@zrpL8Bf':
-            continue
-        user_login = user.lastActive.date()
-        if seven_days_ago <= user_login:
-            right_users.append(user)
-    right_users_sorted = sorted(right_users, key=lambda x: x.lastActive, reverse=True)
+    logs = UserActivityLog.objects.select_related('user')\
+        .order_by('-date', '-last_visit')
 
-    return render(request, 'hwyd/activityUsers.html', context={'users': right_users_sorted, 'date_choice': date_choice})
+    right_users_sorted = []
+    for log in logs:
+        right_users_sorted.append({
+            'user': log.user,
+            'firstVisit': log.first_visit,
+            'lastActive': log.last_visit,
+        })
+
+    return render(
+        request,
+        'hwyd/activityUsers.html',
+        context={
+            'users': right_users_sorted,
+        }
+    )
 
 
 def questionnaire(request):
@@ -62,6 +57,18 @@ def questionnaire(request):
     return render(request, 'hwyd/questionnaire.html')
 
 
+def log_user_activity(request):
+    if request.user.is_authenticated:
+        today = date.today()
+        log, created = UserActivityLog.objects.get_or_create(
+            user=request.user,
+            date=today
+        )
+        if not created:
+            log.last_visit = datetime.now()
+            log.save()
+
+
 @login_required(login_url='entry')
 def by_date(request, picked_date):
     """
@@ -72,14 +79,7 @@ def by_date(request, picked_date):
     :param picked_date: полученная дата из маршрута формата 'YYYY-MM' '2023-10'
     :return: отправка контекста в html шаблон
     """
-    try:
-        activity_user = CustomFieldsUser.objects.get(user=request.user)
-        activity_user.lastActive = datetime.now()
-        activity_user.save()
-        # if activity_user.answers == '':
-        # return redirect('questionnaire')
-    except CustomFieldsUser.DoesNotExist:
-        CustomFieldsUser.objects.create(user=request.user, lastActive=datetime.now(), answers='')
+    log_user_activity(request)
 
     # Просмотр данных поста
     if request.META['HTTP_HOST'] == '127.0.0.1:8000':

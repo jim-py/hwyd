@@ -6,50 +6,6 @@
     <!-- Подключение Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Дополнительные стили, не входящие в Bootstrap */
-        .container {
-            margin-top: 20px;
-        }
-        /* Стили для формы */
-        form {
-            margin-bottom: 20px;
-        }
-        .form-group {
-            align-items: center;
-            display: flex;
-            margin-bottom: 1rem;
-        }
-
-        label {
-            font-size: x-large;
-        }
-
-        input[type="date"] {
-            margin: 0 20px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            transition: border-color 0.3s ease-in-out;
-        }
-
-        input[type="date"]:hover,
-        input[type="date"]:focus {
-            border-color: #4CAF50;
-        }
-
-        button[type="submit"] {
-            padding: 8px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s ease-in-out;
-        }
-
-        button[type="submit"]:hover {
-            background-color: #45a049;
-        }
 
         /* Стили для таблицы */
         table {
@@ -102,14 +58,6 @@
 <body>
 <div class="container">
 {% if user.is_superuser or user.username == 'unbroken0886' %}
-    <form method="post" action="{% url 'activity_users' %}">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="start">Дата:</label>
-            <input type="date" class="form-control" id="start" name="trip-start" value="{{ date_choice }}" min="2023-01-01" max="2030-01-01">
-            <button type="submit" class="btn btn-primary">Посмотреть</button>
-        </div>
-    </form>
     <div class="table-responsive">
                 {% for person in users %}
                     {% ifchanged person.lastActive.date %}
@@ -122,6 +70,7 @@
                                 <tr>
                                     <th scope="col">#</th>
                                     <th scope="col">Имя пользователя</th>
+                                    <th scope="col">Первый вход</th>
                                     <th scope="col">Последняя активность</th>
                                 </tr>
                             </thead>
@@ -130,6 +79,7 @@
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>{{ person.user.username }}</td>
+                        <td>{{ person.firstVisit }}</td>
                         <td>{{ person.lastActive }}</td>
                     </tr>
                 {% endfor %}
