@@ -6,8 +6,7 @@ from datetime import datetime, date, timedelta
 from locale import setlocale, LC_ALL
 
 # Импорты из сторонних библиотек
-from django.http import HttpResponse
-from django.http import JsonResponse
+from django.http import HttpResponse, Http404, JsonResponse
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
@@ -22,7 +21,12 @@ from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser
 setlocale(category=LC_ALL, locale="Russian")
 
 
+@login_required(login_url='entry')
 def activity_users(request):
+    # Проверка прав пользователя
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise Http404("Страница не найдена")
+    
     logs = UserActivityLog.objects.select_related('user')\
         .order_by('-date', '-last_visit')
 

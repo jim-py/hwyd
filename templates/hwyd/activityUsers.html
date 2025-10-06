@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Последние посещения</title>
     <!-- Подключение Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-
         /* Стили для таблицы */
         table {
             width: 100%;
@@ -17,7 +17,8 @@
             background-color: #f2f2f2;
         }
 
-        th, td {
+        th,
+        td {
             padding: 8px;
             text-align: left;
             border-bottom: 1px solid #ddd;
@@ -50,31 +51,31 @@
             border-bottom: 2px solid #dee2e6;
         }
 
-        .table tbody + tbody {
+        .table tbody+tbody {
             border-top: 2px solid #dee2e6;
         }
     </style>
 </head>
+
 <body>
-<div class="container">
-{% if user.is_superuser or user.username == 'unbroken0886' %}
-    <div class="table-responsive">
-                {% for person in users %}
-                    {% ifchanged person.lastActive.date %}
-                        {% if not forloop.first %}
-                            </table>
-                        {% endif %}
-                        <h2>{{ person.lastActive.date }}</h2>
-                        <table class="table">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">Имя пользователя</th>
-                                    <th scope="col">Первый вход</th>
-                                    <th scope="col">Последняя активность</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+    <div class="container">
+        <div class="table-responsive">
+            {% for person in users %}
+            {% ifchanged person.lastActive.date %}
+            {% if not forloop.first %}
+            </table>
+            {% endif %}
+            <h2>{{ person.lastActive.date }}</h2>
+            <table class="table">
+                <thead class="thead-light">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Имя пользователя</th>
+                        <th scope="col">Первый вход</th>
+                        <th scope="col">Последняя активность</th>
+                    </tr>
+                </thead>
+                <tbody>
                     {% endifchanged %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
@@ -82,13 +83,13 @@
                         <td>{{ person.firstVisit }}</td>
                         <td>{{ person.lastActive }}</td>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-{% endif %}
-</div>
-<!-- Подключение Bootstrap JS (необходимо для некоторых компонентов) -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Подключение Bootstrap JS (необходимо для некоторых компонентов) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
+
 </html>
