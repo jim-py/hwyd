@@ -31,6 +31,7 @@ urlpatterns = [
     # path('budget/', include('budget.urls')),
     path('restricted/', restricted, name='restricted'),
     path('pomodoro/', include('pomodoro.urls')),
+    path('notifications/', include('notifications.urls', namespace='notifications')),
 ]
 
 if settings.DEBUG:

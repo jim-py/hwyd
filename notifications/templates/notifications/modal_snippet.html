@@ -1,0 +1,235 @@
+{% load static %}
+
+{% if unread_notification %}
+<div id="notif-modal" class="notif-modal" role="dialog" aria-modal="true" aria-hidden="true"
+  data-notif-id="{{ unread_notification.id }}">
+  <div class="notif-modal__dialog">
+    <header class="notif-modal__header">
+      <h3>{{ unread_notification.title|default:"Уведомление" }}</h3>
+      <button id="notif-close" class="notif-close" aria-label="Закрыть">&times;</button>
+    </header>
+    <div class="notif-modal__body">
+      {{ unread_notification.message|linebreaks }}
+    </div>
+    <footer class="notif-modal__footer">
+      <button id="notif-ok" class="notif-btn">ОК</button>
+    </footer>
+  </div>
+</div>
+
+<style>
+  /* Фон модала */
+  .notif-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .notif-modal[aria-hidden="false"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Диалоговое окно */
+  .notif-modal__dialog {
+    width: 100%;
+    max-width: 600px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    transform: scale(0.9);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    animation: fadeIn 0.3s forwards;
+  }
+
+  .notif-modal[aria-hidden="false"] .notif-modal__dialog {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .notif-modal__header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+  }
+
+  .notif-modal__header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #333;
+  }
+
+  .notif-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+
+  .notif-close:hover {
+    color: #ff4d4f;
+  }
+
+  .notif-modal__body {
+    padding: 1rem 1.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    color: #555;
+    line-height: 1.5;
+    animation: bodyFade 0.5s ease;
+  }
+
+  @keyframes bodyFade {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .notif-modal__footer {
+    padding: 0.75rem 1.5rem;
+    text-align: right;
+    border-top: 1px solid #eee;
+  }
+
+  .notif-btn {
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: #007bff;
+    color: #fff;
+    font-weight: 500;
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
+
+  .notif-btn:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 600px) {
+    .notif-modal__dialog {
+      max-width: 95%;
+      border-radius: 10px;
+    }
+
+    .notif-modal__body {
+      font-size: 0.95rem;
+    }
+
+    .notif-modal__header h3 {
+      font-size: 1.1rem;
+    }
+
+    .notif-btn {
+      width: 100%;
+    }
+
+    .notif-modal__footer {
+      text-align: center;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('notif-modal');
+    const dialog = modal.querySelector('.notif-modal__dialog');
+    const closeBtn = document.getElementById('notif-close');
+    const okBtn = document.getElementById('notif-ok');
+    const notifId = modal.getAttribute('data-notif-id');
+
+    function cookieGet(name) {
+      const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return v ? decodeURIComponent(v.pop()) : null;
+    }
+    function cookieSet(name, value, days = 365) {
+      const d = new Date();
+      d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+      document.cookie = name + '=' + encodeURIComponent(value) + ';path=/;expires=' + d.toUTCString();
+    }
+
+    const seenCookie = cookieGet('seen_notif') || '';
+    const seenIds = seenCookie ? seenCookie.split(',').filter(Boolean) : [];
+    const isAuth = {{request.user.is_authenticated|yesno:"true,false"}};
+  if (!isAuth && seenIds.includes(String(notifId))) { return; }
+
+  modal.setAttribute('aria-hidden', 'false');
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function markSeenClientSide() {
+    if (isAuth) {
+      const csrftoken = getCookie('csrftoken');
+      fetch("{% url 'notifications:mark-seen' %}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + encodeURIComponent(notifId)
+      }).catch(() => { });
+    } else {
+      const arr = seenCookie ? seenCookie.split(',').filter(Boolean) : [];
+      arr.push(String(notifId));
+      cookieSet('seen_notif', Array.from(new Set(arr)).join(','));
+    }
+  }
+
+  function closeModal() { modal.setAttribute('aria-hidden', 'true'); }
+
+  okBtn.addEventListener('click', function () { markSeenClientSide(); closeModal(); });
+  closeBtn.addEventListener('click', function () { markSeenClientSide(); closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { markSeenClientSide(); closeModal(); } });
+
+  // Закрытие при клике вне диалогового окна
+  modal.addEventListener('click', function (e) {
+    if (!dialog.contains(e.target)) {
+      markSeenClientSide(); closeModal();
+    }
+  });
+
+  window.addEventListener('beforeunload', function () { markSeenClientSide(); });
+  });
+</script>
+{% endif %}
