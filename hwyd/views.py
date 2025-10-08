@@ -4,6 +4,8 @@ from copy import deepcopy
 from calendar import monthrange, day_name, weekday, Calendar
 from datetime import datetime, date, timedelta
 from locale import setlocale, LC_ALL
+from itertools import groupby
+from operator import itemgetter
 
 # Импорты из сторонних библиотек
 from django.http import HttpResponse, Http404, JsonResponse
@@ -26,23 +28,36 @@ def activity_users(request):
     # Проверка прав пользователя
     if not (request.user.is_staff or request.user.is_superuser):
         raise Http404("Страница не найдена")
-    
+
+    # Получаем все логи, отсортированные по дате и последнему визиту
     logs = UserActivityLog.objects.select_related('user')\
         .order_by('-date', '-last_visit')
 
-    right_users_sorted = []
-    for log in logs:
-        right_users_sorted.append({
+    # Преобразуем в список словарей
+    users_data = [
+        {
             'user': log.user,
             'firstVisit': log.first_visit,
             'lastActive': log.last_visit,
+            'date': log.date
+        }
+        for log in logs
+        if not log.user.is_superuser
+    ]
+
+    # Группируем по дате для сброса нумерации
+    grouped_data = []
+    for date, group in groupby(users_data, key=itemgetter('date')):
+        grouped_data.append({
+            'date': date,
+            'users': list(group)
         })
 
     return render(
         request,
         'hwyd/activityUsers.html',
         context={
-            'users': right_users_sorted,
+            'grouped_data': grouped_data
         }
     )
 

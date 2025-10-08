@@ -60,12 +60,8 @@
 <body>
     <div class="container">
         <div class="table-responsive">
-            {% for person in users %}
-            {% ifchanged person.lastActive.date %}
-            {% if not forloop.first %}
-            </table>
-            {% endif %}
-            <h2>{{ person.lastActive.date }}</h2>
+            {% for group in grouped_data %}
+            <h2>{{ group.date }}</h2>
             <table class="table">
                 <thead class="thead-light">
                     <tr>
@@ -76,7 +72,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% endifchanged %}
+                    {% for person in group.users %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>{{ person.user.username }}</td>
@@ -85,6 +81,9 @@
                     </tr>
                     {% endfor %}
                 </tbody>
+            </table>
+            {% endfor %}
+            </tbody>
             </table>
         </div>
     </div>
