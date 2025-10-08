@@ -68,6 +68,7 @@ MIDDLEWARE = [
 
     'maintenance_middleware.MaintenanceMiddleware',
     'maintenance_middleware.BlockAllPagesWithToggleMiddleware',
+    'maintenance_middleware.UserActivityLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'my_site.urls'

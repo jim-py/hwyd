@@ -76,18 +76,6 @@ def questionnaire(request):
     return render(request, 'hwyd/questionnaire.html')
 
 
-def log_user_activity(request):
-    if request.user.is_authenticated:
-        today = date.today()
-        log, created = UserActivityLog.objects.get_or_create(
-            user=request.user,
-            date=today
-        )
-        if not created:
-            log.last_visit = datetime.now()
-            log.save()
-
-
 @login_required(login_url='entry')
 def by_date(request, picked_date):
     """
@@ -98,7 +86,6 @@ def by_date(request, picked_date):
     :param picked_date: полученная дата из маршрута формата 'YYYY-MM' '2023-10'
     :return: отправка контекста в html шаблон
     """
-    log_user_activity(request)
 
     # Просмотр данных поста
     if request.META['HTTP_HOST'] == '127.0.0.1:8000':
