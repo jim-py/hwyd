@@ -65,7 +65,6 @@ MIDDLEWARE = [
     'django_user_agents.middleware.UserAgentMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-
     'maintenance_middleware.MaintenanceMiddleware',
     'maintenance_middleware.BlockAllPagesWithToggleMiddleware',
     'maintenance_middleware.UserActivityLoggingMiddleware',
