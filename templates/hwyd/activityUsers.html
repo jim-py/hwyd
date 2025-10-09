@@ -10,12 +10,17 @@
         .table-responsive {
             padding: 2rem;
         }
+        .table {
+            border-color: #a2a2a2;
+            margin-bottom: 5rem;
+        }
     </style>
 </head>
 
 <body>
 
     <div class="table-responsive">
+        {% for group in grouped_data %}
         <table class="table table-hover table-bordered text-center">
             <thead>
                 <tr>
@@ -26,7 +31,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for group in grouped_data %}
+                
                 <tr>
                     <td colspan="4">{{ group.date }}</td>
                 </tr>
@@ -38,11 +43,12 @@
                     <td>{{ person.lastActive }}</td>
                 </tr>
                 {% endfor %}
-                {% endfor %}
+                
             </tbody>
         </table>
         </tbody>
         </table>
+        {% endfor %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
