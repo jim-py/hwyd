@@ -37,12 +37,12 @@ def activity_users(request):
     users_data = [
         {
             'user': log.user,
-            'firstVisit': log.first_visit,
-            'lastActive': log.last_visit,
+            'firstVisit': log.first_visit.time(),
+            'lastActive': log.last_visit.time(),
             'date': log.date
         }
         for log in logs
-        if not log.user.is_superuser
+        # if not log.user.is_superuser
     ]
 
     # Группируем по дате для сброса нумерации
