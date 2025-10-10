@@ -23,13 +23,13 @@
     position: fixed;
     inset: 0;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.45);
     z-index: 2000;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
+    margin-bottom: 1rem;
   }
 
   .notif-modal[aria-hidden="false"] {
@@ -43,7 +43,8 @@
     max-width: 600px;
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 16px -4px rgba(0,0,0,0.10), 0 1.5px 6px 0 rgba(0,0,0,0.08), 0 0.5px 0.5px 0 rgba(0,0,0,0.12);
+    border: 2px solid #cacaca;
     overflow: hidden;
     transform: scale(0.9);
     opacity: 0;

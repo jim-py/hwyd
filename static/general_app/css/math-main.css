@@ -1,0 +1,83 @@
+.math-training {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+}
+
+.math-training__card {
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.math-training__timer,
+.math-training__score {
+    margin-top: 20px;
+    font-size: 20px;
+    color: #333;
+}
+
+.math-training__problem {
+    margin: 20px 0;
+    font-size: 24px;
+}
+
+.math-training__input {
+    font-size: 20px;
+    padding: 10px;
+    width: 100px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    -moz-appearance: textfield;
+    margin-top: 10px;
+}
+
+.math-training__input::-webkit-inner-spin-button,
+.math-training__input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.math-training__input:focus {
+    outline: none;
+    border: 1px solid #ddd;
+}
+
+.math-training__button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.math-training__button:hover {
+    background-color: #45a049;
+}
+
+.math-training__button:active {
+    background-color: #397d35;
+    transform: translateY(2px);
+}
+
+.math-training__button--start {
+    background-color: #2196F3;
+}
+
+.math-training__button--start:hover {
+    background-color: #1976D2;
+}
+
+.math-training__button--start:active {
+    background-color: #0D47A1;
+}

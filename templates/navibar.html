@@ -1,80 +1,93 @@
 {% load tags %}
 {% get_date_y_m as by_date %}
 <style>
-    .skew-menu {
-        text-align: center;
-        top: 0;
-        font-family: "Montserrat", sans-serif;
-    }
+.nav-menu {
+    text-align: center;
+    top: 0;
+    font-family: "Montserrat", sans-serif;
+}
 
-    .skew-menu * {
-        font-family: "Montserrat", sans-serif;
-    }
+.nav-menu * {
+    font-family: inherit;
+}
 
-    .skew-menu ul {
-        display: inline-block;
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        transform: skew(-25deg);
-    }
+.nav-menu__list {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transform: skew(-25deg);
+}
 
-    .skew-menu ul li {
-        background: #fff;
-        float: left;
-        border-right: 1px solid #eee;
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-        text-transform: uppercase;
-        color: #555;
-        font-weight: bolder;
-        font-size: small;
-        transition: all 0.3s linear;
-    }
+.nav-menu__item {
+    background: #fff;
+    float: left;
+    border-right: 1px solid #eee;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    color: #555;
+    font-weight: bolder;
+    font-size: small;
+    transition: all 0.3s linear;
+}
 
-    .skew-menu ul li:first-child {
-        border-radius: 7px 0 0 7px;
-    }
+.nav-menu__item:first-child {
+    border-radius: 7px 0 0 7px;
+}
 
-    .skew-menu ul li:last-child {
-        border-right: none;
-        border-radius: 0 7px 7px 0;
-    }
+.nav-menu__item:last-child {
+    border-right: none;
+    border-radius: 0 7px 7px 0;
+}
 
-    .skew-menu ul li:hover {
-        background: #eee;
-        color: {{ settings.backgroundColor }};
-    }
+.nav-menu__item:hover {
+    background: #eee;
+}
 
-    .skew-menu ul li a {
-        display: block;
-        padding: 5px 10px;
-        color: inherit;
-        text-decoration: none;
-        transform: skew(25deg);
-    }
+.nav-menu__link {
+    display: block;
+    padding: 5px 10px;
+    color: inherit;
+    text-decoration: none;
+    transform: skew(25deg);
+}
 
-    .active-navilinki {
-        background-color: #d4f8ff !important;
-    }
+.nav-menu__item--active {
+    background-color: #d4f8ff;
+}
+
 </style>
-<nav class="skew-menu">
-    <ul>
-        <li><a href="{% url 'home' %}" class="navilinki">Main</a></li>
-        <li><a href="{% url 'by_date' by_date %}" class="navilinki">Habitus</a></li>
-        {% comment %} <li><a href="{% url 'budget:index' %}" class="navilinki">Budget</a></li> {% endcomment %}
-        <li><a href="{% url 'todos:index' %}" class="navilinki">Todo</a></li>
-        <li><a href="#" class="navilinki">Base</a></li>
-        <li><a href="{% url 'pomodoro:base' %}" class="navilinki">Pomo</a></li>
-        <li><a href="{% url 'mathtraining' %}" class="navilinki">Math</a></li>
-        <li><a href="{% url 'about' %}" class="navilinki">About</a></li>
+
+<nav class="nav-menu">
+    <ul class="nav-menu__list">
+        <li class="nav-menu__item">
+            <a href="{% url 'home' %}" class="nav-menu__link">Main</a>
+        </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'by_date' by_date %}" class="nav-menu__link">Habitus</a>
+        </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'todos:index' %}" class="nav-menu__link">Todo</a>
+        </li>
+        <li class="nav-menu__item">
+            <a href="#" class="nav-menu__link">Base</a>
+        </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'pomodoro:base' %}" class="nav-menu__link">Pomo</a>
+        </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'mathtraining' %}" class="nav-menu__link">Math</a>
+        </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'about' %}" class="nav-menu__link">About</a>
+        </li>
     </ul>
 </nav>
 
 <script>
-    for (let elem of document.querySelectorAll('.navilinki')) {
-        {#console.log(elem.href, location.href)#}
-        if (elem.href === location.href) {
-            $(elem.parentElement).toggleClass('active-navilinki')
+    for (let link of document.querySelectorAll('.nav-menu__link')) {
+        if (link.href === location.href) {
+            link.parentElement.classList.add('nav-menu__item--active');
         }
     }
 </script>

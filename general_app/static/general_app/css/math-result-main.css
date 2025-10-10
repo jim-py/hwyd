@@ -1,0 +1,17 @@
+.records__title {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.records__username {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.records__row--highlight {
+    background-color: #fdfdfd;
+    color: #be361c;
+    font-weight: 600;
+}

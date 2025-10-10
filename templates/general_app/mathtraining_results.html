@@ -1,88 +1,48 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Результаты тренировок</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 0;
-            background-color: #f5f5f5;
-            margin: 0;
-        }
+{% extends 'general_app/base.html' %}
+{% load static %}
 
-        .container {
-            max-width: 800px;
-            margin: auto;
-        }
+{% block title %}Результаты тренировок{% endblock %}
 
-        h1 {
-            text-align: center;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'general_app/css/math-result-main.css' %}">
+{% endblock %}
 
-        .card {
-            background: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+{% block content %}
+<div class="records container my-4">
+    <h1 class="records__title text-center mb-4">Таблица рекордов</h1>
 
-        .username {
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .card:last-child {
-            margin-bottom: 0;
-        }
-
-        .itsMy {
-            color: #be361c;
-            background-color: #fdfdfd;
-        }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-</head>
-<body>
-
-{% if request.user_agent.is_mobile %}
-    {% include 'navibarMobile.html' %}
-{% else %}
-    {% include 'navibar.html' %}
-{% endif %}
-
-<div class="container">
-    <h1>Таблица рекордов</h1>
-    <div class="card">
-        <div><b>Пользователь</b></div>
-        <div><b>Время</b></div>
-        <div><b>Примеров</b></div>
-        <div><b>Дата</b></div>
-        <div><b>Среднее</b></div>
+    <div class="records__table table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Имя</th>
+                    <th scope="col">Время</th>
+                    <th scope="col">Дата</th>
+                    <th scope="col">Среднее</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for problems_solved, results in results_sorted.items %}
+                    <tr class="table-group-title">
+                        <td colspan="4" class="fw-bold text-center">
+                            Примеров решено: {{ problems_solved }}
+                        </td>
+                    </tr>
+                    {% for result in results %}
+                        <tr class="records__row {% if request.user == result.user %}records__row--highlight{% endif %}">
+                            <td class="records__username text-truncate">{{ result.user.username }}</td>
+                            <td>{{ result.time_spent }} сек.</td>
+                            <td>{{ result.date|date:"d.m.Y" }}</td>
+                            <td>{{ result.average_time }} сек.</td>
+                        </tr>
+                    {% endfor %}
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">Нет результатов.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    {% for problems_solved, results in results_sorted.items %}
-        <h2>Примеров решено: {{ problems_solved }}</h2>
-        {% for result in results %}
-            <div class="card {% if request.user == result.user %}itsMy{% endif %}">
-                <div class="username">{{ result.user.username }}</div>
-                <div>{{ result.time_spent }} сек.</div>
-                <div>{{ result.problems_solved }}</div>
-                <div>{{ result.date }}</div>
-                <div>{{ result.average_time }} сек.</div>
-            </div>
-        {% endfor %}
-    {% empty %}
-        <div class="card">Нет результатов.</div>
-    {% endfor %}
 </div>
-</body>
-</html>
+{% endblock %}

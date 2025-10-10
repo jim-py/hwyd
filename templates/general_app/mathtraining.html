@@ -1,273 +1,39 @@
+{% extends 'general_app/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=yes">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-        }
 
-        div.body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 90vh;
-        }
+{% block title %}Тренажёр{% endblock %}
 
-        #card {
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'general_app/css/math-main.css' %}">
+{% endblock %}
 
-        #timer, #scoreCounter {
-            margin-top: 20px;
-            font-size: 20px;
-            color: #333;
-        }
+{% block content %}
+<div class="math-training">
+    <div class="math-training__card">
+        <button class="math-training__button"
+            onclick="window.location.href='{% url 'math_training_results' %}'">Таблица</button>
 
-        #math-problem {
-            margin: 20px 0;
-            font-size: 24px;
-        }
+        <p class="math-training__timer" id="countdown"></p>
+        <p class="math-training__problem" style="display:none;"></p>
 
-        input[type='number'] {
-            font-size: 20px;
-            padding: 10px;
-            width: 100px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            -moz-appearance: textfield;
-        }
+        <input type="number" class="math-training__input" id="answer" disabled style="display:none;">
 
-        input[type='number']::-webkit-inner-spin-button,
-        input[type='number']::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        input[type='number']:focus {
-            outline: none;
-            border: 1px solid #ddd;
-        }
-
-        #startButton {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #4CAF50;
-            color: white;
-            transition: background-color 0.3s ease;
-        }
-
-        button {
-            padding: 5px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #4cacaf;
-            color: white;
-        }
-
-        #startButton:hover {
-            background-color: #45a049;
-        }
-
-        #startButton:active {
-            background-color: #397d35;
-            transform: translateY(2px);
-        }
-    </style>
-    <title>Тренажёр</title>
-    <script src="{% static 'js/jquery.js' %}"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-</head>
-<body>
-
-{% if request.user_agent.is_mobile %}
-    {% include 'navibarMobile.html' %}
-{% else %}
-    {% include 'navibar.html' %}
-{% endif %}
-
-<div class="body">
-    <div id="card">
-        <button onclick="window.location.href='{% url 'math_training_results' %}'">Таблица</button>
-        <p id="countdown"></p>
-        <p id="math-problem" style="display:none;"></p>
-
-        <input type="number" id="answer" disabled style="display:none;">
-
-        <label for="maxProblems" id="maxProblemsLabel">Примеров:</label>
-        <input type="number" id="maxProblems" value="10" placeholder="Примеров">
+        <label for="maxProblems" class="math-training__label">Примеров:</label>
+        <input type="number" class="math-training__input" id="maxProblems" value="10" placeholder="Примеров">
 
         <br>
 
-        <label for="countdownValue" id="countdownValueLabel">Отсчёт:</label>
-        <input type="number" id="countdownValue" value="3" placeholder="Отсчёт">
+        <label for="countdownValue" class="math-training__label">Отсчёт:</label>
+        <input type="number" class="math-training__input" id="countdownValue" value="3" placeholder="Отсчёт">
 
-        <button id="startButton">Старт</button>
-        <p id="timer" style="display:none;">0.00</p>
-        <p id="scoreCounter" style="display:none;">Решено: 0</p>
+        <button class="math-training__button math-training__button--start" id="startButton">Старт</button>
+
+        <p class="math-training__timer" id="timer" style="display:none;">0.00</p>
+        <p class="math-training__score" id="scoreCounter" style="display:none;">Решено: 0</p>
     </div>
 </div>
+{% endblock %}
 
-<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
-        crossorigin="anonymous"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        let timer = 0;
-        let interval;
-        let score = 0;
-        let running = false;
-        let maxProblems = Number(document.getElementById('maxProblems').value);
-        let countdownValue = Number(document.getElementById('countdownValue').value);
-
-        function startTimer() {
-            interval = setInterval(function () {
-                timer += 10;
-                document.getElementById('timer').innerText = (timer / 1000).toFixed(2);
-            }, 10);
-        }
-
-        function generateMathProblem() {
-            let num1 = 0;
-            let num2 = 0;
-
-            while (true) {
-                num1 = Math.floor(Math.random() * 10);
-                num2 = Math.floor(Math.random() * 10);
-                if (num1 >= num2 && num2 !== 0) {
-                    break
-                }
-            }
-
-            const operations = ['+', '-', '*', '/'];
-            const operation = operations[Math.floor(Math.random() * operations.length)];
-
-            let problemText;
-            let answer;
-
-            switch (operation) {
-                case '+':
-                    problemText = `${num1} + ${num2}`;
-                    answer = num1 + num2;
-                    break;
-                case '-':
-                    problemText = `${num1} - ${num2}`;
-                    answer = num1 - num2;
-                    break;
-                case '*':
-                    problemText = `${num1} * ${num2}`;
-                    answer = num1 * num2;
-                    break;
-                case '/':
-                    const tempAnswer = Math.floor(Math.random() * 10);
-                    let adjustedNum1 = tempAnswer * num2;
-                    problemText = `${adjustedNum1} / ${num2}`;
-                    answer = adjustedNum1 / num2;
-                    break;
-            }
-
-            document.getElementById('math-problem').innerText = problemText;
-            return answer;
-        }
-
-        function startCountdown() {
-            document.getElementById('startButton').style.display = 'none';
-            document.getElementById('maxProblems').style.display = 'none';
-            document.getElementById('countdownValue').style.display = 'none';
-            document.getElementById('maxProblemsLabel').style.display = 'none';
-            document.getElementById('countdownValueLabel').style.display = 'none';
-            document.getElementById('countdown').innerText = countdownValue;
-
-            let countdown = setInterval(function () {
-                countdownValue--;
-                document.getElementById('countdown').innerText = countdownValue;
-
-                if (countdownValue <= 0) {
-                    clearInterval(countdown);
-                    document.getElementById('countdown').style.display = 'none';
-                    document.getElementById('math-problem').style.display = 'block';
-                    document.getElementById('answer').style.display = 'block';
-                    document.getElementById('timer').style.display = 'block';
-                    document.getElementById('scoreCounter').style.display = 'block';
-                    document.getElementById('answer').disabled = false;
-                    document.getElementById('answer').focus();
-                    answer = generateMathProblem();
-                    startTimer();
-                    running = true;
-                }
-            }, 1000);
-        }
-
-        document.getElementById('startButton').addEventListener('click', function () {
-            if (!running) {
-                startCountdown(); // Начинаем обратный отсчет
-            }
-        });
-
-        document.getElementById('maxProblems').addEventListener('input', function (e) {
-            maxProblems = e.target.value;
-        });
-
-        document.getElementById('countdownValue').addEventListener('input', function (e) {
-            countdownValue = e.target.value;
-        });
-
-        // горячая клавиша "Enter" для старта
-        window.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && !running) {
-                document.getElementById('startButton').click();
-            }
-        });
-
-        document.getElementById('answer').addEventListener('input', function (e) {
-            if (Number(e.target.value) === answer) {
-                e.target.value = '';
-                score++;
-                document.getElementById('scoreCounter').innerText = `Решено: ${score}`;
-                if (score < maxProblems) {
-                    answer = generateMathProblem();
-                } else {
-                    document.getElementById('math-problem').innerText = 'Тренажёр завершен!';
-                    clearInterval(interval);
-                    document.getElementById('answer').disabled = true;
-                    running = false;
-                    sendToServer(); // Отправка данных на сервер
-                }
-            }
-        });
-
-        function sendToServer() {
-            $.ajax({
-                url: "{% url 'mathtraining' %}",
-                type: "post",
-                data: {
-                    'csrfmiddlewaretoken': '{{ csrf_token }}',
-                    'time': timer,
-                    'examples_solved': score
-                },
-                success: function (response) {
-                    // asdf
-                },
-                error: function (xhr) {
-                    // Обработка ошибок здесь
-                }
-            });
-        }
-    });
-</script>
-</body>
-</html>
+{% block extra_js %}
+<script src="{% static 'general_app/js/math-main.js' %}"></script>
+{% endblock %}
