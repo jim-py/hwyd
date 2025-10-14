@@ -113,7 +113,9 @@
         addForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = newTodoTitle.value.trim();
-            if (!title) return;
+            const selectedDate = document.getElementById('calendar').value;
+
+            if (!title || !selectedDate) return;
 
             const response = await fetch("{% url 'todos:add' %}", {
                 method: 'POST',
@@ -121,7 +123,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({ title })
+                body: JSON.stringify({ title, task_date: selectedDate })
             });
 
             const data = await response.json();

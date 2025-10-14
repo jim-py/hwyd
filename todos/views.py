@@ -62,7 +62,19 @@ def add(request):
     try:
         data = json.loads(request.body)
         title = data['title']
-        new_todo = Todo.objects.create(user=request.user, title=title, task_date=datetime.date.today())
+        task_date_str = data.get('task_date')
+
+        if not task_date_str:
+            raise ValueError("Дата задачи не указана")
+
+        task_date = datetime.datetime.strptime(task_date_str, '%Y-%m-%d').date()
+
+        new_todo = Todo.objects.create(
+            user=request.user,
+            title=title,
+            task_date=task_date
+        )
+
         response_data = {
             'id': new_todo.id,
             'title': new_todo.title,
