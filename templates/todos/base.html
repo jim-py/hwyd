@@ -1,34 +1,39 @@
 {% load static %}
 <!doctype html>
 <html lang="en">
+
 <head>
     {% block title %}<title></title>{% endblock %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <link rel="stylesheet" href="{% static 'external/bootstrap.min.css' %}">
+    <link href="{% static 'general_app/font.css' %}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'main.css' %}">
-    <link rel="stylesheet" href="{% static 'external/all.min.css' %}">
-    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}" />
     <script src="{% static 'js/jquery.js' %}"></script>
     {% block extracss %}{% endblock %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
+
 <body>
 
-{% if request.user_agent.is_mobile %}
+    {% if request.user_agent.is_mobile %}
     {% include 'navibarMobile.html' %}
-{% else %}
+    {% else %}
     {% include 'navibar.html' %}
-{% endif %}
+    {% endif %}
 
-{% block content %}{% endblock %}
+    {% block content %}{% endblock %}
 
-<script src="{% static 'external/jquery-3.4.1.slim.min.js' %}"></script>
-<script src="{% static 'external/popper.min.js' %}"></script>
-<script src="{% static 'external/bootstrap.min.js' %}"></script>
-<script src="{% static 'external/kitfor.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
 
-{% block extrajs %}{% endblock %}
+    {% block extrajs %}{% endblock %}
 </body>
+
 </html>

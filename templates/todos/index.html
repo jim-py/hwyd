@@ -10,7 +10,7 @@
     <div class="row mb-3 mt-2 align-items-center">
         <div class="offset-md-2 col-lg-9 d-flex align-items-center gap-2">
             <input type="date" id="calendar" class="mr-2" value="{{ selected_date|date:'Y-m-d' }}">
-            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#toolsCollapse"
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#toolsCollapse"
                 aria-expanded="false" aria-controls="toolsCollapse">
                 Загрузка задач
             </button>
@@ -30,7 +30,7 @@
                     <b>task_date</b> (дата в формате YYYY-MM-DD).
                     Заполни список из 5 задач на дату {{ selected_date|date:'Y-m-d' }}.
                 </p>
-                <button onclick="copyPrompt()">Скопировать подсказку</button>
+                <button type="button" onclick="copyPrompt(event)">Скопировать подсказку</button>
             </div>
 
             <!-- JSON загрузка -->
@@ -71,8 +71,8 @@
         <div class="offset-md-2 col-lg-6">
             <div class="list-group" id="todoList">
                 {% for todo in todo_all %}
-                <div class="list-group-item {% if todo.checked %}todo-complete{% endif %}" data-id="{{ todo.id }}">
-                    <span>
+                <div class="list-group-item" data-id="{{ todo.id }}">
+                    <span class="todo-text {% if todo.checked %}todo-complete{% endif %}">
                         <input type="checkbox" class="todo-status-checkbox"
                             onchange="updateTaskStatus(this, {{ todo.id }})" {% if todo.checked %}checked{% endif %}>
                         {{ todo.title }}
@@ -130,7 +130,7 @@
             if (data.success) {
                 const taskHtml = `
                 <div class="list-group-item" data-id="${data.id}">
-                    <span>
+                    <span class="todo-text">
                         <input type="checkbox" class="todo-status-checkbox" onchange="updateTaskStatus(this, ${data.id})">
                         ${title}
                     </span>
@@ -139,7 +139,7 @@
                 todoList.insertAdjacentHTML('afterbegin', taskHtml);
                 newTodoTitle.value = '';
             } else {
-                alert("Ошибка при добавлении задачи: " + data.error);
+                showToast("Ошибка при добавлении задачи: " + data.error);
             }
         });
 
@@ -147,6 +147,7 @@
         window.updateTaskStatus = async (checkbox, taskId) => {
             const isChecked = checkbox.checked;
             const listItem = checkbox.closest('.list-group-item');
+            const textSpan = listItem.querySelector('.todo-text');
 
             try {
                 const response = await fetch(`/todos/${taskId}/update/`, {
@@ -157,11 +158,13 @@
                     },
                     body: JSON.stringify({ isCompleted: isChecked })
                 });
+
                 const data = await response.json();
                 if (data.success) {
-                    listItem.classList.toggle('todo-complete', isChecked);
+                    textSpan.classList.toggle('todo-complete', isChecked);
+                    listItem.classList.toggle('todo-complete-item', isChecked);
                 } else {
-                    alert("Ошибка обновления задачи: " + data.error);
+                    showToast("Ошибка обновления задачи: " + data.error);
                 }
             } catch (err) {
                 console.error(err);
@@ -219,7 +222,7 @@
                     const listItem = iconElement.closest('.list-group-item');
                     listItem.remove();
                 } else {
-                    alert("Ошибка при удалении: " + data.error);
+                    showToast("Ошибка при удалении: " + data.error);
                 }
             } catch (err) {
                 console.error(err);
@@ -235,11 +238,33 @@
         });
 
         // Копирование промпта
-        window.copyPrompt = function () {
-            const text = document.getElementById("promptText").innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                showToast("Подсказка скопирована!");
-            });
+        window.copyPrompt = function (event) {
+            event?.preventDefault();
+
+            const textElem = document.getElementById("promptText");
+            if (!textElem) return;
+
+            const text = textElem.innerText;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                // Современные браузеры
+                navigator.clipboard.writeText(text)
+                    .then(() => showToast("Подсказка скопирована!"))
+                    .catch(err => console.error("Ошибка копирования:", err));
+            } else {
+                // fallback для старых браузеров
+                const textarea = document.createElement("textarea");
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand("copy");
+                    showToast("Подсказка скопирована!");
+                } catch (err) {
+                    console.error("Ошибка копирования:", err);
+                }
+                document.body.removeChild(textarea);
+            }
         };
 
         // Функция для показа всплывающего сообщения

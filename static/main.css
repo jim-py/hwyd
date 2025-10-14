@@ -4,7 +4,7 @@
 
 body {
     background-color: #f9f9f9;
-    font-family: Arial, sans-serif;
+    font-family: "Montserrat", sans-serif;
 }
 
 /* Заголовки */
@@ -86,12 +86,13 @@ body {
     border-radius: 6px;
     background: white;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: background-color 0.2s ease;
+    opacity: 1;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 
 @media (min-width: 768px) {
     .list-group-item:hover {
-        background-color: #f1f1f1;
+        background-color: #f9f9f9;
     }
 }
 
@@ -309,4 +310,10 @@ span.todo-date {
         font-size: 14px;
         padding: 10px;
     }
+}
+
+.list-group-item:has(span.todo-complete) {
+    background-color: #efefef;
+    opacity: 0.65;
+    transition: background-color 1s ease, opacity 1s ease;
 }
