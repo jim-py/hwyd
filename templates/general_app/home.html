@@ -15,41 +15,6 @@
             crossorigin="anonymous">
     </script>
     <style>
-        .modal {
-            display: none; /* Скрыть модальное окно по умолчанию */
-            position: fixed; /* Оставаться на месте при прокрутке */
-            z-index: 1; /* Сидеть на верху */
-            left: 0;
-            top: 0;
-            width: 100%; /* Полная ширина */
-            height: 100%; /* Полная высота */
-            overflow: auto; /* Включить прокрутку, если нужно */
-            background-color: rgb(0, 0, 0); /* Цвет фона */
-            background-color: rgba(0, 0, 0, 0.4); /* Цвет фона с немного прозрачностью */
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto; /* 15% от верхней части экрана и по центру по горизонтали */
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%; /* Можно настроить ширину модального окна */
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
         .feature:hover .custom-hr {
             background-color: #5f99e8;
         }
@@ -87,7 +52,7 @@
                 Создавайте и отслеживайте свои привычки для достижения целей.
             </div>
         </article>
-        <article class="feature" id="budget">
+        <article class="feature-locked" id="budget">
             <h2>Nummus</h2>
             <p>
             <div class="text-feature">Трекер бюджета
@@ -103,7 +68,7 @@
                 Записывайте задачи и следите за их исполнением, чтобы ничего не упустить.
             </div>
         </article>
-        <article class="feature" id="knowledgebase">
+        <article class="feature-locked" id="knowledgebase">
             <h2>Mentis</h2>
             <div class="text-feature">База знаний
                 <div class="custom-hr"></div>
@@ -141,50 +106,18 @@
             </div>
         </div>
     </section>
-    <section class="section news-section">
-        <h2>Обновления</h2>
-        <article class="news-item">
-            <h3>Небольшие исправления!</h3>
-            <p class="news-date">20.04.2025</p>
-            <p>Исправлен небольшой баг в Habitus</p>
-        </article>
-        <article class="news-item">
-            <h3>Помодоро таймер!</h3>
-            <p class="news-date">24.05.2024</p>
-            <p>С сегодняшнего дня доступен таймер помодоро! Пока что мало функций, но они будут добавляться и расширяться.</p>
-        </article>
-        <article class="news-item">
-            <h3>Мы открылись!</h3>
-            <p class="news-date">03.05.2024</p>
-            <p>Ура! Экосистема Productivum и дальше будет улучшаться!</p>
-        </article>
-    </section>
 </main>
 <footer>
     <p>&copy; 2025 - Productivum</p>
 </footer>
 
-<!-- Модальное окно -->
-<div id="myModal" class="modal">
-    <!-- Содержимое модального окна -->
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <p>В разработке</p>
-    </div>
-</div>
-
 <script>
-    const modal = document.getElementById('myModal');
 
     document.getElementById('hwyd').addEventListener('click', function () {
         window.location.href = '{% url 'index' %}';
     });
     document.getElementById('todoapp').addEventListener('click', function () {
         window.location.href = '{% url 'todos:index' %}';
-    });
-    document.getElementById('budget').addEventListener('click', function () {
-        {% comment %} window.location.href = '{% url 'budget:index' %}'; {% endcomment %}
-        modal.style.display = "block";
     });
     document.getElementById('mathtraining').addEventListener('click', function () {
         window.location.href = '{% url 'mathtraining' %}';
@@ -193,18 +126,6 @@
         window.location.href = '{% url 'pomodoro:base' %}';
     });
 
-    document.getElementById('knowledgebase').addEventListener('click', function () {
-        modal.style.display = "block";
-    });
-    const span = document.getElementsByClassName("close")[0];
-    span.onclick = function () {
-        modal.style.display = "none";
-    }
-    window.onclick = function (event) {
-        if (event.target === modal) {
-            modal.style.display = "none";
-        }
-    }
 </script>
 <script src="{% static 'general_app/navbar_open.js' %}"></script>
 </body>

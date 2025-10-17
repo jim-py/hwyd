@@ -1,7 +1,7 @@
 {% extends 'general_app/base.html' %}
 {% load static %}
 
-{% block title %}Личная страница{% endblock %}
+{% block title %}About me{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'general_app/css/about-main.css' %}">
@@ -26,9 +26,22 @@
             <div class="profile-page__card-body card-body">
                 <h3 class="profile-page__card-title card-title">Обо мне</h3>
                 <p class="profile-page__card-text card-text">
-                    Живу в Ярославле, окончил университет ЯГТУ (09.03.02). 1С-разработка 2 года, 4 года Django-разработка (как
-                    хобби), 3.5 года в теме саморазвития.
+                    Живу в Ярославле, окончил университет ЯГТУ (направление 09.03.02).
+                    1С-разработка <span id="exp-1c"></span>,
+                    Django-разработка (как хобби) <span id="exp-django"></span>,
+                    в теме саморазвития <span id="exp-self"></span>.
                 </p>
+
+                <div class="telegram-link">
+                    <a href="https://t.me/JimHoleInOne" target="_blank" rel="noopener">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <path
+                                d="M9.99984 15.2L9.79984 18.5C10.0998 18.5 10.2298 18.37 10.3798 18.22L11.7998 16.86L15.0598 19.25C15.6598 19.59 16.0798 19.42 16.2398 18.73L18.9398 6.55C19.1598 5.67 18.6098 5.28 18.0298 5.52L4.97984 10.53C4.11984 10.87 4.12984 11.37 4.82984 11.58L8.17984 12.62L15.6298 8.13C15.9798 7.92 16.2998 8.03 16.0398 8.25L9.99984 15.2Z" />
+                        </svg>
+                        Связаться в Telegram
+                    </a>
+                </div>
             </div>
         </div>
         <div class="profile-page__card card">
@@ -56,4 +69,58 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function calculateYearsMonths(startDateStr) {
+        const startDate = new Date(startDateStr);
+        const now = new Date();
+
+        let years = now.getFullYear() - startDate.getFullYear();
+        let months = now.getMonth() - startDate.getMonth();
+
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        const yearsText = years > 0 ? `${years} ${getYearWord(years)}` : "";
+        const monthsText = months > 0 ? `${months} ${getMonthWord(months)}` : "";
+
+        if (yearsText && monthsText) {
+            return `${yearsText} ${monthsText}`;
+        } else if (yearsText) {
+            return yearsText;
+        } else {
+            return monthsText;
+        }
+    }
+
+    function getYearWord(years) {
+        if (years % 10 === 1 && years % 100 !== 11) {
+            return "год";
+        } else if ([2, 3, 4].includes(years % 10) && ![12, 13, 14].includes(years % 100)) {
+            return "года";
+        } else {
+            return "лет";
+        }
+    }
+
+    function getMonthWord(months) {
+        if (months % 10 === 1 && months % 100 !== 11) {
+            return "месяц";
+        } else if ([2, 3, 4].includes(months % 10) && ![12, 13, 14].includes(months % 100)) {
+            return "месяца";
+        } else {
+            return "месяцев";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("exp-1c").textContent = calculateYearsMonths("2023-09-13");
+        document.getElementById("exp-django").textContent = calculateYearsMonths("2022-10-01");
+        document.getElementById("exp-self").textContent = calculateYearsMonths("2022-01-01");
+    });
+</script>
 {% endblock %}

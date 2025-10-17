@@ -74,3 +74,29 @@
 .profile-page__card-text {
     margin-top: 10px;
 }
+
+.telegram-link {
+    margin-top: 1rem;
+}
+
+.telegram-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    background-color: #0088cc;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.telegram-link a:hover {
+    background-color: #007ab8;
+    transform: translateY(-2px);
+}
+
+.telegram-link svg {
+    flex-shrink: 0;
+}
