@@ -26,5 +26,5 @@ def mark_seen(request):
     if not allowed:
         return HttpResponseForbidden("You are not allowed to mark this notification.")
 
-    # NotificationSeen.objects.get_or_create(notification=notification, user=request.user)
+    NotificationSeen.objects.get_or_create(notification=notification, user=request.user)
     return JsonResponse({"status": "ok"})

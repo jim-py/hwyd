@@ -9,7 +9,7 @@
       <button id="notif-close" class="notif-close" aria-label="Закрыть">&times;</button>
     </header>
     <div class="notif-modal__body">
-      {{ unread_notification.message|linebreaks }}
+      {{ unread_notification.message|safe }}
     </div>
     <footer class="notif-modal__footer">
       <button id="notif-ok" class="notif-btn">ОК</button>
@@ -23,7 +23,7 @@
     position: fixed;
     inset: 0;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     z-index: 2000;
     opacity: 0;

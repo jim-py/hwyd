@@ -19,6 +19,8 @@
 
 <body>
 
+    {% include 'notifications/modal_snippet.html' %}
+    
     {% if request.user_agent.is_mobile %}
     {% include 'navibarMobile.html' %}
     {% else %}

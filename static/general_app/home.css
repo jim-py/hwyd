@@ -107,7 +107,7 @@ main {
     margin-bottom: 0.5rem;
 }
 
-footer {
+.footer-site {
     background-color: #3A75C4;
     color: #ffffff;
     text-align: center;
@@ -115,12 +115,12 @@ footer {
     font-size: 14px;
 }
 
-footer a {
+.footer-site a {
     color: #ffffff;
     text-decoration: underline;
 }
 
-footer a:hover {
+.footer-site a:hover {
     color: #e6e6e6;
 }
 
