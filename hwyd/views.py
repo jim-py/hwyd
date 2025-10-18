@@ -42,7 +42,7 @@ def activity_users(request):
             'date': log.date
         }
         for log in logs
-        if not log.user.is_superuser
+        # if not log.user.is_superuser
     ]
 
     # Группируем по дате для сброса нумерации

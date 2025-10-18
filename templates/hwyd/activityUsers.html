@@ -1,60 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'general_app/base.html' %}
 
-<head>
-    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
-    <title>Последние посещения</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <style>
-        .table-responsive {
-            padding: 2rem;
-        }
-        .table {
-            border-color: #a2a2a2;
-            margin-bottom: 5rem;
-        }
-    </style>
-</head>
+{% block title %}Last activity{% endblock %}
 
-<body>
+{% block extra_css %}
+<style>
+    .table-responsive {
+        padding: 2rem;
+    }
 
-    <div class="table-responsive">
-        {% for group in grouped_data %}
-        <table class="table table-hover table-bordered text-center">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Имя</th>
-                    <th>Первый вход</th>
-                    <th>Последний вход</th>
-                </tr>
-            </thead>
-            <tbody>
-                
-                <tr>
-                    <td colspan="4">{{ group.date }}</td>
-                </tr>
-                {% for person in group.users %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ person.user.username }}</td>
-                    <td>{{ person.firstVisit }}</td>
-                    <td>{{ person.lastActive }}</td>
-                </tr>
-                {% endfor %}
-                
-            </tbody>
-        </table>
+    .table {
+        border-color: #a2a2a2;
+        margin-bottom: 5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="table-responsive">
+    {% for group in grouped_data %}
+    <table class="table table-hover table-bordered text-center">
+        <thead>
+            <tr>
+                <th colspan="4">{{ group.date }}</th>
+            </tr>
+            <tr>
+                <th>#</th>
+                <th>Имя</th>
+                <th>Первый вход</th>
+                <th>Последний вход</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% for person in group.users %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ person.user.username }}</td>
+                <td>{{ person.firstVisit }}</td>
+                <td>{{ person.lastActive }}</td>
+            </tr>
+            {% endfor %}
+
         </tbody>
-        </table>
-        {% endfor %}
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
-
-</body>
-
-</html>
+    </table>
+    {% endfor %}
+</div>
+{% endblock %}
