@@ -19,12 +19,10 @@
 
 {% include 'notifications/modal_snippet.html' %}
 
-{% if settings.showTabs %}
-    {% if request.user_agent.is_mobile %}
-        {% include 'navibarMobile.html' %}
-    {% else %}
-        {% include 'navibar.html' %}
-    {% endif %}
+{% if request.user_agent.is_mobile %}
+    {% include 'navibarMobile.html' %}
+{% else %}
+    {% include 'navibar.html' %}
 {% endif %}
 
 {% include 'hwyd/dialogs.html' %}
