@@ -1,61 +1,60 @@
 {% load tags %}
 {% get_date_y_m as by_date %}
 <style>
-.nav-menu {
-    text-align: center;
-    top: 0;
-    font-family: "Montserrat", sans-serif;
-}
+    .nav-menu {
+        text-align: center;
+        top: 0;
+        font-family: "Montserrat", sans-serif;
+    }
 
-.nav-menu * {
-    font-family: inherit;
-}
+    .nav-menu * {
+        font-family: inherit;
+    }
 
-.nav-menu__list {
-    display: inline-block;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    transform: skew(-25deg);
-}
+    .nav-menu__list {
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        transform: skew(-25deg);
+    }
 
-.nav-menu__item {
-    background: #fff;
-    float: left;
-    border-right: 1px solid #eee;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-    text-transform: uppercase;
-    color: #555;
-    font-weight: bolder;
-    font-size: small;
-    transition: all 0.3s linear;
-}
+    .nav-menu__item {
+        background: #fff;
+        float: left;
+        border-right: 1px solid #eee;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        text-transform: uppercase;
+        color: #555;
+        font-weight: bolder;
+        font-size: small;
+        transition: all 0.3s linear;
+    }
 
-.nav-menu__item:first-child {
-    border-radius: 7px 0 0 7px;
-}
+    .nav-menu__item:first-child {
+        border-radius: 7px 0 0 7px;
+    }
 
-.nav-menu__item:last-child {
-    border-right: none;
-    border-radius: 0 7px 7px 0;
-}
+    .nav-menu__item:last-child {
+        border-right: none;
+        border-radius: 0 7px 7px 0;
+    }
 
-.nav-menu__item:hover {
-    background: #eee;
-}
+    .nav-menu__item:hover {
+        background: #eee;
+    }
 
-.nav-menu__link {
-    display: block;
-    padding: 5px 10px;
-    color: inherit;
-    text-decoration: none;
-    transform: skew(25deg);
-}
+    .nav-menu__link {
+        display: block;
+        padding: 5px 10px;
+        color: inherit;
+        text-decoration: none;
+        transform: skew(25deg);
+    }
 
-.nav-menu__item--active {
-    background-color: #d4f8ff;
-}
-
+    .nav-menu__item--active {
+        background-color: #d4f8ff;
+    }
 </style>
 
 <nav class="nav-menu">
@@ -81,8 +80,32 @@
         <li class="nav-menu__item">
             <a href="{% url 'about' %}" class="nav-menu__link">About</a>
         </li>
+        {% if user.is_authenticated %}
+        {% if user.is_superuser %}
+        <li class="nav-menu__item">
+            <a href="{% url 'activity_users' %}" class="nav-menu__link">Activity</a>
+        </li>
+        {% endif %}
+        <li class="nav-menu__item">
+            <a href="{% url 'profile' %}" class="nav-menu__link"><span>Profile</span></a>
+        </li>
+        <li class="nav-menu__item">
+            <a href="#" class="nav-menu__link" onclick="document.getElementById('logout-form').submit();">Exit</a>
+        </li>
+        {% else %}
+        <li class="nav-menu__item">
+            <a href="{% url 'entry' %}?type=register" class="nav-menu__link">Register</a>
+        </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'entry' %}?type=login" class="nav-menu__link">Log in</a>
+        </li>
+        {% endif %}
     </ul>
 </nav>
+
+<form id="logout-form" action="{% url 'logout' %}" method="post" style="display: none;">
+    {% csrf_token %}
+</form>
 
 <script>
     for (let link of document.querySelectorAll('.nav-menu__link')) {

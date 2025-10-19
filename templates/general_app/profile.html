@@ -1,141 +1,147 @@
+{% extends 'general_app/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productivum</title>
-    <link rel="stylesheet" href="{% static 'general_app/font.css' %}">
-    <link rel="stylesheet" href="{% static 'general_app/scroll.css' %}">
-    <link rel="stylesheet" href="{% static 'general_app/home.css' %}">
-    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7fa;
-            margin: 0;
-            padding: 0;
-        }
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'general_app/font.css' %}">
+<link rel="stylesheet" href="{% static 'general_app/scroll.css' %}">
+<link rel="stylesheet" href="{% static 'general_app/home.css' %}">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f7fa;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        width: 50%;
+        /* Уменьшенная ширина контейнера */
+        margin: 50px auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+        /* Пространство под заголовком */
+    }
+
+    form {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        /* Увеличенные расстояния между полями */
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+        width: 95%;
+        padding: 12px;
+        /* Увеличенный padding для полей ввода */
+        margin-bottom: 10px;
+        /* Отступ после каждого поля ввода */
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .button-group {
+        display: flex;
+        /* Кнопки будут в одной строке */
+        justify-content: space-between;
+        /* Распределение кнопок по ширине контейнера */
+        align-items: center;
+        /* Центрирование кнопок по вертикали */
+    }
+
+    button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 18px;
+        /* Увеличенный размер шрифта */
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    button[type="reset"] {
+        background-color: #6c757d;
+        /* Цвет кнопки для сброса */
+    }
+
+    button[type="reset"]:hover {
+        background-color: #5a6268;
+        /* Темнее при наведении для кнопки сброса */
+    }
+
+    @media (max-width: 768px) {
         .container {
-            width: 50%; /* Уменьшенная ширина контейнера */
-            margin: 50px auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px; /* Пространство под заголовком */
-        }
-
-        form {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px; /* Увеличенные расстояния между полями */
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        input[type="text"],
-        input[type="email"],
-        input[type="password"] {
-            width: 95%;
-            padding: 12px; /* Увеличенный padding для полей ввода */
-            margin-bottom: 10px; /* Отступ после каждого поля ввода */
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            width: 80%;
+            /* Шире на маленьких экранах */
         }
 
         .button-group {
-            display: flex; /* Кнопки будут в одной строке */
-            justify-content: space-between; /* Распределение кнопок по ширине контейнера */
-            align-items: center; /* Центрирование кнопок по вертикали */
+            flex-direction: column;
+            /* Столбец на малых экранах */
         }
 
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 18px; /* Увеличенный размер шрифта */
-        }
+    }
 
-        button:hover {
-            background-color: #0056b3;
-        }
+    .button-active {
+        background-color: #007bff;
+        color: white;
+    }
 
-        button[type="reset"] {
-            background-color: #6c757d; /* Цвет кнопки для сброса */
-        }
+    .button-inactive {
+        display: none;
+    }
 
-        button[type="reset"]:hover {
-            background-color: #5a6268; /* Темнее при наведении для кнопки сброса */
-        }
+    #edit-profile-section>form>div.alert.success {
+        text-align: center;
+        padding: 3px;
+        border-radius: 3px;
+        color: white;
+        background-color: #60c43a;
+    }
 
-        @media (max-width: 768px) {
-            .container {
-                width: 80%; /* Шире на маленьких экранах */
-            }
+    ul.errorlist>li {
+        text-align: center;
+        padding: 3px;
+        border-radius: 3px;
+        color: white;
+        background-color: #c43a3a;
+        list-style-type: none;
+    }
 
-            .button-group {
-                flex-direction: column; /* Столбец на малых экранах */
-            }
+    ul.errorlist {
+        padding: 0;
+    }
+</style>
+{% endblock %}
 
-        }
-
-        .button-active {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .button-inactive {
-            display: none;
-        }
-
-        #edit-profile-section > form > div.alert.success {
-            text-align: center;
-            padding: 3px;
-            border-radius: 3px;
-            color: white;
-            background-color: #60c43a;
-        }
-
-        ul.errorlist > li {
-            text-align: center;
-            padding: 3px;
-            border-radius: 3px;
-            color: white;
-            background-color: #c43a3a;
-            list-style-type: none;
-        }
-
-        ul.errorlist{
-            padding: 0;
-        }
-    </style>
-</head>
-<body>
-<header>
-    {% include 'general_app/navbar.html' %}
-</header>
-
+{% block content %}
 <div class="container">
     <div id="edit-profile-section">
         <h2>Редактирование профиля</h2>
-        <form method="post" action="{% url 'profile' %}">  <!-- Укажите здесь соответствующий URL -->
+        <form method="post" action="{% url 'profile' %}"> <!-- Укажите здесь соответствующий URL -->
             {% csrf_token %}
             {% if messages %}
-                {% for message in messages %}
-                    <div class="alert {{ message.tags }}">{{ message }}</div>
-                {% endfor %}
+            {% for message in messages %}
+            <div class="alert {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
             {% endif %}
             <div class="form-group">
                 {{ user_form.username.label_tag }}
@@ -165,7 +171,7 @@
     </div>
     <div id="change-password-section" style="display:none;">
         <h2>Смена пароля</h2>
-        <form method="post" action="{% url 'profile' %}">  <!-- Укажите здесь соответствующий URL -->
+        <form method="post" action="{% url 'profile' %}"> <!-- Укажите здесь соответствующий URL -->
             {% csrf_token %}
             <div class="form-group">
                 {{ password_form.old_password.label_tag }}
@@ -193,7 +199,9 @@
         <button type="button" class="button-active" id="change-password-switch">Сменить пароль</button>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
     // Получаем кнопки
     const editProfileBtn = document.getElementById("edit-profile-switch");
@@ -223,6 +231,4 @@
     document.getElementById("edit-profile-section").style.display = "block"; // Показываем секцию редактирования профиля
     document.getElementById("change-password-section").style.display = "none"; // Скрываем секцию смены пароля
 </script>
-<script src="{% static 'general_app/navbar_open.js' %}"></script>
-</body>
-</html>
+{% endblock %}

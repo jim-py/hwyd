@@ -162,7 +162,12 @@ class LoginRegisterView(View):
             register_form = UserCreationForm(request.POST)
             type_form = "register"
             if register_form.is_valid():
-                user = register_form.save()
+                user = register_form.save(commit=False)
+                user.first_name = request.POST.get('first_name', '')
+                user.last_name = request.POST.get('last_name', '')
+                user.email = request.POST.get('email', '')
+                user.save()
+
                 login(request, user)
                 return HttpResponseRedirect(next_url)
             else:

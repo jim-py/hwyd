@@ -1,44 +1,40 @@
+{% extends 'general_app/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productivum</title>
-    <link rel="stylesheet" href="{% static 'general_app/font.css' %}">
-    <link rel="stylesheet" href="{% static 'general_app/home.css' %}">
-    <link rel="stylesheet" href="{% static 'general_app/scroll.css' %}">
-    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
-    <script
-            src="https://code.jquery.com/jquery-3.6.3.js"
-            integrity="sha256-nQLuAZGRRcILA+6dMBOvcRh5Pe310sBpanc6+QBmyVM="
-            crossorigin="anonymous">
-    </script>
-    <style>
-        .feature:hover .custom-hr {
-            background-color: #5f99e8;
-        }
 
-        .custom-hr {
-            height: 1px;
-            background-color: #888;
-            margin: 8px 0;
-        }
+{% block title %}Productivum{% endblock %}
 
-        .text-feature {
-            text-align: center
-        }
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'general_app/font.css' %}">
+<link rel="stylesheet" href="{% static 'general_app/home.css' %}">
+<link rel="stylesheet" href="{% static 'general_app/scroll.css' %}">
+<style>
+    .feature:hover .custom-hr {
+        background-color: #5f99e8;
+    }
 
-        h2 {
-            margin-top: 8px;
-        }
-    </style>
-</head>
-<body>
-    {% include 'notifications/modal_snippet.html' %}
-<header>
-    {% include 'general_app/navbar.html' %}
-</header>
+    .custom-hr {
+        height: 1px;
+        background-color: #888;
+        margin: 8px 0;
+    }
+
+    .text-feature {
+        text-align: center
+    }
+
+    h2 {
+        margin-top: 8px;
+    }
+
+    h1,
+    h2 {
+        font-weight: 700;
+        font-size: 32px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
 <main>
     <section class="intro">
         <h1>Добро пожаловать в нашу экосистему приложений!</h1>
@@ -111,9 +107,10 @@
 <footer class="footer-site">
     <p>&copy; 2025 - Productivum</p>
 </footer>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-
     document.getElementById('hwyd').addEventListener('click', function () {
         window.location.href = '{% url 'index' %}';
     });
@@ -126,8 +123,5 @@
     document.getElementById('pomodorotimer').addEventListener('click', function () {
         window.location.href = '{% url 'pomodoro:base' %}';
     });
-
 </script>
-<script src="{% static 'general_app/navbar_open.js' %}"></script>
-</body>
-</html>
+{% endblock %}

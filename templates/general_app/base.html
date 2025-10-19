@@ -5,10 +5,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=yes">
-    <title>{% block title %}Моя страница{% endblock %}</title>
+    <title>{% block title %}Productivum{% endblock %}</title>
 
     <!-- Общие стили -->
-    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}" />
     <link href="{% static 'general_app/font.css' %}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
@@ -24,11 +24,13 @@
 </head>
 
 <body>
+    {% block navbar %}
     {% if request.user_agent.is_mobile %}
-        {% include 'navibarMobile.html' %}
+    {% include 'navibarMobile.html' %}
     {% else %}
-        {% include 'navibar.html' %}
+    {% include 'navibar.html' %}
     {% endif %}
+    {% endblock %}
 
     {% block content %}{% endblock %}
 
@@ -40,7 +42,9 @@
         crossorigin="anonymous"></script>
 
     {% block extra_js %}{% endblock %}
-    {% include 'notifications/modal_snippet.html' %}
+    {% if user.is_authenticated %}
+        {% include 'notifications/modal_snippet.html' %}
+    {% endif %}
 </body>
 
 </html>

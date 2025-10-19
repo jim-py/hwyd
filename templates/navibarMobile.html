@@ -47,7 +47,17 @@
 
 <nav class="nav-top">
     <a href="{% url 'home' %}" class="nav-top__link">Main</a>
-    
+    {% if user.is_authenticated %}
+    {% if user.is_superuser %}
+    <a href="{% url 'activity_users' %}" class="nav-top__link">Activity</a>
+    {% endif %}
+    <a href="{% url 'profile' %}" class="nav-top__link"><span>Profile</span></a>
+    <a href="#" class="nav-top__link" onclick="document.getElementById('logout-form').submit();">Exit</a>
+    {% else %}
+    <a href="{% url 'entry' %}?type=register" class="nav-top__link">Register</a>
+    <a href="{% url 'entry' %}?type=login" class="nav-top__link">Log in</a>
+    {% endif %}
+
     <div class="nav-top__links" id="nav-top-links">
         <a href="{% url 'by_date' by_date %}" class="nav-top__link">Habitus</a>
         <a href="{% url 'todos:index' %}" class="nav-top__link">Todo</a>
@@ -61,6 +71,10 @@
         <i class="fa fa-bars"></i>
     </a>
 </nav>
+
+<form id="logout-form" action="{% url 'logout' %}" method="post" style="display: none;">
+    {% csrf_token %}
+</form>
 
 <script>
     function toggleNavTop() {
