@@ -1,9 +1,0 @@
-/* Скрытие полосы прокрутки для Webkit-браузеров */
-::-webkit-scrollbar {
-    display: none;
-}
-
-/* Скрытие полосы прокрутки для Firefox */
-* {
-    scrollbar-width: none;
-}
