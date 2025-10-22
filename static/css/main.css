@@ -1,0 +1,401 @@
+html {
+    display: table;
+}
+
+/*Убрать полосу прокрутки для всей страницы*/
+::-webkit-scrollbar {
+  width: 0;
+}
+
+label.toggle {
+    /*position: absolute;*/
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+input[type=checkbox] {
+    display: none;
+}
+
+input[type=color] {
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+}
+
+p.paragraph {
+    border: 1px solid #a1a1a1;
+    padding: 0 10px 0 10px;
+    outline: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    border-radius: 3px;
+    height: 24px;
+    line-height: 24px;
+    font-size: 14px;
+    margin: 0 5px 0 0;
+    font-weight: 600;
+    /*cursor: move;*/
+    display: flex;
+    justify-content: start;
+    /*transition: all 0.25s ease-out;*/
+}
+
+table {
+    border-collapse: collapse;
+}
+
+p.headParagraph.weekend {
+    color: white;
+    width: 25px;
+    height: 25px;
+}
+
+p.headParagraph {
+    border-radius: 3px;
+    margin-bottom: 5px;
+    margin-top: 0;
+    height: 25px;
+    justify-content: center;
+    display: flex;
+    align-items: center
+}
+
+input[type=text], input[type=number] {
+    box-shadow: 0 1px 3px -2px #9098A9;
+    font-size: 14px;
+    border-radius: 3px;
+    width: 110px;
+    border: 1px solid #ccc;
+    transition: all 0.25s ease-in-out;
+}
+
+input[type=text].inputSettings:focus {
+    width: 100%;
+}
+
+input[type=text].inputSettingsColor:focus, input[type=number].inputSettingsColor:focus {
+    width: 70px;
+    border: 1px solid #626262;
+    outline: #626262;
+}
+
+.activateDayOfActivity {
+    margin: 10px 0 7px 0;
+}
+
+input[type=text].inputSettings {
+    box-sizing: border-box;
+    padding: 7px 0 7px 12px;
+    font-weight: 400;
+    background-color: #EDEDED;
+    height: 30px;
+    width: 100%;
+}
+
+input[type=text].inputSettingsColor, input[type=number].inputSettingsColor {
+    background-color: #EDEDED;
+    width: 70px;
+    padding: 3px;
+}
+
+input[type=text]:focus {
+    border: 1px solid #626262;
+    outline: #626262;
+    width: 150px;
+}
+
+span.progress {
+    background-color: #2f2f2f;
+    color: white;
+    border-radius: 3px;
+    border: 2px solid black;
+}
+
+dialog {
+    border-radius: 15px;
+    border: 1px solid #ccc;
+}
+
+h3.dialog__title {
+    margin: 0 5px;
+}
+
+form[id=settingsGlobal] > div > div > input[type=checkbox] {
+    display: inline-block;
+    margin: auto 0 auto 10px;
+    width: 16px;
+    height: 16px;
+}
+
+form[id=settingsGlobal] > div > div > input[type=checkbox]:checked {
+    border: 1px solid black;
+}
+
+form[id=settingsGlobal] > div {
+    align-items: center;
+    margin-bottom: 7px;
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0 0 2px 0 black;
+}
+
+form[id=settingsGlobal] > div > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+form[id=formColorSettings] > div {
+    margin-bottom: 7px;
+}
+
+form[id=formActivitySettings] > div {
+    margin-bottom: 7px;
+}
+
+form[id=formActivitySettings] {
+    font-weight: 400;
+    padding: 15px 20px;
+}
+
+input[id=data] {
+    display: none;
+}
+
+form[id=closeDialog] {
+    display: inline;
+}
+
+form[id=chooseDate] {
+    display: inline;
+}
+
+form[id=createActivity] {
+    margin-top: 5px;
+}
+
+#buttonSettings, #screenShot, #hideActivities, #openGuide, #hideCompleteActivities {
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    margin-bottom: 10px;
+    float: right;
+}
+
+p.headParagraph.changeParagraph.main {
+    font-weight: 600;
+    border: 1px solid #a1a1a1;
+    margin: 0 5px 5px 0;
+    min-width: 150px;
+}
+
+p.headParagraph.changeParagraph.minor {
+    width: 25px;
+    font-weight: 600;
+    border: 1px solid #a1a1a1;
+}
+
+p.headParagraph.weekend.minor {
+    width: 25px;
+    font-weight: 600;
+    border: 1px solid #a1a1a1;
+}
+
+input.colorTextForm {
+    margin-left: 25px;
+}
+
+button.deleteActivity {
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+}
+
+img.cross {
+    cursor: pointer;
+    width: 12px;
+    height: 12px;
+}
+
+div.grid-container {
+    max-height: 112px;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 600;
+    display: grid;
+    grid-template-columns: auto auto auto;
+}
+
+/* Стили для скролла */
+div.grid-container::-webkit-scrollbar {
+	width: 6px;
+}
+div.grid-container::-webkit-scrollbar-track {
+	box-shadow: inset 0 0 6px rgb(122, 122, 122);
+}
+div.grid-container::-webkit-scrollbar-thumb {
+	box-shadow: inset 0 0 6px rgba(0,0,0,1);
+}
+
+div.activityOn {
+    background-color: #4071F4;
+    color: white;
+}
+
+/*div.activityCell > label {*/
+/*    margin-right: 10px;*/
+/*}*/
+
+.hide {
+    display: none;
+}
+
+div.activityCell {
+    white-space: nowrap;
+    overflow: hidden;
+    width: 80px;
+    text-overflow: ellipsis;
+    font-weight: 400;
+    border: 1px solid black;
+    padding: 10px;
+    display: flex;
+    justify-content: flex-start;
+    cursor: pointer;
+    transition: all 250ms ease-out;
+}
+
+div.activityCell.activityOn:hover {
+    background-color: rgba(64, 113, 244, 0.85);
+}
+
+div.activityCell:hover {
+    background-color: rgb(229, 229, 229);
+}
+
+#spanAnimate {
+    -webkit-animation: marquee 4s infinite alternate-reverse;
+    animation: marquee 4s infinite alternate-reverse;
+}
+
+.spanActivityName {
+    display: inline-block;
+}
+
+/*@-webkit-keyframes marquee {*/
+/*    0% {*/
+/*        -webkit-transform: translate(0, 0);*/
+/*    }*/
+/*    100% {*/
+/*        -webkit-transform: translate(-50%, 0);*/
+/*    }*/
+/*}*/
+
+/*@keyframes marquee {*/
+/*    0% {*/
+/*        transform: translateX(100%);*/
+/*    }*/
+/*    100% {*/
+/*        transform: translateX(-100%);*/
+/*    }*/
+/*}*/
+
+input.elementActivitySettings {
+    display:inline-block;
+    margin-right: 0;
+    margin-left: auto;
+}
+
+.hasText {
+    background-image: url(hastext.png);
+    background-repeat: no-repeat;
+    background-position: right bottom;
+}
+
+.hideOn {
+    display: flex;
+}
+
+.selectColor {
+    -webkit-appearance: none;
+    padding: 7px 40px 7px 12px;
+    width: 100%;
+    border-radius: 3px;
+    background: #EDEDED;
+    border: 1px solid #ccc;
+    box-shadow: 0 1px 3px -2px #9098A9;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 250ms ease-out;
+}
+
+select:focus, select:focus-visible {
+    border: 1px solid #626262;
+    outline: 0;
+}
+
+#dialog, #dialog:focus, #dialog:focus-visible {
+    border: 2px solid #c7c7c7;
+    outline: 0;
+}
+
+.selectPicker {
+    background-image: url("data:image/svg+xml,<svg height='15px' width='15px' viewBox='0 0 16 16' fill='%238692ab' xmlns='http://www.w3.org/2000/svg'><path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 15px) center;
+    outline: none;
+    cursor: pointer;
+}
+
+.selectPicker:hover {
+    background-image: url("data:image/svg+xml,<svg height='15px' width='15px' viewBox='0 0 16 16' fill='%236b90ff' xmlns='http://www.w3.org/2000/svg'><path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/></svg>");
+}
+
+.calendarWeek {
+    background-color: #eaeaea !important;
+}
+
+.calendarDay, .calendarWeek {
+    background-color: #cecece;
+    border: 2px solid #cecece;
+    border-radius: 7px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2px 5px;
+    cursor: pointer;
+    transition: all 250ms ease-out;
+}
+
+.calendarDay:hover, .calendarWeek:hover {
+    background-color: #f0f0f0;
+}
+
+#formColorSettings {
+    padding: 10px 25px;
+}
+
+#formColorSettings > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#buttonsFooter {
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+#dialogHead:focus, #dialogHead:focus-visible {
+    border: 1px solid #ccc;
+}

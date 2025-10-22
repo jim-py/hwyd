@@ -1,0 +1,102 @@
+.profile-page__navbar {
+    background-color: #007bff;
+}
+
+.profile-page__navbar-brand {
+    color: #fff;
+}
+
+.profile-page__navbar-brand:hover {
+    color: #d4d4d4;
+}
+
+.profile-page__container {
+    margin-top: 30px;
+}
+
+.profile-page__header {
+    text-align: center;
+}
+
+.profile-page__image {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 50%;
+    box-shadow: 0 0 3px rgb(0, 0, 0);
+}
+
+.profile-page__name {
+    margin: 1.5rem 0;
+    font-weight: bold;
+}
+
+.profile-page__skills {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.profile-page__skill {
+    background-color: #d4f8ff;
+    border-radius: 3px;
+    padding: 3px;
+    border: 2px solid #abc6cc;
+}
+
+.profile-page__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+@media (min-width: 768px) {
+    .profile-page__grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.profile-page__card {
+    border-radius: 15px;
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.profile-page__card-body {
+    padding: 1rem;
+}
+
+.profile-page__card-title {
+    background-color: #d4f8ff;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.profile-page__card-text {
+    margin-top: 10px;
+}
+
+.telegram-link {
+    margin-top: 1rem;
+}
+
+.telegram-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    background-color: #0088cc;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.telegram-link a:hover {
+    background-color: #007ab8;
+    transform: translateY(-2px);
+}
+
+.telegram-link svg {
+    flex-shrink: 0;
+}
