@@ -32,6 +32,7 @@ else:
 SECRET_KEY = '2v^46_-9jw*x(weg8j9n-3ad%p0&h^avvfy3c(wj$jnyx)3i!&'
 
 DEBUG = not hosting
+DEBUG = False
 
 LOGOUT_REDIRECT_URL = '/'
 
@@ -46,12 +47,12 @@ INSTALLED_APPS = [
     'django_user_agents',
     'general_app.apps.GeneralAppConfig',
     'hwyd.apps.HwydConfig',
-    # 'budget.apps.BudgetConfig',
     'todos.apps.TodosConfig',
     'taggit',
     'pomodoro',
     "debug_toolbar",
     'notifications',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -67,7 +68,6 @@ MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'maintenance_middleware.MaintenanceMiddleware',
-    'maintenance_middleware.BlockAllPagesWithToggleMiddleware',
     'maintenance_middleware.UserActivityLoggingMiddleware',
 ]
 

@@ -1,202 +1,112 @@
 {% extends 'general_app/base.html' %}
 {% load static %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'general_app/font.css' %}">
-<link rel="stylesheet" href="{% static 'general_app/scroll.css' %}">
-<link rel="stylesheet" href="{% static 'general_app/home.css' %}">
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f7fa;
-        margin: 0;
-        padding: 0;
-    }
-
-    .container {
-        width: 50%;
-        /* Уменьшенная ширина контейнера */
-        margin: 50px auto;
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
-        text-align: center;
-        color: #333;
-        margin-bottom: 20px;
-        /* Пространство под заголовком */
-    }
-
-    form {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-        /* Увеличенные расстояния между полями */
-    }
-
-    label {
-        display: block;
-        margin-bottom: 5px;
-    }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="password"] {
-        width: 95%;
-        padding: 12px;
-        /* Увеличенный padding для полей ввода */
-        margin-bottom: 10px;
-        /* Отступ после каждого поля ввода */
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-    .button-group {
-        display: flex;
-        /* Кнопки будут в одной строке */
-        justify-content: space-between;
-        /* Распределение кнопок по ширине контейнера */
-        align-items: center;
-        /* Центрирование кнопок по вертикали */
-    }
-
-    button {
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 18px;
-        /* Увеличенный размер шрифта */
-    }
-
-    button:hover {
-        background-color: #0056b3;
-    }
-
-    button[type="reset"] {
-        background-color: #6c757d;
-        /* Цвет кнопки для сброса */
-    }
-
-    button[type="reset"]:hover {
-        background-color: #5a6268;
-        /* Темнее при наведении для кнопки сброса */
-    }
-
-    @media (max-width: 768px) {
-        .container {
-            width: 80%;
-            /* Шире на маленьких экранах */
-        }
-
-        .button-group {
-            flex-direction: column;
-            /* Столбец на малых экранах */
-        }
-
-    }
-
-    .button-active {
-        background-color: #007bff;
-        color: white;
-    }
-
-    .button-inactive {
-        display: none;
-    }
-
-    #edit-profile-section>form>div.alert.success {
-        text-align: center;
-        padding: 3px;
-        border-radius: 3px;
-        color: white;
-        background-color: #60c43a;
-    }
-
-    ul.errorlist>li {
-        text-align: center;
-        padding: 3px;
-        border-radius: 3px;
-        color: white;
-        background-color: #c43a3a;
-        list-style-type: none;
-    }
-
-    ul.errorlist {
-        padding: 0;
-    }
-</style>
-{% endblock %}
+{% load widget_tweaks %}
 
 {% block content %}
-<div class="container">
-    <div id="edit-profile-section">
-        <h2>Редактирование профиля</h2>
-        <form method="post" action="{% url 'profile' %}"> <!-- Укажите здесь соответствующий URL -->
-            {% csrf_token %}
-            {% if messages %}
-            {% for message in messages %}
-            <div class="alert {{ message.tags }}">{{ message }}</div>
-            {% endfor %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+
+            <!-- Общий блок для сообщений и ошибок -->
+            {% if messages or user_form.errors or password_form.errors %}
+                <div class="mb-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if user_form.errors or password_form.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                            <ul class="mb-0 ps-3">
+                                {% for field, errors in user_form.errors.items %}
+                                    {% for error in errors %}
+                                        <li><strong>{{ field|capfirst }}:</strong> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for field, errors in password_form.errors.items %}
+                                    {% for error in errors %}
+                                        <li><strong>{{ field|capfirst }}:</strong> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+                </div>
             {% endif %}
-            <div class="form-group">
-                {{ user_form.username.label_tag }}
-                {{ user_form.username }}
-                {{ user_form.username.errors }}
+
+            <!-- Карточка редактирования профиля -->
+            <div id="edit-profile-section" class="card shadow-sm border-1">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">Редактирование профиля</h2>
+
+                    <form method="post" action="{% url 'profile' %}">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            {{ user_form.username.label_tag }}
+                            {{ user_form.username|add_class:"form-control" }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ user_form.first_name.label_tag }}
+                            {{ user_form.first_name|add_class:"form-control" }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ user_form.last_name.label_tag }}
+                            {{ user_form.last_name|add_class:"form-control" }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ user_form.email.label_tag }}
+                            {{ user_form.email|add_class:"form-control" }}
+                        </div>
+
+                        <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary w-100">Сохранить</button>
+                            <button type="button" class="btn btn-outline-secondary w-100" id="change-password-switch">Сменить пароль</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                {{ user_form.first_name.label_tag }}
-                {{ user_form.first_name }}
-                {{ user_form.first_name.errors }}
+
+            <!-- Карточка смены пароля -->
+            <div id="change-password-section" class="card shadow-sm border-1" style="display:none;">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">Смена пароля</h2>
+
+                    <form method="post" action="{% url 'profile' %}">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            {{ password_form.old_password.label_tag }}
+                            {{ password_form.old_password|add_class:"form-control" }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ password_form.new_password1.label_tag }}
+                            {{ password_form.new_password1|add_class:"form-control" }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ password_form.new_password2.label_tag }}
+                            {{ password_form.new_password2|add_class:"form-control" }}
+                        </div>
+
+                        <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary w-100">Сохранить</button>
+                            <button type="button" class="btn btn-outline-secondary w-100" id="edit-profile-switch">Редактировать профиль</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                {{ user_form.last_name.label_tag }}
-                {{ user_form.last_name }}
-                {{ user_form.last_name.errors }}
-            </div>
-            <div class="form-group">
-                {{ user_form.email.label_tag }}
-                {{ user_form.email }}
-                {{ user_form.email.errors }}
-            </div>
-            <div>
-                <button type="submit">Сохранить изменения</button>
-                <button type="reset">Сбросить</button>
-            </div>
-        </form>
-    </div>
-    <div id="change-password-section" style="display:none;">
-        <h2>Смена пароля</h2>
-        <form method="post" action="{% url 'profile' %}"> <!-- Укажите здесь соответствующий URL -->
-            {% csrf_token %}
-            <div class="form-group">
-                {{ password_form.old_password.label_tag }}
-                {{ password_form.old_password }}
-                {{ password_form.old_password.errors }}
-            </div>
-            <div class="form-group">
-                {{ password_form.new_password1.label_tag }}
-                {{ password_form.new_password1 }}
-                {{ password_form.new_password1.errors }}
-            </div>
-            <div class="form-group">
-                {{ password_form.new_password2.label_tag }}
-                {{ password_form.new_password2 }}
-                {{ password_form.new_password2.errors }}
-            </div>
-            <div>
-                <button type="submit">Изменить пароль</button>
-                <button type="reset">Сбросить</button>
-            </div>
-        </form>
-    </div>
-    <div class="button-group">
-        <button type="button" class="button-inactive" id="edit-profile-switch">Редактировать профиль</button>
-        <button type="button" class="button-active" id="change-password-switch">Сменить пароль</button>
+
+        </div>
     </div>
 </div>
 {% endblock %}

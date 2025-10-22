@@ -1,234 +1,117 @@
 {% extends 'general_app/base.html' %}
 {% load static %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'general_app/font.css' %}">
-<link rel="stylesheet" href="{% static 'general_app/scroll.css' %}">
-<style>
-    input[type="text"],
-    input[type="password"],
-    input[type="email"] {
-        font-size: 16px;
-    }
-
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    .container {
-        max-width: 600px;
-        margin: 20px auto;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 4px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
-        text-align: center;
-        color: #333;
-    }
-
-    .form-section {
-        margin-bottom: 20px;
-    }
-
-    form {
-        display: flex;
-        flex-direction: column;
-    }
-
-    label {
-        margin-bottom: 5px;
-        color: #333;
-    }
-
-    input[type="text"],
-    input[type="password"],
-    input[type="email"] {
-        padding: 10px;
-        margin-bottom: 20px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-
-    button {
-        padding: 10px;
-        color: #fff;
-        background-color: #007bff;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 18px;
-    }
-
-    button:hover {
-        background-color: #0056b3;
-    }
-
-    .switch-section {
-        text-align: center;
-        margin-top: 15px;
-    }
-
-    .switch-section span {
-        cursor: pointer;
-        color: #007bff;
-        text-decoration: underline;
-    }
-
-    .form-row {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-    }
-
-    .form-group {
-        flex-basis: calc(50% - 10px);
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 15px;
-    }
-
-    .google-btn {
-        background-color: #dd4b39;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 10px 20px;
-        text-align: center;
-        display: block;
-        margin: 10px 0 20px;
-        cursor: pointer;
-        text-decoration: none;
-        font-size: 16px;
-    }
-
-    .google-btn:hover {
-        background-color: #c23321;
-    }
-
-    .or-separator {
-        text-align: center;
-        margin: 20px 0;
-    }
-
-    /* Стили медиа-запросов для мобильных устройств */
-    @media (max-width: 600px) {
-        .form-group {
-            flex-basis: 100%;
-        }
-    }
-
-    span.not_important {
-        font-size: smaller;
-        color: rgba(0, 0, 0, 0.3);
-    }
-
-    .error-messages {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-        padding: 0 15px;
-        border-radius: 10px;
-        margin: 10px 0;
-        font-size: 14px;
-        text-align: center;
-    }
-
-    @media (max-width: 768px) {
-        .container {
-            width: 80%;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container" id="con">
-    <h2>Добро пожаловать!</h2>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
 
-    {% if errors %}
-    <div class="error-messages">
-        {% for field, error_list in errors.items %}
-        {% for error in error_list %}
-        <p>{{ error }}</p>
-        {% endfor %}
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="form-section" id="login-section">
-        <form method="post" action="{% url 'entry' %}?next={{ next }}"> <!-- Обновите URL -->
-            {% csrf_token %}
-            <label for="login-username">Имя пользователя:</label>
-            <input type="text" id="login-username" name="username" required>
-
-            <label for="login-password">Пароль:</label>
-            <input type="password" id="login-password" name="password" required>
-
-            <button type="submit" name="login">Вход</button>
-        </form>
-    </div>
-
-    <!-- Вкладка Регистрация -->
-    <div class="form-section" id="register-section">
-        <form method="post" action="{% url 'entry' %}?next={{ next }}"> <!-- Обновите URL -->
-            {% csrf_token %}
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="first-name">Имя: <span class="not_important">(необязательно)</span></label>
-                    <input type="text" id="first-name" name="first_name">
+            <!-- Общий блок для ошибок и сообщений -->
+            {% if errors %}
+            <div id="alerts-container" class="mb-4">
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <ul class="mb-0 ps-3">
+                        {% for field, error_list in errors.items %}
+                        {% for error in error_list %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                        {% endfor %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-                <div class="form-group">
-                    <label for="last-name">Фамилия: <span class="not_important">(необязательно)</span></label>
-                    <input type="text" id="last-name" name="last_name">
+            </div>
+            {% endif %}
+
+            {% if messages %}
+            <div id="messages-container" class="mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Карточка Входа -->
+            <div id="login-section" class="card shadow-sm border-1 mb-4">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">Вход</h2>
+                    <form method="post" action="{% url 'entry' %}?next={{ next }}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="login-username">Имя пользователя:</label>
+                            <input type="text" id="login-username" name="username" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="login-password">Пароль:</label>
+                            <input type="password" id="login-password" name="password" class="form-control" required>
+                        </div>
+                        <button type="submit" name="login" class="btn btn-primary w-100 mt-3">Войти</button>
+                    </form>
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="register-email">Email:</label>
-                    <input type="email" id="register-email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="register-username">Имя пользователя:</label>
-                    <input type="text" id="register-username" name="username" required>
+            <!-- Карточка Регистрации -->
+            <div id="register-section" class="card shadow-sm border-1 mb-4">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">Регистрация</h2>
+                    <form method="post" action="{% url 'entry' %}?next={{ next }}">
+                        {% csrf_token %}
+
+                        <!-- Имя и Фамилия -->
+                        <div class="row mb-3">
+                            <div class="col-12 col-sm mb-3 mb-sm-0">
+                                <label for="first-name">Имя: <span class="text-muted">(необязательно)</span></label>
+                                <input type="text" id="first-name" name="first_name" class="form-control">
+                            </div>
+                            <div class="col-12 col-sm">
+                                <label for="last-name">Фамилия: <span class="text-muted">(необязательно)</span></label>
+                                <input type="text" id="last-name" name="last_name" class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- Email и Логин -->
+                        <div class="row mb-3">
+                            <div class="col-12 col-sm mb-3 mb-sm-0">
+                                <label for="register-email">Email:</label>
+                                <input type="email" id="register-email" name="email" class="form-control" required>
+                            </div>
+                            <div class="col-12 col-sm">
+                                <label for="register-username">Имя пользователя:</label>
+                                <input type="text" id="register-username" name="username" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <!-- Пароль и Подтверждение -->
+                        <div class="row mb-3">
+                            <div class="col-12 col-sm mb-3 mb-sm-0">
+                                <label for="register-password">Пароль:</label>
+                                <input type="password" id="register-password" name="password1" class="form-control"
+                                    required>
+                            </div>
+                            <div class="col-12 col-sm">
+                                <label for="register-confirm-password">Подтвердите пароль:</label>
+                                <input type="password" id="register-confirm-password" name="password2"
+                                    class="form-control" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" name="register"
+                            class="btn btn-primary w-100 mt-3">Зарегистрироваться</button>
+                    </form>
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="register-password">Пароль:</label>
-                    <input type="password" id="register-password" name="password1" required>
-                </div>
-                <div class="form-group">
-                    <label for="register-confirm-password">Подтвердите пароль:</label>
-                    <input type="password" id="register-confirm-password" name="password2" required>
-                </div>
-            </div>
-            <button type="submit" name="register">Зарегистрироваться</button>
-        </form>
+
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    {% if type_form == 'register' %}
-    document.getElementById("login-section").style.display = "none";
-    document.getElementById("register-section").style.display = "block";
-    document.getElementById("reg").style.display = "none";
-    document.getElementById("log").style.display = "block";
-    document.getElementById("con").style.maxWidth = "600px";
-
-    {% else %}
-    document.getElementById("login-section").style.display = "block";
-    document.getElementById("register-section").style.display = "none";
-    document.getElementById("reg").style.display = "block";
-    document.getElementById("log").style.display = "none";
-    document.getElementById("con").style.maxWidth = "400px";
-    {% endif %}
+    document.getElementById("login-section").style.display = {% if type_form == 'register' %}"none"{% else %}"block"{% endif %};
+    document.getElementById("register-section").style.display = {% if type_form == 'register' %}"block"{% else %}"none"{% endif %};
 </script>
 {% endblock %}

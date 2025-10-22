@@ -1,7 +1,6 @@
 import re
 from django.conf import settings
-from django.shortcuts import redirect, render
-from django.contrib.auth import authenticate, login
+from django.shortcuts import render
 from django.utils.deprecation import MiddlewareMixin
 from datetime import datetime, date
 from hwyd.models import UserActivityLog
@@ -41,31 +40,3 @@ class MaintenanceMiddleware(MiddlewareMixin):
 
         response = self.get_response(request)
         return response
-
-
-class BlockAllPagesWithToggleMiddleware(MiddlewareMixin):
-    def process_request(self, request):
-
-        # Проверка на блокировку для тестового сайта
-        if getattr(settings, 'BLOCK_ALL_PAGES', False):
-            if not hasattr(request, 'user') or not request.user.is_authenticated or not request.user.is_superuser:
-                return restricted(request)
-
-        response = self.get_response(request)
-        return response
-
-
-def restricted(request):
-    if not getattr(settings, 'BLOCK_ALL_PAGES', False):
-        return redirect('home')
-
-    error_message = None
-    if request.method == 'POST':
-        user = authenticate(username='unbroken0886', password=request.POST.get('password'))
-
-        if user is not None and user.is_superuser:
-            login(request, user)
-            return redirect('home')
-        else:
-            error_message = 'Неверный пароль. Попробуйте снова.'
-    return render(request, 'pass.html', {'error_message': error_message})

@@ -2,22 +2,21 @@
 {% load static %}
 
 {% block title %}404{% endblock %}
-
 {% block navbar %}{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static '404.css' %}">
-{% endblock %}
-
 {% block content %}
-<div class="main-container">
-    <div class="error-page">
-        <h1>Ой!</h1>
-        <h2>404 - Страница не найдена</h2>
-        <img src="{% static 'favicon.png' %}" alt="Habitus" width="50" height="50">
-        <p>Кажется, мы не можем найти то, что вы ищете.</p>
-        <p>Возможно, она была перемещена, или вы ввели неверный адрес. Попробуйте вернуться на <a
-                href="{% url 'home' %}">главную страницу</a>.</p>
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-sm text-center p-4 p-md-5 w-70">
+        <h1 class="display-1 fw-bold mb-3">Ой!</h1>
+        <h2 class="h3 mb-3">404 - Страница не найдена</h2>
+        <div class="d-flex justify-content-center mb-4">
+            <img src="{% static 'favicon.png' %}" alt="Habitus" class="error-logo" width="50" height="50">
+        </div>
+        <p class="mb-2 fs-6 fs-md-5">Кажется, мы не можем найти то, что вы ищете.</p>
+        <p class="fs-6 fs-md-5 mb-0">
+            Возможно, она была перемещена, или вы ввели неверный адрес. Попробуйте вернуться на 
+            <a href="{% url 'home' %}" class="text-decoration-none fw-bold text-danger">главную страницу</a>.
+        </p>
     </div>
 </div>
 {% endblock %}

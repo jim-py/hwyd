@@ -1,44 +1,19 @@
+{% extends 'general_app/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Технический перерыв</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f2f2f2;
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            text-align: center;
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-        }
-        .logo {
-            width: 150px;
-        }
-        h1 {
-            color: #333;
-        }
-        p {
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Productivum</h1>
-        <img src="{% static 'logo.png' %}" alt="Productivum" class="logo">
-        <h2>Технический перерыв 20-60 минут.</h2>
-        <p>Наш сайт временно недоступен. Пожалуйста, зайдите позже.</p>
+{% load widget_tweaks %}
+
+{% block title %}Технический перерыв{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-sm text-center p-4 p-md-5 w-40">
+        <h1 class="mb-3">Productivum</h1>
+        <div class="d-flex justify-content-center mb-4">
+            <img src="{% static 'logo.png' %}" alt="Productivum" class="logo" width="150">
+        </div>
+        <h2 class="mb-3 fs-5 fs-md-4">Технический перерыв 20-60 минут.</h2>
+        <p class="text-muted mb-0 fs-6 fs-md-5">Наш сайт временно недоступен. Пожалуйста, зайдите позже.</p>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

@@ -18,7 +18,6 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 
 from my_site import settings
-from maintenance_middleware import restricted
 
 urlpatterns = [
     path('', RedirectView.as_view(url='/home/')),
@@ -28,8 +27,6 @@ urlpatterns = [
     path('habitus/', include('hwyd.urls')),
     path('hwyd/', RedirectView.as_view(url='/habitus/', permanent=True)),
     path('todos/', include('todos.urls')),
-    # path('budget/', include('budget.urls')),
-    path('restricted/', restricted, name='restricted'),
     path('pomodoro/', include('pomodoro.urls')),
     path('notifications/', include('notifications.urls', namespace='notifications')),
 ]
