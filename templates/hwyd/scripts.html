@@ -35,6 +35,63 @@
         });
     });
 
+    {% if settings.showTabs %}
+    document.addEventListener('DOMContentLoaded', function () {
+        const bars = document.querySelectorAll('.progress-bar');
+
+        bars.forEach(bar => {
+            const percent = parseFloat(bar.dataset.width) || 0;
+
+            const color = getGradientColor(percent);
+            const textColor = getTextColorForBackground(color);
+
+            bar.style.backgroundColor = color;
+            bar.style.color = textColor;
+        });
+    });
+    {% endif %}
+
+    function getGradientColor(percent) {
+        const colors = [
+            [224, 102, 102],
+            [220, 146, 116],
+            [249, 203, 156],
+            [247, 244, 202],
+            [187, 201, 173]
+        ];
+
+        if (percent < 1)
+            percent = 0
+        else if (percent > 99)
+            percent = 100
+
+        const stepCount = colors.length - 1;
+        const step = 100 / stepCount;
+        const index = Math.min(Math.floor(percent / step), stepCount - 1);
+
+        const colorStart = colors[index];
+        const colorEnd = colors[index + 1];
+
+        const localPercent = (percent - index * step) / step;
+
+        const r = Math.round(colorStart[0] + (colorEnd[0] - colorStart[0]) * localPercent);
+        const g = Math.round(colorStart[1] + (colorEnd[1] - colorStart[1]) * localPercent);
+        const b = Math.round(colorStart[2] + (colorEnd[2] - colorStart[2]) * localPercent);
+
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function getTextColorForBackground(rgb) {
+        const match = rgb.match(/\d+/g);
+        const r = parseInt(match[0]);
+        const g = parseInt(match[1]);
+        const b = parseInt(match[2]);
+
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+        return brightness > 128 ? '#333' : '#fff';
+    }
+
     for (let elem of document.querySelectorAll('div.divClick')) {
         elem.addEventListener('click', function () {
             const object = $(this);
@@ -95,8 +152,21 @@
                     progress = document.querySelector('tr.isGroup' + group_id).children[day].children[0]
                 {% endif %}
                 let progress_bar = progress.children[0]
-                let width = progress_bar.style.width
 
+                {% if settings.showTabs %}
+                let width = progress_bar.getAttribute('data-width')
+                if (progress_bar.style.width === '0%') {
+                    $(progress).toggleClass('off')
+                    $(progress_bar).toggleClass('off')
+                } else if (progress_bar.style.width === '100%') {
+                    $(progress).toggleClass('full')
+                    $(progress_bar).toggleClass('full')
+                } else {
+                    $(progress).toggleClass('full')
+                    $(progress_bar).toggleClass('full')
+                }
+                {% else %}
+                let width = progress_bar.style.width
                 if (progress_bar.style.width === '0%') {
                     $(progress).toggleClass('off')
                     $(progress_bar).toggleClass('off')
@@ -107,21 +177,74 @@
                     $(progress).toggleClass('notFull')
                     $(progress_bar).toggleClass('notFull')
                 }
+                {% endif %}
 
                 if (object.hasClass('on')) {
+                    {% if not settings.showTabs %}
                     newWidth = Number(width.substring(0, width.length - 1)) + groups_progress_add[group_id][day - 1];
                     if (newWidth > 99)
                         progress_bar.style.width = '100%'
                     else
                         progress_bar.style.width = `${newWidth}%`
+                    {% else %}
+                    newWidth = Number(width) + groups_progress_add[group_id][day - 1];
+                    if (newWidth > 1)
+                        progress_bar.style.width = '100%'
+                    if (newWidth > 99)
+                        progress_bar.setAttribute('data-width', 100)
+                    else
+                        progress_bar.setAttribute('data-width', newWidth)
+                    
+                    const color = getGradientColor(newWidth);
+                    const textColor = getTextColorForBackground(color);
+                    progress_bar.style.backgroundColor = color;
+                    progress_bar.style.color = textColor;
+
+                    if (newWidth > 1)
+                        progress_bar.textContent = `${Math.round(newWidth)}`
+                    else
+                        progress_bar.textContent = ''
+                    {% endif %}
                 } else {
+                    {% if not settings.showTabs %}
                     newWidth = Number(width.substring(0, width.length - 1)) - groups_progress_add[group_id][day - 1];
                     if (newWidth < 1)
                         progress_bar.style.width = '0%'
                     else
                         progress_bar.style.width = `${newWidth}%`
+                    {% else %}
+                    newWidth = Number(width) - groups_progress_add[group_id][day - 1];
+                    if (newWidth < 1) {
+                        progress_bar.setAttribute('data-width', 0)
+                        progress_bar.style.width = '0%'
+                    }
+                    else
+                        progress_bar.setAttribute('data-width', newWidth)
+
+                    const color = getGradientColor(newWidth);
+                    const textColor = getTextColorForBackground(color);
+                    progress_bar.style.backgroundColor = color;
+                    progress_bar.style.color = textColor;
+                    
+                    if (newWidth > 1)
+                        progress_bar.textContent = `${Math.round(newWidth)}`
+                    else
+                        progress_bar.textContent = ''
+                    {% endif %}
                 }
 
+                {% if settings.showTabs %} 
+                if (newWidth < 1) {
+                    $(progress).addClass('off')
+                    $(progress_bar).addClass('off')
+                } else if (newWidth > 99) {
+                    $(progress).addClass('full')
+                    $(progress_bar).addClass('full')
+                } else {
+                    $(progress).addClass('full')
+                    $(progress_bar).addClass('full')
+                }
+                {% else %}
                 if (newWidth < 1) {
                     $(progress).addClass('off')
                     $(progress_bar).addClass('off')
@@ -132,6 +255,7 @@
                     $(progress).addClass('notFull')
                     $(progress_bar).addClass('notFull')
                 }
+                {% endif %}
             }
 
             $.ajax({
@@ -212,6 +336,7 @@
     });
     {% endif %}
 
+    {% if not settings.showTabs %} 
     document.querySelector('[id=closeSettingsActivity]').addEventListener('click', function (event) {
         let paragraph = event.target.parentNode.parentNode.querySelector('input.colorBackgroundForm').data;
         paragraph.style.backgroundColor = '';
@@ -225,6 +350,7 @@
             } catch {
             }
     })
+    {% endif %} 
 </script>
 
 {# ОТКРЫТИЕ/РАСКРЫТИЕ ГРУПП #}
@@ -566,6 +692,7 @@
             event.target.data.style.backgroundColor = event.target.value;
             document.querySelector('input#colorBackgroundFormText').value = event.target.value;
         });  //Изменение цвета активности
+        {% if not settings.showTabs %}
         elem.addEventListener("input", function (event) {
             for (let elem of event.target.data.parentNode.parentNode.children)
                 try {
@@ -576,6 +703,7 @@
                 } catch {
                 }
             });  //Изменение цвета клеток активности
+        {% endif %} 
     }  //Динамическое обновление цвета фона активности
 
     for (let elem of document.querySelectorAll('input.colorTextForm')) {

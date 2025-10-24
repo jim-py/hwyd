@@ -87,7 +87,9 @@
     }
 
     .vertical {
+        {% if not settings.showTabs %}
         transform: rotate(-90deg);
+        {% endif %}
         border: 1px solid #555;
         box-shadow: -1px 0 1px rgba(100, 100, 100, .3);
         border-radius: 3px;
@@ -97,6 +99,15 @@
         border-radius: 2px;
         box-shadow: -1px 0 0 rgba(255, 255, 255, .3) inset;
         transition: all 0.25s ease-out;
+
+        {% if settings.showTabs %}
+        display: flex;
+        font-size: 11px;
+        justify-content: center;
+        flex-flow: column wrap;
+        align-items: center;
+        color: #979797;
+        {% endif %}
     }
 
     .progress-bar.notFull {

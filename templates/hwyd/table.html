@@ -52,11 +52,20 @@
                         {% if activity.isGroup %}
                             {% progress_cell as progress_result %}
                             {% if not progress_result == -1 %}
+                                {% if settings.showTabs %} 
+                                <div class="progress vertical {% if today|add:-1 == j %}today{% endif %} {% if progress_result > 0 and progress_result < 100 %} full {% elif progress_result == 100 %} full {% else %} off {% endif %}">
+                                    <div class="progress-bar {% if progress_result > 0 and progress_result < 100 %} full {% elif progress_result == 100 %} full {% else %} off {% endif %}"
+                                         style="width: {% if progress_result > 0 and progress_result < 100 %} 100{% elif progress_result == 100 %} 100{% else %} 0{% endif %}%;height: 24px;background-color: {{ activity.backgroundColor }}" data-bgcolor="{{ activity.backgroundColor }}" data-width="{% if progress_result > 0 and settings.showTabs %} {{ progress_result|floatformat:0 }} {% endif %}">
+                                         {% if progress_result > 0 and settings.showTabs %} {{ progress_result|floatformat:0 }} {% endif %}
+                                    </div>
+                                </div>
+                                {% else %}
                                 <div class="progress vertical {% if today|add:-1 == j %}today{% endif %} {% if progress_result > 0 and progress_result < 100 %} notFull {% elif progress_result == 100 %} full {% else %} off {% endif %}">
                                     <div class="progress-bar {% if progress_result > 0 and progress_result < 100 %} notFull {% elif progress_result == 100 %} full {% else %} off {% endif %}"
                                          style="width: {{ progress_result|floatformat:0 }}%;height: 24px;background-color: {{ activity.backgroundColor }}" data-bgcolor="{{ activity.backgroundColor }}">
                                     </div>
                                 </div>
+                                {% endif %}
                             {% endif %}
                         {% else %}
                             {% if activity.beginDay <= j and j <= activity.endDay and activity|get_one_day:j %}
