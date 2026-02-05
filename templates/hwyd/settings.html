@@ -1,0 +1,138 @@
+{% extends 'general_app/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Настройки{% endblock %}
+
+{% block extra_css %}
+<style>
+.toggle-green {
+    &:checked, &[aria-checked=true] {
+        --input-color: #2c6e49;
+    }
+}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css"/>
+<link href="https://cdn.jsdelivr.net/combine/npm/daisyui@5/base/rootcolor.css,npm/daisyui@5/components/toggle.css,npm/daisyui@5/components/select.css,npm/daisyui@5/theme/light.css" rel="stylesheet" type="text/css" />
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="container mb-3">
+    <div>
+        <form action="{% url 'add_setting' %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <input type="text" name="nameSetting" placeholder="Название настройки" required
+                   class="form-control d-inline w-auto me-2" />
+            <button type="submit" class="btn btn-success">Добавить</button>
+        </form>
+
+        {% if current_setting %}
+        <form action="{% url 'delete_setting' current_setting.id %}" method="post" class="d-inline ms-2">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Удалить текущую настройку?');">Удалить</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    <ul class="list-group">
+        {% for setting in settings_list %}
+        <a href="{% url 'select_setting' setting.id %}"
+            class="list-group-item list-group-item-action {% if setting.selected %}active{% endif %}">
+            {{ setting.name }}
+            {% if setting.selected %}<i class="fa fa-check-square-o" aria-hidden="true"></i>{% endif %}
+        </a>
+        {% endfor %}
+    </ul>
+</div>
+
+<div class="container mt-4 mb-4">
+    <h2 class="mb-4">Редактирование настроек</h2>
+    
+    {% if current_setting %}
+    <form method="post" class="card shadow-sm p-4 rounded-3">
+        {% csrf_token %}
+        <div class="row g-3">
+            {% for field in form %}
+                <div class="col-md-6">
+                    <div class="mb-3 d-flex align-items-center justify-content-between">
+                        <label class="form-label fw-semibold mb-0">{{ field.label }}</label>
+
+                        {% if field.field.widget.input_type == "checkbox" %}
+                        <label>
+                            {% render_field field class="toggle toggle-green" %}
+                        </label>
+
+                        {% elif field.field.widget.input_type == "color" %}
+                            {{ field|add_class:"d-none" }}
+                            <div id="pickr-{{ field.auto_id }}"></div>
+                        {% elif field.field.widget.input_type == "select" %}
+                            {% render_field field class="select" %}
+                        {% else %}
+                            {% render_field field class="form-control" %}
+                        {% endif %}
+
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">{{ field.errors }}</div>
+                        {% endif %}
+                        {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn btn-primary px-4">Сохранить</button>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-info">Нет выбранной настройки. Выберите или добавьте новую.</div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // document.documentElement.style.setProperty('--color-base-100', '#f0f0f0');
+
+    {% for field in form %}
+        {% if field.field.widget.input_type == "color" %}
+        const input_{{ field.auto_id }} = document.querySelector('#{{ field.id_for_label }}');
+
+        if (!input_{{ field.auto_id }}.value) {
+            input_{{ field.auto_id }}.value = '#ffffff';
+        }
+
+        const pickr_{{ field.auto_id }} = Pickr.create({
+            el: '#pickr-{{ field.auto_id }}',
+            theme: 'classic',
+            default: input_{{ field.auto_id }}.value,
+            components: {
+                preview: true,
+                hue: true,
+                interaction: {
+                    input: true,
+                    save: true
+                }
+            }
+        });
+
+        pickr_{{ field.auto_id }}.on('save', (color, instance) => {
+            input_{{ field.auto_id }}.value = color.toHEXA().toString().slice(0,7);
+            instance.hide();
+        });
+        {% endif %}
+    {% endfor %}
+});
+</script>
+
+{% endblock %}

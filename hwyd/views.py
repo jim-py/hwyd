@@ -8,7 +8,8 @@ from itertools import groupby
 from operator import itemgetter
 
 # Импорты из сторонних библиотек
-from django.http import HttpResponse, Http404, JsonResponse
+from django.http import HttpResponse, Http404, JsonResponse, HttpResponseRedirect
+from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
@@ -17,7 +18,7 @@ from django.db.models import Value, BooleanField
 from django_user_agents.utils import get_user_agent
 
 # Импорты из локальных модулей приложения
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, RegisterForm, SettingsForm
 from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, UserActivityLog
 
 setlocale(category=LC_ALL, locale="Russian")
@@ -146,14 +147,7 @@ def by_date(request, picked_date):
         activated_groups = [obj for obj in activities if obj.isGroup and obj.isOpen]
         settings = Settings.objects.filter(user=request.user)
         if len(settings) == 0:
-            Settings.objects.create(user=request.user, backgroundColor='#f0f0f0', tableHeadColorWeekend='#eeb3b3',
-                                    tableHeadColor='#e6e4ce', tableHeadTextColor='#000000', showCalendar=True,
-                                    showCreateActivity=True, showDeleteAllActivities=True,
-                                    showDeleteActivity=True, showCreateActivityGroup=True, enableSortTable=True,
-                                    enableOpenCloseGroups=False, onSounds=True, showRowColumnLight=True,
-                                    showActivityDayLight=True, rowColumnLight='#e7e7e7', fontFamily='Inter',
-                                    showOpenAllGroups=True, showTabs=True, selected=True, name='default',
-                                    vanishing='off')
+            create_setting(request.user, 'default')
         settings = Settings.objects.filter(user=request.user)
         setting = ''
         for s in settings:
@@ -651,34 +645,53 @@ def change_setting(request):
 
 
 def add_setting(request):
-    setting = Settings.objects.get(user=request.user, selected=True)
-    setting.selected = False
-    setting.save()
-    Settings.objects.create(user=request.user, backgroundColor='#f0f0f0', tableHeadColorWeekend='#eeb3b3',
-                            tableHeadColor='#e6e4ce', tableHeadTextColor='#000000', showCalendar=True,
-                            showCreateActivity=True, showDeleteAllActivities=True,
-                            showDeleteActivity=False, showCreateActivityGroup=True, enableSortTable=False,
-                            enableOpenCloseGroups=True, onSounds=True, showRowColumnLight=True,
-                            showActivityDayLight=True, rowColumnLight='#e7e7e7', fontFamily='Inter',
-                            showOpenAllGroups=True, showTabs=True, selected=True, name=request.POST['nameSetting'])
-
-    return HttpResponse()
+    if request.method == 'POST':
+        # Снимаем выделение с текущей выбранной настройки
+        Settings.objects.filter(user=request.user, selected=True).update(selected=False)
+        
+        # Создаем новую настройку
+        name = request.POST.get('nameSetting', 'Новая настройка')
+        create_setting(request.user, name)
+    return HttpResponseRedirect(reverse('edit_settings'))
 
 
-def delete_setting(request):
-    settings = Settings.objects.filter(user=request.user)
+def create_setting(user, name):
+    Settings.objects.create(
+        user=user,
+        backgroundColor='#f0f0f0',
+        tableHeadColorWeekend='#eeb3b3',
+        tableHeadColor='#e6e4ce',
+        tableHeadTextColor='#000000',
+        showCalendar=True,
+        showCreateActivity=True,
+        showDeleteAllActivities=True,
+        showDeleteActivity=False,
+        showCreateActivityGroup=True,
+        enableSortTable=False,
+        enableOpenCloseGroups=True,
+        onSounds=True,
+        showRowColumnLight=True,
+        showActivityDayLight=True,
+        rowColumnLight='#e7e7e7',
+        fontFamily='Inter',
+        showOpenAllGroups=True,
+        showTabs=True,
+        selected=True,
+        name=name
+    )
 
-    check = True
-    if len(settings) > 1:
-        for setting in settings:
-            if setting.selected:
-                setting.delete()
-            elif not setting.selected and check:
-                setting.selected = True
-                check = False
-                setting.save(update_fields=['selected'])
 
-    return HttpResponse()
+def delete_setting(request, setting_id):
+    if request.method == 'POST':
+        setting = Settings.objects.filter(id=setting_id, user=request.user).first()
+        if setting:
+            setting.delete()
+            # После удаления выбрать любую другую настройку, если остались
+            next_setting = Settings.objects.filter(user=request.user).first()
+            if next_setting:
+                next_setting.selected = True
+                next_setting.save()
+    return HttpResponseRedirect(reverse('edit_settings'))
 
 
 def signin(request):
@@ -701,14 +714,7 @@ def signin(request):
                 user = registration_form.save(commit=False)
                 user.username = user.username.lower()
                 user.save()
-                Settings.objects.create(user=user, backgroundColor='#f0f0f0', tableHeadColorWeekend='#eeb3b3',
-                                        tableHeadColor='#e6e4ce', tableHeadTextColor='#000000', showCalendar=True,
-                                        showCreateActivity=True, showDeleteAllActivities=True,
-                                        showDeleteActivity=True, showCreateActivityGroup=True, enableSortTable=True,
-                                        enableOpenCloseGroups=False, onSounds=True, showRowColumnLight=True,
-                                        showActivityDayLight=True, rowColumnLight='#e7e7e7', fontFamily='Inter',
-                                        showOpenAllGroups=True, showTabs=True, selected=True, name='default',
-                                        vanishing='off')
+                create_setting(user, 'default')
                 login(request, user)
                 return redirect('index')
             else:
@@ -841,3 +847,45 @@ def export_data_as_json(request):
 
     # Возвращаем данные в формате JSON
     return JsonResponse({"activities": result, "groups": groups})
+
+
+@login_required(login_url='entry')
+def edit_settings(request):
+    settings_list = Settings.objects.filter(user=request.user).order_by('name')
+    current_setting = settings_list.filter(selected=True).first()
+
+    if request.method == 'POST' and current_setting:
+        form = SettingsForm(request.POST, instance=current_setting)
+        if form.is_valid():
+            form.save()
+            return redirect('edit_settings')
+    else:
+        form = SettingsForm(instance=current_setting) if current_setting else None
+
+    context = {
+        'settings_list': settings_list,
+        'current_setting': current_setting,
+        'form': form,
+    }
+    return render(request, 'hwyd/settings.html', context)
+
+
+@login_required(login_url='entry')
+def select_setting(request, pk):
+    """Смена активной настройки (только среди своих)"""
+    
+    # Получаем настройку только текущего пользователя или 404
+    setting = get_object_or_404(Settings, pk=pk, user=request.user)
+
+    # Если уже выбрана — просто редирект
+    if setting.selected:
+        return redirect('edit_settings')
+
+    # Снимаем выделение со всех настроек пользователя
+    Settings.objects.filter(user=request.user, selected=True).update(selected=False)
+
+    # Отмечаем выбранную
+    setting.selected = True
+    setting.save(update_fields=["selected"])
+
+    return redirect('edit_settings')

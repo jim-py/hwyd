@@ -1022,19 +1022,19 @@ function openAllGroups() {
         }, 100)
     })
 
-    document.querySelector('#delSetting').addEventListener('click', function () {
-        $.ajax({
-            type: 'POST',
-            url: '{% url 'delete_setting' %}',
-            data:
-                {
-                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-                }
-        })
-        setTimeout(function () {
-            location.href = '{% url 'by_date' date %}';
-        }, 100)
-    })
+    // document.querySelector('#delSetting').addEventListener('click', function () {
+    //     $.ajax({
+    //         type: 'POST',
+    //         url: '{% url 'delete_setting' 1 %}',
+    //         data:
+    //             {
+    //                 csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+    //             }
+    //     })
+    //     setTimeout(function () {
+    //         location.href = '{% url 'by_date' date %}';
+    //     }, 100)
+    // })
 
     for (let elem of document.querySelectorAll('.activityCell')) {
         elem.addEventListener('click', function () {
