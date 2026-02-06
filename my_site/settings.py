@@ -32,6 +32,7 @@ else:
 SECRET_KEY = '2v^46_-9jw*x(weg8j9n-3ad%p0&h^avvfy3c(wj$jnyx)3i!&'
 
 DEBUG = not hosting
+DEBUG = True
 
 LOGOUT_REDIRECT_URL = '/'
 
