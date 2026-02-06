@@ -84,3 +84,8 @@ def get_class_on(context):
 @register.simple_tag(takes_context=False)
 def get_date_y_m():
     return datetime.today().strftime('%Y-%m')
+
+@register.simple_tag
+def get_date_y_m_d():
+    today = datetime.today()
+    return today.year, today.month, today.day

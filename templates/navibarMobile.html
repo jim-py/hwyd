@@ -1,6 +1,3 @@
-{% load tags %}
-{% get_date_y_m as by_date %}
-
 <style>
     .nav-top {
         display: flex;
@@ -27,7 +24,6 @@
         pointer-events: none;
     }
 
-    /* АКТИВНАЯ ИКОНКА */
     .nav-top__link--active i {
         color: #00a8c6;
         transform: scale(1.25);
@@ -38,64 +34,76 @@
 
     {% if user.is_authenticated %}
 
-        <!-- Habitus -->
-        <a href="{% url 'by_date' by_date %}" class="nav-top__link" title="Habitus">
-            <i class="fa-solid fa-calendar-days"></i>
-        </a>
+    <!-- Habitus -->
+    <a href="{% url 'index' %}" class="nav-top__link" data-section="habitus" title="Habitus">
+        <i class="fa-solid fa-calendar-days"></i>
+    </a>
 
-        <!-- Todo -->
-        <a href="{% url 'todos:index' %}" class="nav-top__link" title="Todo">
-            <i class="fa-solid fa-list-check"></i>
-        </a>
+    <!-- Todo -->
+    <a href="{% url 'todos:index' %}" class="nav-top__link" data-section="todos" title="Todo">
+        <i class="fa-solid fa-list-check"></i>
+    </a>
 
-        <!-- Pomodoro -->
-        <a href="{% url 'pomodoro:base' %}" class="nav-top__link" title="Pomodoro">
-            <i class="fa-solid fa-clock"></i>
-        </a>
+    <!-- Pomodoro -->
+    <a href="{% url 'pomodoro:base' %}" class="nav-top__link" data-section="pomodoro" title="Pomodoro">
+        <i class="fa-solid fa-clock"></i>
+    </a>
 
-        <!-- MS -->
-        <a href="{% url 'mathtraining' %}" class="nav-top__link" title="MS">
-            <i class="fa-solid fa-square-root-variable"></i>
-        </a>
+    <!-- Math -->
+    <a href="{% url 'mathtraining' %}" class="nav-top__link" data-section="math" title="MS">
+        <i class="fa-solid fa-square-root-variable"></i>
+    </a>
 
-        <!-- {% if user.is_superuser %}
-        <a href="{% url 'activity_users' %}" class="nav-top__link" title="Activity">
-            <i class="fa-solid fa-chart-line"></i>
-        </a>
-        {% endif %} -->
-
-        <!-- Profile -->
-        <a href="{% url 'profile' %}" class="nav-top__link" title="Profile">
-            <i class="fa-solid fa-user"></i>
-        </a>
+    <!-- Profile -->
+    <a href="{% url 'profile' %}" class="nav-top__link" data-section="profile" title="Profile">
+        <i class="fa-solid fa-user"></i>
+    </a>
 
     {% else %}
-        <!-- Home -->
-        <a href="{% url 'home' %}" class="nav-top__link" title="Main">
-            <i class="fa-solid fa-house"></i>
-        </a>
 
-        <a href="{% url 'entry' %}?type=register" class="nav-top__link" title="Register">
-            <i class="fa-solid fa-user-plus"></i>
-        </a>
+    <!-- Home -->
+    <a href="{% url 'home' %}" class="nav-top__link" data-section="home" title="Main">
+        <i class="fa-solid fa-house"></i>
+    </a>
 
-        <a href="{% url 'entry' %}?type=login" class="nav-top__link" title="Log in">
-            <i class="fa-solid fa-right-to-bracket"></i>
-        </a>
+    <!-- Register -->
+    <a href="{% url 'entry' %}?type=register" class="nav-top__link" data-section="register" title="Register">
+        <i class="fa-solid fa-user-plus"></i>
+    </a>
+
+    <!-- Login -->
+    <a href="{% url 'entry' %}?type=login" class="nav-top__link" data-section="login" title="Log in">
+        <i class="fa-solid fa-right-to-bracket"></i>
+    </a>
 
     {% endif %}
 
     <!-- Info -->
-    <a href="{% url 'about' %}" class="nav-top__link" title="Info">
+    <a href="{% url 'about' %}" class="nav-top__link" data-section="about" title="Info">
         <i class="fa-solid fa-circle-info"></i>
     </a>
 
 </nav>
 
 <script>
+    const rules = {
+        todos: () => location.pathname.includes('/todos/'),
+        habitus: () => location.pathname.includes('/habitus/'),
+        pomodoro: () => location.pathname.includes('/pomodoro/'),
+        math: () => location.pathname.includes('/math/'),
+        profile: () => location.pathname.includes('/profile/'),
+        about: () => location.pathname.includes('/about/'),
+        home: () => location.pathname === '/home/',
+        login: () => location.pathname.includes('/entry/') && location.search.includes('login'),
+        register: () => location.pathname.includes('/entry/') && location.search.includes('register'),
+    };
+
     for (let link of document.querySelectorAll('.nav-top__link')) {
-        if (link.href === location.href) {
+        const section = link.dataset.section;
+
+        if (rules[section]?.()) {
             link.classList.add('nav-top__link--active');
+            break;
         }
     }
 </script>

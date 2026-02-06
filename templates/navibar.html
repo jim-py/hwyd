@@ -1,145 +1,125 @@
-{% load tags %}
-{% get_date_y_m as by_date %}
+<style>
+    .nav-menu {
+        text-align: center;
+        top: 0;
+        font-family: "Montserrat", sans-serif;
+    }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Navbar</title>
+    .nav-menu * {
+        font-family: inherit;
+    }
 
-    <style>
-        .nav-menu {
-            text-align: center;
-            top: 0;
-            font-family: "Montserrat", sans-serif;
-        }
+    .nav-menu__list {
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        transform: skew(-25deg);
+    }
 
-        .nav-menu * {
-            font-family: inherit;
-        }
+    .nav-menu__item {
+        background: #fff;
+        float: left;
+        border-right: 1px solid #eee;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        color: #555;
+        font-weight: bolder;
+        font-size: 14px;
+        transition: background 0.3s ease;
+    }
 
-        .nav-menu__list {
-            display: inline-block;
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            transform: skew(-25deg);
-        }
+    .nav-menu__item:first-child {
+        border-radius: 7px 0 0 7px;
+    }
 
-        .nav-menu__item {
-            background: #fff;
-            float: left;
-            border-right: 1px solid #eee;
-            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-            color: #555;
-            font-weight: bolder;
-            font-size: 14px;
-            transition: background 0.3s ease;
-        }
+    .nav-menu__item:last-child {
+        border-right: none;
+        border-radius: 0 7px 7px 0;
+    }
 
-        .nav-menu__item:first-child {
-            border-radius: 7px 0 0 7px;
-        }
+    .nav-menu__item:hover {
+        background: #eee;
+    }
 
-        .nav-menu__item:last-child {
-            border-right: none;
-            border-radius: 0 7px 7px 0;
-        }
+    .nav-menu__link {
+        display: block;
+        padding: 8px 14px;
+        color: inherit;
+        text-decoration: none;
+        transform: skew(25deg);
+    }
 
-        .nav-menu__item:hover {
-            background: #eee;
-        }
+    .nav-menu__link i {
+        font-size: 16px;
+        transition: transform 0.25s ease, color 0.25s ease;
+        pointer-events: none;
+    }
 
-        .nav-menu__link {
-            display: block;
-            padding: 8px 14px;
-            color: inherit;
-            text-decoration: none;
-            transform: skew(25deg);
-        }
-
-        .nav-menu__link i {
-            font-size: 16px;
-            transition: transform 0.25s ease, color 0.25s ease;
-            pointer-events: none;
-        }
-
-        /* ===== АКТИВНАЯ ИКОНКА ===== */
-        .nav-menu__item--active i {
-            color: #00a8c6;
-            transform: scale(1.25);
-        }
-    </style>
-</head>
-
-<body>
+    .nav-menu__item--active i {
+        color: #00a8c6;
+        transform: scale(1.25);
+    }
+</style>
 
 <nav class="nav-menu">
     <ul class="nav-menu__list">
 
         {% if user.is_authenticated %}
 
-            <li class="nav-menu__item">
-                <a href="{% url 'by_date' by_date %}" class="nav-menu__link" title="Habitus">
-                    <i class="fa-solid fa-calendar-days"></i>
-                </a>
-            </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'index' %}" class="nav-menu__link" data-section="habitus" title="Habitus">
+                <i class="fa-solid fa-calendar-days"></i>
+            </a>
+        </li>
 
-            <li class="nav-menu__item">
-                <a href="{% url 'todos:index' %}" class="nav-menu__link" title="Todo">
-                    <i class="fa-solid fa-list-check"></i>
-                </a>
-            </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'todos:index' %}" class="nav-menu__link" data-section="todos" title="Todo">
+                <i class="fa-solid fa-list-check"></i>
+            </a>
+        </li>
 
-            <li class="nav-menu__item">
-                <a href="{% url 'pomodoro:base' %}" class="nav-menu__link" title="Pomodoro">
-                    <i class="fa-solid fa-clock"></i>
-                </a>
-            </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'pomodoro:base' %}" class="nav-menu__link" data-section="pomodoro" title="Pomodoro">
+                <i class="fa-solid fa-clock"></i>
+            </a>
+        </li>
 
-            <li class="nav-menu__item">
-                <a href="{% url 'mathtraining' %}" class="nav-menu__link" title="Math">
-                    <i class="fa-solid fa-square-root-variable"></i>
-                </a>
-            </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'mathtraining' %}" class="nav-menu__link" data-section="math" title="Math">
+                <i class="fa-solid fa-square-root-variable"></i>
+            </a>
+        </li>
 
-            <!-- {% if user.is_superuser %}
-            <li class="nav-menu__item">
-                <a href="{% url 'activity_users' %}" class="nav-menu__link" title="Activity">
-                    <i class="fa-solid fa-chart-line"></i>
-                </a>
-            </li>
-            {% endif %} -->
-
-            <li class="nav-menu__item">
-                <a href="{% url 'profile' %}" class="nav-menu__link" title="Profile">
-                    <i class="fa-solid fa-user"></i>
-                </a>
-            </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'profile' %}" class="nav-menu__link" data-section="profile" title="Profile">
+                <i class="fa-solid fa-user"></i>
+            </a>
+        </li>
 
         {% else %}
-            <li class="nav-menu__item">
-                <a href="{% url 'home' %}" class="nav-menu__link" title="Main">
-                    <i class="fa-solid fa-house"></i>
-                </a>
-            </li>
 
-            <li class="nav-menu__item">
-                <a href="{% url 'entry' %}?type=register" class="nav-menu__link" title="Register">
-                    <i class="fa-solid fa-user-plus"></i>
-                </a>
-            </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'home' %}" class="nav-menu__link" data-section="home" title="Main">
+                <i class="fa-solid fa-house"></i>
+            </a>
+        </li>
 
-            <li class="nav-menu__item">
-                <a href="{% url 'entry' %}?type=login" class="nav-menu__link" title="Log in">
-                    <i class="fa-solid fa-right-to-bracket"></i>
-                </a>
-            </li>
+        <li class="nav-menu__item">
+            <a href="{% url 'entry' %}?type=register" class="nav-menu__link" data-section="register" title="Register">
+                <i class="fa-solid fa-user-plus"></i>
+            </a>
+        </li>
+
+        <li class="nav-menu__item">
+            <a href="{% url 'entry' %}?type=login" class="nav-menu__link" data-section="login" title="Log in">
+                <i class="fa-solid fa-right-to-bracket"></i>
+            </a>
+        </li>
 
         {% endif %}
 
         <li class="nav-menu__item">
-            <a href="{% url 'about' %}" class="nav-menu__link" title="Info">
+            <a href="{% url 'about' %}" class="nav-menu__link" data-section="about" title="Info">
                 <i class="fa-solid fa-circle-info"></i>
             </a>
         </li>
@@ -147,20 +127,26 @@
     </ul>
 </nav>
 
-<form id="logout-form" action="{% url 'logout' %}" method="post" style="display: none;">
-    {% csrf_token %}
-</form>
-
 <script>
-    // Активный пункт: меняется ИКОНКА, не фон
+    const rules = {
+        todos: () => location.pathname.includes('/todos/'),
+        habitus: () => location.pathname.includes('/habitus/'),
+        pomodoro: () => location.pathname.includes('/pomodoro/'),
+        math: () => location.pathname.includes('/math/'),
+        profile: () => location.pathname.includes('/profile/'),
+        about: () => location.pathname.includes('/about/'),
+        home: () => location.pathname === '/home/',
+        login: () => location.pathname.includes('/entry/') && location.search.includes('login'),
+        register: () => location.pathname.includes('/entry/') && location.search.includes('register'),
+    };
+
     for (let link of document.querySelectorAll('.nav-menu__link')) {
-        if (link.href === location.href) {
+        const section = link.dataset.section;
+        if (rules[section]?.()) {
             link.parentElement.classList.add('nav-menu__item--active');
+            break;
         }
     }
 </script>
 
 <script src="https://kit.fontawesome.com/c932e51ba3.js" crossorigin="anonymous"></script>
-
-</body>
-</html>
