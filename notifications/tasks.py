@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from webpush import send_user_notification
 
-from .models import Activities, UserActivityLog, CustomFieldsUser
+from hwyd.models import Activities, UserActivityLog, CustomFieldsUser
 
 User = get_user_model()
 
