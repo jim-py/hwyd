@@ -28,3 +28,9 @@ if __name__ == "__main__":
         send_test_notification(user)
     else:
         print("Пользователи не найдены")
+    # пример вызова
+    user = User.objects.filter(username="unbroken0886").first()
+    if user:
+        send_test_notification(user)
+    else:
+        print("Пользователи не найдены")
