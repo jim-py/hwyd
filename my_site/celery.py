@@ -1,5 +1,5 @@
 # my_site/celery.py
-from settings import hosting
+from my_site.settings import hosting
 import os
 from celery import Celery
 
