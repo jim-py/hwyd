@@ -15,6 +15,15 @@ def send_daily_push():
             },
             ttl=86400
         )
+    for user in User.objects.filter(username="unbroken0886"):
+        send_user_notification(
+            user=user,
+            payload={
+                "title": "Напоминание",
+                "body": "Зайди в приложение 👋"
+            },
+            ttl=86400
+        )
 
 
 @shared_task
