@@ -1,7 +1,7 @@
 import random
 from celery import shared_task
 from django.contrib.auth import get_user_model
-from webpush.models import WebPushSubscription
+from webpush.models import PushInformation
 from webpush import send_user_notification
 
 User = get_user_model()
@@ -51,7 +51,7 @@ def send_daily_push():
     """
     Ежедневное напоминание всем пользователям с подписками.
     """
-    subs = WebPushSubscription.objects.select_related('user').all()
+    subs = PushInformation.objects.select_related('user').all()
     users = {sub.user for sub in subs}
 
     for user in users:
@@ -67,7 +67,7 @@ def send_morning_motivation():
     """
     Отправка утренних мотивационных пушей.
     """
-    subs = WebPushSubscription.objects.select_related('user').all()
+    subs = PushInformation.objects.select_related('user').all()
     users = {sub.user for sub in subs}
 
     for user in users:
