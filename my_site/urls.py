@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
+from django.views.generic import TemplateView
 
 from my_site import settings
 
@@ -29,6 +30,14 @@ urlpatterns = [
     path('todos/', include('todos.urls')),
     path('pomodoro/', include('pomodoro.urls')),
     path('notifications/', include('notifications.urls', namespace='notifications')),
+    path('webpush/', include('webpush.urls')),
+]
+
+urlpatterns += [
+    path('sw.js', TemplateView.as_view(
+        template_name='sw.js',
+        content_type='application/javascript'
+    ), name='service_worker'),
 ]
 
 if settings.DEBUG:

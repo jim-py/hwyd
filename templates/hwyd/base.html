@@ -14,6 +14,7 @@
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
     {% include 'hwyd/styles.html' %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="manifest" href="{% static 'manifest_habitus.json' %}">
 </head>
 <body>
 
@@ -37,6 +38,147 @@
 
 <script src="{% static 'js/jquery.min.js' %}"></script>
 <script src="{% static 'js/jquery-ui.min.js' %}"></script>
+
+<script>
+window.IS_AUTHENTICATED = {{ request.user.is_authenticated|yesno:"true,false" }};
+
+(async function () {
+  console.log('[PUSH] init');
+
+  if (!window.IS_AUTHENTICATED) {
+    console.warn('[PUSH] user not authenticated');
+    return;
+  }
+
+  if (
+    !('Notification' in window) ||
+    !('serviceWorker' in navigator) ||
+    !('PushManager' in window)
+  ) {
+    console.warn('[PUSH] push not supported');
+    return;
+  }
+
+  if (Notification.permission === 'granted') {
+    await subscribe();
+  } else {
+    showPermissionButton();
+  }
+
+  async function subscribe() {
+    console.log('[PUSH] registering service worker');
+    await navigator.serviceWorker.register('/sw.js');
+
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      console.log('[PUSH] creating subscription');
+
+      const VAPID_PUBLIC_KEY =
+        'BB83EoTTC8cO73kgpsJqVBlSH1FrivQoHgG5hD33jXLbDAXiLBvb_PLzVbpeEed5keHXcSKPuYVMdoEZuzqSqME';
+
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+
+    const csrftoken = getCookie('csrftoken');
+    if (!csrftoken) {
+      console.error('[PUSH] CSRF token missing');
+      return;
+    }
+
+    const payload = {
+      subscription: subscription.toJSON(),
+      browser: navigator.userAgent.slice(0, 100),
+      user_agent: navigator.userAgent,
+      status_type: 'subscribe',
+      group: 'test'
+    };
+
+    console.log('[PUSH] sending subscription to backend');
+    const response = await fetch('/webpush/save_information', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      console.error('[PUSH] failed to save subscription on server');
+    } else {
+      console.log('[PUSH] subscription saved');
+    }
+  }
+
+  function showPermissionButton() {
+    if (document.getElementById('push-permission-btn')) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'push-permission-btn';
+    btn.textContent = 'Включить уведомления';
+    btn.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      padding: 12px 16px;
+      font-size: 16px;
+      cursor: pointer;
+    `;
+
+    btn.onclick = async () => {
+      console.log('[PUSH] permission requested by user click');
+      const permission = await Notification.requestPermission();
+      console.log('[PUSH] permission after click:', permission);
+
+      if (permission === 'granted') {
+        btn.remove();
+        await subscribe();
+      } else {
+        console.warn('[PUSH] permission denied or dismissed');
+      }
+    };
+
+    document.body.appendChild(btn);
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie) {
+      const cookies = document.cookie.split(';');
+      for (const c of cookies) {
+        const cookie = c.trim();
+        if (cookie.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+})();
+</script>
+
+
 {% include 'hwyd/scripts.html' %}
 
 </body>

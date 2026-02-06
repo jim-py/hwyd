@@ -52,7 +52,22 @@ INSTALLED_APPS = [
     "debug_toolbar",
     'notifications',
     'widget_tweaks',
+    'webpush',
+    'django_extensions',
+    'django_celery_beat',
 ]
+
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": "BB83EoTTC8cO73kgpsJqVBlSH1FrivQoHgG5hD33jXLbDAXiLBvb_PLzVbpeEed5keHXcSKPuYVMdoEZuzqSqME",
+    "VAPID_PRIVATE_KEY":"DwEU-oa03b66w492jz_KCmWxx3ulDJtVsLYn5_Xh44c",
+    "VAPID_ADMIN_EMAIL": "ddimsa70@gmail.com"
+}
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_ENABLE_UTC = True
+CELERY_TIMEZONE = 'Europe/Moscow'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -153,6 +168,6 @@ TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
-USE_TZ = False
+USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
