@@ -1,105 +1,149 @@
 {% load tags %}
 {% get_date_y_m as by_date %}
-<style>
-    .nav-menu {
-        text-align: center;
-        top: 0;
-        font-family: "Montserrat", sans-serif;
-    }
 
-    .nav-menu * {
-        font-family: inherit;
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Navbar</title>
 
-    .nav-menu__list {
-        display: inline-block;
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        transform: skew(-25deg);
-    }
+    <style>
+        .nav-menu {
+            text-align: center;
+            top: 0;
+            font-family: "Montserrat", sans-serif;
+        }
 
-    .nav-menu__item {
-        background: #fff;
-        float: left;
-        border-right: 1px solid #eee;
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-        text-transform: uppercase;
-        color: #555;
-        font-weight: bolder;
-        font-size: small;
-        transition: all 0.3s linear;
-    }
+        .nav-menu * {
+            font-family: inherit;
+        }
 
-    .nav-menu__item:first-child {
-        border-radius: 7px 0 0 7px;
-    }
+        .nav-menu__list {
+            display: inline-block;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            transform: skew(-25deg);
+        }
 
-    .nav-menu__item:last-child {
-        border-right: none;
-        border-radius: 0 7px 7px 0;
-    }
+        .nav-menu__item {
+            background: #fff;
+            float: left;
+            border-right: 1px solid #eee;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+            color: #555;
+            font-weight: bolder;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
 
-    .nav-menu__item:hover {
-        background: #eee;
-    }
+        .nav-menu__item:first-child {
+            border-radius: 7px 0 0 7px;
+        }
 
-    .nav-menu__link {
-        display: block;
-        padding: 5px 10px;
-        color: inherit;
-        text-decoration: none;
-        transform: skew(25deg);
-    }
+        .nav-menu__item:last-child {
+            border-right: none;
+            border-radius: 0 7px 7px 0;
+        }
 
-    .nav-menu__item--active {
-        background-color: #d4f8ff;
-    }
-</style>
+        .nav-menu__item:hover {
+            background: #eee;
+        }
+
+        .nav-menu__link {
+            display: block;
+            padding: 8px 14px;
+            color: inherit;
+            text-decoration: none;
+            transform: skew(25deg);
+        }
+
+        .nav-menu__link i {
+            font-size: 16px;
+            transition: transform 0.25s ease, color 0.25s ease;
+            pointer-events: none;
+        }
+
+        /* ===== АКТИВНАЯ ИКОНКА ===== */
+        .nav-menu__item--active i {
+            color: #00a8c6;
+            transform: scale(1.25);
+        }
+    </style>
+</head>
+
+<body>
 
 <nav class="nav-menu">
     <ul class="nav-menu__list">
-        <li class="nav-menu__item">
-            <a href="{% url 'home' %}" class="nav-menu__link">Main</a>
-        </li>
-        <li class="nav-menu__item">
-            <a href="{% url 'by_date' by_date %}" class="nav-menu__link">Habitus</a>
-        </li>
-        <li class="nav-menu__item">
-            <a href="{% url 'todos:index' %}" class="nav-menu__link">Todo</a>
-        </li>
-        <li class="nav-menu__item">
-            <a href="#" class="nav-menu__link">Base</a>
-        </li>
-        <li class="nav-menu__item">
-            <a href="{% url 'pomodoro:base' %}" class="nav-menu__link">Pomo</a>
-        </li>
-        <li class="nav-menu__item">
-            <a href="{% url 'mathtraining' %}" class="nav-menu__link">Math</a>
-        </li>
-        <li class="nav-menu__item">
-            <a href="{% url 'about' %}" class="nav-menu__link">About</a>
-        </li>
+
         {% if user.is_authenticated %}
-        {% if user.is_superuser %}
-        <li class="nav-menu__item">
-            <a href="{% url 'activity_users' %}" class="nav-menu__link">Activity</a>
-        </li>
-        {% endif %}
-        <li class="nav-menu__item">
-            <a href="{% url 'profile' %}" class="nav-menu__link"><span>Profile</span></a>
-        </li>
-        <li class="nav-menu__item">
-            <a href="#" class="nav-menu__link" onclick="document.getElementById('logout-form').submit();">Exit</a>
-        </li>
+
+            <li class="nav-menu__item">
+                <a href="{% url 'by_date' by_date %}" class="nav-menu__link" title="Habitus">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </a>
+            </li>
+
+            <li class="nav-menu__item">
+                <a href="{% url 'todos:index' %}" class="nav-menu__link" title="Todo">
+                    <i class="fa-solid fa-list-check"></i>
+                </a>
+            </li>
+
+            <li class="nav-menu__item">
+                <a href="{% url 'pomodoro:base' %}" class="nav-menu__link" title="Pomodoro">
+                    <i class="fa-solid fa-clock"></i>
+                </a>
+            </li>
+
+            <li class="nav-menu__item">
+                <a href="{% url 'mathtraining' %}" class="nav-menu__link" title="Math">
+                    <i class="fa-solid fa-square-root-variable"></i>
+                </a>
+            </li>
+
+            {% if user.is_superuser %}
+            <li class="nav-menu__item">
+                <a href="{% url 'activity_users' %}" class="nav-menu__link" title="Activity">
+                    <i class="fa-solid fa-chart-line"></i>
+                </a>
+            </li>
+            {% endif %}
+
+            <li class="nav-menu__item">
+                <a href="{% url 'profile' %}" class="nav-menu__link" title="Profile">
+                    <i class="fa-solid fa-user"></i>
+                </a>
+            </li>
+
         {% else %}
-        <li class="nav-menu__item">
-            <a href="{% url 'entry' %}?type=register" class="nav-menu__link">Register</a>
-        </li>
-        <li class="nav-menu__item">
-            <a href="{% url 'entry' %}?type=login" class="nav-menu__link">Log in</a>
-        </li>
+            <li class="nav-menu__item">
+                <a href="{% url 'home' %}" class="nav-menu__link" title="Main">
+                    <i class="fa-solid fa-house"></i>
+                </a>
+            </li>
+
+            <li class="nav-menu__item">
+                <a href="{% url 'entry' %}?type=register" class="nav-menu__link" title="Register">
+                    <i class="fa-solid fa-user-plus"></i>
+                </a>
+            </li>
+
+            <li class="nav-menu__item">
+                <a href="{% url 'entry' %}?type=login" class="nav-menu__link" title="Log in">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                </a>
+            </li>
+
         {% endif %}
+
+        <li class="nav-menu__item">
+            <a href="{% url 'about' %}" class="nav-menu__link" title="Info">
+                <i class="fa-solid fa-circle-info"></i>
+            </a>
+        </li>
+
     </ul>
 </nav>
 
@@ -108,9 +152,15 @@
 </form>
 
 <script>
+    // Активный пункт: меняется ИКОНКА, не фон
     for (let link of document.querySelectorAll('.nav-menu__link')) {
         if (link.href === location.href) {
             link.parentElement.classList.add('nav-menu__item--active');
         }
     }
 </script>
+
+<script src="https://kit.fontawesome.com/c932e51ba3.js" crossorigin="anonymous"></script>
+
+</body>
+</html>

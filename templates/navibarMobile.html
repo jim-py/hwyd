@@ -1,91 +1,104 @@
 {% load tags %}
 {% get_date_y_m as by_date %}
+
 <style>
     .nav-top {
-        overflow: hidden;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
         background-color: #ffffff;
-        position: relative;
-        border-radius: 10px;
-        font-weight: 700;
+        border-radius: 12px;
         margin-bottom: 10px;
-        box-shadow: 0px 0px 4px 0px rgba(34, 60, 80, 0.2) inset;
+        padding: 6px 4px;
+        box-shadow: 0px 0px 4px rgba(34, 60, 80, 0.2) inset;
     }
 
     .nav-top__link {
-        float: left;
         color: #6c6c6c;
-        padding: 10px 12px;
+        padding: 10px;
+        font-size: 20px;
         text-decoration: none;
-        font-size: 16px;
         border-radius: 10px;
+        transition: color 0.25s ease;
     }
 
-    .nav-top__toggle {
-        float: right;
-        background: none;
-        border: none;
-        padding: 10px 12px;
+    .nav-top__link i {
+        transition: transform 0.25s ease, color 0.25s ease;
+        pointer-events: none;
     }
 
-    .nav-top__links {
-        display: none;
-        clear: both;
-    }
-
-    .nav-top__links--open {
-        display: block;
-    }
-
-    .nav-top__link--active {
-        background-color: #d4f8ff;
-    }
-
-    .fa-bars {
-        color: #6c6c6c;
+    /* АКТИВНАЯ ИКОНКА */
+    .nav-top__link--active i {
+        color: #00a8c6;
+        transform: scale(1.25);
     }
 </style>
 
 <nav class="nav-top">
-    <a href="{% url 'home' %}" class="nav-top__link">Main</a>
+
     {% if user.is_authenticated %}
-    {% if user.is_superuser %}
-    <a href="{% url 'activity_users' %}" class="nav-top__link">Activity</a>
-    {% endif %}
-    <a href="{% url 'profile' %}" class="nav-top__link"><span>Profile</span></a>
-    <a href="#" class="nav-top__link" onclick="document.getElementById('logout-form').submit();">Exit</a>
+
+        <!-- Habitus -->
+        <a href="{% url 'by_date' by_date %}" class="nav-top__link" title="Habitus">
+            <i class="fa-solid fa-calendar-days"></i>
+        </a>
+
+        <!-- Todo -->
+        <a href="{% url 'todos:index' %}" class="nav-top__link" title="Todo">
+            <i class="fa-solid fa-list-check"></i>
+        </a>
+
+        <!-- Pomodoro -->
+        <a href="{% url 'pomodoro:base' %}" class="nav-top__link" title="Pomodoro">
+            <i class="fa-solid fa-clock"></i>
+        </a>
+
+        <!-- MS -->
+        <a href="{% url 'mathtraining' %}" class="nav-top__link" title="MS">
+            <i class="fa-solid fa-square-root-variable"></i>
+        </a>
+
+        {% if user.is_superuser %}
+        <!-- Activity -->
+        <a href="{% url 'activity_users' %}" class="nav-top__link" title="Activity">
+            <i class="fa-solid fa-chart-line"></i>
+        </a>
+        {% endif %}
+
+        <!-- Profile -->
+        <a href="{% url 'profile' %}" class="nav-top__link" title="Profile">
+            <i class="fa-solid fa-user"></i>
+        </a>
+
     {% else %}
-    <a href="{% url 'entry' %}?type=register" class="nav-top__link">Register</a>
-    <a href="{% url 'entry' %}?type=login" class="nav-top__link">Log in</a>
+        <!-- Home -->
+        <a href="{% url 'home' %}" class="nav-top__link" title="Main">
+            <i class="fa-solid fa-house"></i>
+        </a>
+
+        <a href="{% url 'entry' %}?type=register" class="nav-top__link" title="Register">
+            <i class="fa-solid fa-user-plus"></i>
+        </a>
+
+        <a href="{% url 'entry' %}?type=login" class="nav-top__link" title="Log in">
+            <i class="fa-solid fa-right-to-bracket"></i>
+        </a>
+
     {% endif %}
 
-    <div class="nav-top__links" id="nav-top-links">
-        <a href="{% url 'by_date' by_date %}" class="nav-top__link">Habitus</a>
-        <a href="{% url 'todos:index' %}" class="nav-top__link">Todo</a>
-        <a href="#" class="nav-top__link">Base</a>
-        <a href="{% url 'pomodoro:base' %}" class="nav-top__link">Pomo</a>
-        <a href="{% url 'mathtraining' %}" class="nav-top__link">Math</a>
-        <a href="{% url 'about' %}" class="nav-top__link">About</a>
-    </div>
-
-    <a class="nav-top__toggle" onclick="toggleNavTop()">
-        <i class="fa fa-bars"></i>
+    <!-- Info -->
+    <a href="{% url 'about' %}" class="nav-top__link" title="Info">
+        <i class="fa-solid fa-circle-info"></i>
     </a>
+
 </nav>
 
-<form id="logout-form" action="{% url 'logout' %}" method="post" style="display: none;">
-    {% csrf_token %}
-</form>
-
 <script>
-    function toggleNavTop() {
-        const linksContainer = document.getElementById('nav-top-links');
-        linksContainer.classList.toggle('nav-top__links--open');
-    }
-
-    // Подсветка активного пункта
     for (let link of document.querySelectorAll('.nav-top__link')) {
         if (link.href === location.href) {
             link.classList.add('nav-top__link--active');
         }
     }
 </script>
+
+<script src="https://kit.fontawesome.com/c932e51ba3.js" crossorigin="anonymous"></script>
