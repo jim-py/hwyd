@@ -145,7 +145,10 @@ window.IS_AUTHENTICATED = {{ request.user.is_authenticated|yesno:"true,false" }}
       }
     };
 
-    // document.body.appendChild(btn);
+    const isSuperuser = {{ user.is_superuser|yesno:"true,false" }};
+    if (isSuperuser) {
+      document.body.appendChild(btn);
+    }
   }
 
   function urlBase64ToUint8Array(base64String) {
