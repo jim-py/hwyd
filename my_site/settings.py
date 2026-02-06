@@ -32,7 +32,6 @@ else:
 SECRET_KEY = '2v^46_-9jw*x(weg8j9n-3ad%p0&h^avvfy3c(wj$jnyx)3i!&'
 
 DEBUG = not hosting
-DEBUG = True
 
 LOGOUT_REDIRECT_URL = '/'
 
@@ -64,9 +63,14 @@ WEBPUSH_SETTINGS = {
     "VAPID_ADMIN_EMAIL": "ddimsa70@gmail.com"
 }
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
+if hosting:
+    CELERY_BROKER_URL = 'redis+socket:///home/a0853298/tmp/redis.sock'
+    CELERY_RESULT_BACKEND = 'redis+socket:///home/a0853298/tmp/redis.sock'
+else:
+    CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+    CELERY_ACCEPT_CONTENT = ['json']
+    CELERY_TASK_SERIALIZER = 'json'
+
 CELERY_ENABLE_UTC = True
 CELERY_TIMEZONE = 'Europe/Moscow'
 
