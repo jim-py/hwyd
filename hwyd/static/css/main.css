@@ -1,14 +1,9 @@
-html {
-    display: table;
-}
-
 /*Убрать полосу прокрутки для всей страницы*/
 ::-webkit-scrollbar {
   width: 0;
 }
 
 label.toggle {
-    /*position: absolute;*/
     cursor: pointer;
     width: 24px;
     height: 24px;
@@ -37,14 +32,13 @@ p.paragraph {
     font-size: 14px;
     margin: 0 5px 0 0;
     font-weight: 600;
-    /*cursor: move;*/
     display: flex;
     justify-content: start;
-    /*transition: all 0.25s ease-out;*/
 }
 
 table {
     border-collapse: collapse;
+    transform-origin: top left;
 }
 
 p.headParagraph.weekend {
@@ -178,14 +172,14 @@ form[id=chooseDate] {
 
 form[id=createActivity] {
     margin-top: 5px;
+    transform-origin: top left;
+    width: 250px;
 }
 
-#buttonSettings, #screenShot, #hideActivities, #openGuide, #hideCompleteActivities {
-    padding: 0;
-    width: 20px;
-    height: 20px;
-    margin-bottom: 10px;
-    float: right;
+form[id=createActivityGroup] {
+    margin-top: 5px;
+    transform-origin: top left;
+    width: 250px;
 }
 
 p.headParagraph.changeParagraph.main {

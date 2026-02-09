@@ -1,27 +1,61 @@
 {% load static %}
 {% load tags %}
 
-{# Скрипты таблицы #}
 <script>
+function openModal() {
+    document.getElementById('calendarModal').style.display = 'flex';
+}
 
-    {# Подгон под размер телефона #}
-    document.querySelector('#openGuide').style.display = 'none';
-    
-    {% if request.user_agent.is_mobile %}
-        let zoomHTML = Math.round(window.innerWidth / document.body.offsetWidth * 100) - 1;
-        html.style.zoom = `${zoomHTML}%`;
-        
-        zoomDialogs = `${Math.round(window.innerWidth / document.body.offsetWidth * 60) - 1}%`;
-        document.querySelector('#dialog').style.zoom = zoomDialogs;
-        document.querySelector('#dialogHead').style.zoom = zoomDialogs;
-        document.querySelector('#some-modal-id').style.zoom = zoomDialogs;
-        
-        window.addEventListener('resize', function (event) {
-            zoomHTML = Math.round(window.innerWidth / document.body.offsetWidth * 100) - 1;
-            html.style.zoom = `${zoomHTML}%`;
-        }, true);
+function closeModal() {
+    document.getElementById('calendarModal').style.display = 'none';
+}
+
+function onModalClick(event) {
+    const modalContent = document.querySelector('.modal-content');
+
+    if (!modalContent.contains(event.target)) {
+        closeModal();
+    }
+}
+</script>
+
+
+{# Скрипты таблицы  - Костыль#}
+{% if request.user_agent.is_mobile %}
+<script>
+  function updateScale() {
+    const baseWidth = 390;       // базовая ширина экрана для масштаба 1.277
+    const baseScale = 1.27;
+    const viewportWidth = window.innerWidth;
+    const scale = (viewportWidth / baseWidth) * baseScale;
+
+    el = document.getElementById('myTable');
+    el.style.transform = `scale(${scale})`;
+    {% if settings.showCreateActivity %}
+    el = document.getElementById('createActivity');
+    el.style.transform = `scale(${scale})`;
     {% endif %}
+    {% if settings.showCreateActivityGroup %}
+    el = document.getElementById('createActivityGroup');
+    el.style.transform = `scale(${scale})`;
+    {% endif %}
+  }
 
+  window.addEventListener('resize', updateScale);
+  window.addEventListener('load', updateScale);
+  {% if settings.showCreateActivity %}
+    const baseWidth = 390;
+    const baseScale = 1.27;
+    const viewportWidth = window.innerWidth;
+    const scale = (viewportWidth / baseWidth) * baseScale;
+
+    const tableOffsetHeight = document.getElementById('myTable').offsetHeight;
+    document.getElementById('createActivity').style.marginTop = (tableOffsetHeight * scale - tableOffsetHeight + 10) + 'px';
+    {% endif %}
+</script>
+{% endif %}
+
+<script>
     document.addEventListener('DOMContentLoaded', function () {
         const numberElements = document.querySelectorAll('.number');
         numberElements.forEach(function (element) {
@@ -258,6 +292,8 @@
                 {% endif %}
             }
 
+            vibrateOrHaptic();
+
             $.ajax({
                 type: 'POST',
                 url: '{% url 'check_cell' date %}',
@@ -385,7 +421,7 @@
 
 {# ОТКРЫВАЕТ МОДАЛЬНОЕ ОКНО ПО НАЖАТИЮ НА МЕСЯЦ #}
 <script>
-    document.querySelector('p.headParagraph.changeParagraph.main').oncontextmenu = function (e) {
+    document.querySelector('p.headParagraph.changeParagraph.main').onclick = function (e) {
         e.preventDefault();
         let dialog = document.getElementById('dialogHead');
         dialog.showModal();
@@ -773,7 +809,8 @@ document.querySelector('#deleteAll').addEventListener('click', function (evt) {
                 elem.remove()
             }
             $('#deleteAll')[0].style.display = 'none'
-            $('#btnActLastMonth')[0].style.display = 'block'
+            $('#btnActLastMonth')[0].parentElement.style.display = 'inline'
+            $('#openAll')[0].style.display = 'none'
         });
     })
 {% endif %}
@@ -943,7 +980,7 @@ function openAllGroups() {
             }
         } else {
             for (let elem of activities_clean) {
-                elem.style.display = ''
+                elem.style.display = 'none'
             }
             for (let elem of groups) {
                 if (!$(elem).hasClass('expand')) {
@@ -1059,3 +1096,24 @@ function openAllGroups() {
 {#    location.reload(true);#}
 {#    {% endif %}#}
 </script>
+
+<script>
+    document.getElementById('downloadJson').addEventListener('click', function () {
+        fetch('/habitus/export-json/')
+            .then(response => response.json())
+            .then(data => {
+                // Создаем файл JSON для скачивания
+                const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'data.json';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            })
+            .catch(error => console.error('Ошибка:', error));
+    });
+</script>
+

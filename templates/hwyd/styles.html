@@ -2,6 +2,16 @@
 {% if not request.user_agent.is_mobile %}
     <style>
         html {
+            display: table;
+            margin: auto;
+        }
+        body {
+            display: table-cell;
+        }
+    </style>
+{% else %}
+    <style>
+        body {
             margin: auto;
         }
     </style>
@@ -11,8 +21,8 @@
 
     body {
         font-family: '{{ settings.fontFamily }}', serif;
-        display: table-cell;
         vertical-align: middle;
+        line-height: 1.5;
     }
 
     body * {

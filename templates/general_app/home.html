@@ -49,27 +49,12 @@
                 Создавайте и отслеживайте свои привычки для достижения целей.
             </div>
         </article>
-        <article class="feature-locked" id="budget">
-            <h2>Nummus</h2>
-            <p>
-            <div class="text-feature">Трекер бюджета
-                <div class="custom-hr"></div>
-                Контролируйте свои доходы и расходы для лучшего финансового планирования.
-            </div>
-        </article>
         <article class="feature" id="todoapp">
             <h2>Actus</h2>
             <p>
             <div class="text-feature">Трекер задач
                 <div class="custom-hr"></div>
                 Записывайте задачи и следите за их исполнением, чтобы ничего не упустить.
-            </div>
-        </article>
-        <article class="feature-locked" id="knowledgebase">
-            <h2>Mentis</h2>
-            <div class="text-feature">База знаний
-                <div class="custom-hr"></div>
-                Идеальный ресурс для исследования, обучения и углубления знаний.
             </div>
         </article>
         <article class="feature" id="pomodorotimer">
@@ -84,6 +69,21 @@
             <div class="text-feature">Математический тренажёр
                 <div class="custom-hr"></div>
                 Решайте математические примеры на скорость для поддержания мозговой активности.
+            </div>
+        </article>
+        <article class="feature-locked" id="time-tracker">
+            <h2>Tempus</h2>
+            <p>
+            <div class="text-feature">Трекер времени
+                <div class="custom-hr"></div>
+                Фиксируйте время, затраченное на выполнение задач.
+            </div>
+        </article>
+        <article class="feature-locked" id="knowledgebase">
+            <h2>Mentis</h2>
+            <div class="text-feature">База знаний
+                <div class="custom-hr"></div>
+                Идеальный ресурс для исследования, обучения и углубления знаний.
             </div>
         </article>
     </section>
@@ -105,7 +105,7 @@
     </section>
 </main>
 <footer class="footer-site">
-    <p>&copy; 2025 - Productivum</p>
+    <p>&copy; {% now "Y" %} - Productivum</p>
 </footer>
 {% endblock %}
 

@@ -3,8 +3,9 @@
 
 <dialog class="dialog" id="some-modal-id">
     <h3 class="dialog__title">Настройки</h3>
-    <hr>
-    <p></p>
+
+    <hr style="margin-bottom: 15px;">
+
     <form id="settingsGlobal" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
         <div>
@@ -116,82 +117,241 @@
             </select>
         </div>
 
-        <p></p>
-        <hr>
+        <hr style="margin-top: 15px;">
         <input id="data" name="data">
     </form>
-    <button class="button-6" role="button" onclick="btnSaveSettings();"
-            style="background-color:#dfffdf;">Сохранить</button>
+
+    <button class="button-6" role="button" onclick="btnSaveSettings();" style="background-color:#dfffdf;">Сохранить</button>
+
     <form id="closeDialog" method="dialog" style="margin-right: 35px;">
         <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
     </form>
 
-    <style>
-        .jsonBtn {
-            text-decoration: none; /* Убирает подчеркивание текста */
-            color: black;
-            padding: 2px 5px;
-        }
-    </style>
     <a href="#" class="button-6 jsonBtn" id="downloadJson">
         <img src="https://cdn-icons-png.flaticon.com/512/4239/4239049.png" height=16px width=16px alt="Download" class="icon"> JSON
     </a>
 
-    <script>
-        document.getElementById('downloadJson').addEventListener('click', function () {
-            fetch('/habitus/export-json/')
-                .then(response => response.json())
-                .then(data => {
-                    // Создаем файл JSON для скачивания
-                    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'data.json';
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    URL.revokeObjectURL(url);
-                })
-                .catch(error => console.error('Ошибка:', error));
-        });
-    </script>
-
-    <button onclick="location.href='{% url 'user_logout' %}';" class="button-6" style="width: auto; float: right">Выйти</button>
-<div style="float: right; margin-right: 10px">
-    {% if not request.user.is_superuser %}
-        {{ request.user.username }}
-    {% else %}
-        staff
-    {% endif %}
-</div>
 </dialog>  <!-- Диалоговое окно настроек сайта -->
 
-<div id="divButtons">
-<button id="buttonSettings" type="button" title="Настройки"
-        onclick="window['some-modal-id'].showModal();" aria-controls="some-modal-id">
-    <img width="16" height="16" src="{% static 'settings.png' %}"></button>  <!-- Кнопка настроек -->
 
-{#{% if request.user_agent.is_mobile %}#}
-{#<button id="buttonSettings" type="button" style="margin-right: 10px;" title="Компьютерная версия"#}
-{#        onclick="location.href = '{% url 'by_date' date %}';">#}
-{#    <img width="16" height="16" src="{% static 'pc.png' %}"></button>  <!-- Компьютерная версия -->#}
-{#{% else %}#}
-{#<button id="buttonSettings" type="button" style="margin-right: 10px;" title="Мобильная версия"#}
-{#        onclick="location.href = '{% url 'mobile_by_date' date %}';">#}
-{#    <img width="16" height="16" src="{% static 'phone.png' %}"></button>  <!-- Мобильная версия -->#}
-{#{% endif %}#}
 
-<button id="screenShot" type="button" style="margin-right: 10px;" title="Сделать скриншот">
-    <img width="16" height="16" src="{% static 'photocam.png' %}"></button>  <!-- Кнопка скриншота -->
-<button id="hideActivities" type="button" style="margin-right: 10px;" title="Скрыть для фото">
-    <img width="16" height="16" src="{% static 'eye.png' %}"></button>  <!-- Скрыть активности -->
-<button id="hideCompleteActivities" type="button" style="margin-right: 10px;" title="Показать выполненные">
-    <img width="16" height="16" src="{% static 'eye.png' %}"></button>  <!-- Показать выполненные активности -->
-<button id="openGuide" type="button" onclick="window['dialogGuide'].showModal();" aria-controls="dialogGuide"
-        style="margin-right: 10px;" title="Справка">
-    <img width="16" height="16" src="{% static 'guide.png' %}"></button>  <!-- Справка -->
+<style>
+    .toolbar {
+        display: flex;
+        gap: 14px; /* больше воздуха между кнопками */
+        margin-bottom: 10px;
+        flex-direction: row-reverse;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .toolbar button {
+        width: 2.5rem;
+        height: 2.5rem;
+        border: none;
+        border-radius: 20%;
+
+        background: #ffffff;
+        color: #444;
+
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        box-shadow: 0px 1px 2px 1px rgba(34, 60, 80, 0.1);
+
+        transition:
+            background-color 0.2s ease,
+            color 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.12s ease;
+    }
+
+    .toolbar button i {
+        font-size: 18px;
+    }
+
+    .toolbar button:hover {
+        background: #f3f5f8;
+        color: #000;
+        box-shadow: 0px 1px 3px 2px rgba(34, 60, 80, 0.1);
+    }
+
+    .toolbar button:active {
+        transform: translateY(1px);
+        box-shadow:
+            0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .toolbar button:focus-visible {
+        outline: 2px solid #4a90e2;
+        outline-offset: 3px;
+    }
+
+    /* Специальные цвета для новых кнопок */
+    #deleteAll {
+        background-color: #ffdfdf;
+        color: #a00;
+    }
+
+    #deleteAll:hover {
+        background-color: #fbbcbc;
+        color: #700;
+    }
+
+    #openAll {
+        background-color: #dffffa;
+        color: #055;
+    }
+
+    #openAll:hover {
+        background-color: #bce7f7;
+        color: #033;
+    }
+
+    .calendar-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: 20%;
+
+    background: #ffffff;
+    color: #444;
+
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow: 0px 1px 2px 1px rgba(34, 60, 80, 0.1);
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.12s ease;
+    }
+
+    .calendar-button:hover {
+        background: #f3f5f8;
+        color: #000;
+        box-shadow: 0px 1px 3px 2px rgba(34, 60, 80, 0.1);
+    }
+
+    .calendar-button:active {
+        transform: translateY(1px);
+        box-shadow:
+            0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .calendar-button:focus-visible {
+        outline: 2px solid #4a90e2;
+        outline-offset: 3px;
+    }
+
+    /* Специальный цвет для кнопки создания активностей */
+    #btnActLastMonth {
+        background-color: #e6f4ff;
+        color: #045;
+    }
+
+    #btnActLastMonth:hover {
+        background-color: #cfe8ff;
+        color: #023;
+    }
+    .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.2);
+    justify-content: center;
+    align-items: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    scale: 1.5;
+    }
+    
+    .jsonBtn {
+        text-decoration: none;
+        color: black;
+        padding: 2px 5px;
+    }
+</style>
+
+<div id="divButtons" class="toolbar">
+
+    <button id="buttonSettings" type="button" title="Настройки" onclick="window['some-modal-id'].showModal();" aria-controls="some-modal-id">
+        <i class="fa-solid fa-gear"></i>
+    </button>
+
+    <button id="screenShot" type="button" title="Сделать скриншот">
+        <i class="fa-solid fa-camera"></i>
+    </button>
+
+    <button id="hideActivities" type="button" title="Скрыть для фото">
+        <i class="fa-solid fa-eye-slash"></i>
+    </button>
+
+    <button id="hideCompleteActivities" type="button" title="Показать выполненные">
+        <i class="fa-solid fa-eye"></i>
+    </button>
+
+    <button id="deleteAll" class="button-6" role="button" style="display:{% if range_activities and settings.showDeleteAllActivities %}flex;{% else %}none;{% endif %}" title="Очистить все активности">
+        <i class="fa-solid fa-trash"></i>
+    </button>
+
+    <button id="openAll" class="button-6" role="button" style="display:{% if range_activities and settings.showOpenAllGroups %}flex;{% else %}none;{% endif %}" title="Раскрыть/свернуть группы">
+        <i class="fa-solid fa-folder-open"></i>
+    </button>
+
+    {% if settings.showCalendar %}
+    <button type="button" class="calendar-button" onclick="openModal()">
+        <i class="fa-solid fa-calendar"></i>
+    </button>
+
+    <div id="calendarModal" class="modal" onclick="onModalClick(event)">
+        <div class="modal-content">
+            <form id="chooseDate" action="{% url 'by_date' date %}" method="post">
+                {% csrf_token %}
+                <input type="month" name="chooseDate" min="2020-01" max="2030-12" value="{{ date }}">
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <form action="{% url 'create_last_activities' date %}" method="post" style="display:{% if not range_activities %}inline;{% else %}none;{% endif %}">
+    {% csrf_token %}
+        <button id="btnActLastMonth" type="submit" class="calendar-button" title="Создать активности прошлого месяца">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </button>
+    </form>
+
 </div>
+
+<script>
+function vibrateOrHaptic() {
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+        return;
+    }
+
+    let el = document.createElement('div');
+    let id = Math.random().toString(36).slice(2);
+    el.innerHTML = `<input type="checkbox" id="`+id+`" switch /><label for="`+id+`"></label>`;
+    el.setAttribute("style", "display:none !important;opacity:0 !important;visibility:hidden !important;");
+    document.querySelector('body').appendChild(el);
+    el.querySelector('label').click();
+    setTimeout(function(){ el.remove(); }, 1500);
+}
+</script>
+
+
 
 <dialog id="dialog" class="modalActivity">
     <div class="modal__header">
@@ -403,37 +563,3 @@
         border-bottom: 1px solid #fff;
     }
 </style>
-
-<dialog id="dialogGuide" class="modalColors">
-    <div class="modal__header">
-    <h3 class="dialog__title dialogHeadSettings">Гайд</h3>
-    <hr>
-    </div>
-<div class="tabs">
-    <input type="radio" name="tab-btn" id="tab-btn-1" value="" checked>
-    <label for="tab-btn-1">Настройки</label>
-    <input type="radio" name="tab-btn" id="tab-btn-2" value="">
-    <label for="tab-btn-2">Глобальные настройки цвета</label>
-    <input type="radio" name="tab-btn" id="tab-btn-3" value="">
-    <label for="tab-btn-3">Настройки активности/группы</label>
-    <input type="radio" name="tab-btn" id="tab-btn-4" value="">
-    <label for="tab-btn-4">Настройки клетки</label>
-
-    <div id="content-1">
-      Содержимое 1...
-    </div>
-    <div id="content-2">
-      Содержимое 2...
-    </div>
-    <div id="content-3">
-      Содержимое 3...
-    </div>
-    <div id="content-4">
-      <div><img width="750" src="{% static 'guide2.jpg' %}" alt=""></div>
-    </div>
-  </div>
-    <hr>
-    <form method="dialog" id="closeDialog">
-        <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
-    </form>
-</dialog>  <!-- Диалоговое окно глобальных настроек цвета -->
