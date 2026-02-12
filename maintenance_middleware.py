@@ -2,8 +2,8 @@ import re
 from django.conf import settings
 from django.shortcuts import render
 from django.utils.deprecation import MiddlewareMixin
-from datetime import datetime, date
 from hwyd.models import UserActivityLog
+from django.utils import timezone
 
 
 class UserActivityLoggingMiddleware:
@@ -18,14 +18,14 @@ class UserActivityLoggingMiddleware:
         response = self.get_response(request)
 
         if request.user.is_authenticated:
-            today = date.today()
+            today = timezone.localdate()
             log, created = UserActivityLog.objects.get_or_create(
                 user=request.user,
                 date=today
             )
-            # Если запись уже есть, обновляем last_visit
+
             if not created:
-                log.last_visit = datetime.now()
+                log.last_visit = timezone.now()
                 log.save()
 
         return response
