@@ -1,55 +1,61 @@
-import os
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 
-dir_test = '/home/a0853298/proj_test/myproject/'
-dir_proj = '/home/a0853298/proj/myproject/'
-test_server = True if 'proj_test' in str(os.path.dirname(os.path.abspath(__file__))) else False
-
-# Технический перерыв
-MAINTENANCE_MODE = False
-
-# Блокировка для тестового сайта
-BLOCK_ALL_PAGES = test_server
+# =========================================================
+# BASE
+# =========================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-STATIC_URL = '/static/'
 
-# Проверка выполнения кода на сервере хостинга или локально
-hosting = str(BASE_DIR).find('Productivum') == -1
-if hosting:
-    if test_server:
-        direction = dir_test
-    else:
-        direction = dir_proj
+DIR_PROD = '/home/a0853298/proj/myproject/'
 
-    ALLOWED_HOSTS = ['a0853298.xsph.ru', 'productivum.ru']
-    STATIC_ROOT = direction + 'static/'
-else:
-    ALLOWED_HOSTS = ['*']
-    STATIC_ROOT = str(BASE_DIR.joinpath('static'))
+HOSTING = 'Productivum' not in str(BASE_DIR)
+
+DEBUG = not HOSTING
 
 SECRET_KEY = '2v^46_-9jw*x(weg8j9n-3ad%p0&h^avvfy3c(wj$jnyx)3i!&'
 
-DEBUG = not hosting
-
 LOGOUT_REDIRECT_URL = '/'
 
-INSTALLED_APPS = [
-    'whitenoise.runserver_nostatic',
+MAINTENANCE_MODE = False
+
+
+# =========================================================
+# STATIC FILES
+# =========================================================
+
+STATIC_URL = '/static/'
+
+if HOSTING:
+    ALLOWED_HOSTS = [
+        'a0853298.xsph.ru',
+        'productivum.ru',
+    ]
+    STATIC_ROOT = f'{DIR_PROD}static/'
+else:
+    ALLOWED_HOSTS = ['*']
+    STATIC_ROOT = BASE_DIR / 'static'
+
+
+# =========================================================
+# APPLICATIONS
+# =========================================================
+
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
+
+THIRD_PARTY_APPS = [
+    'whitenoise.runserver_nostatic',
     'django_user_agents',
-    'general_app.apps.GeneralAppConfig',
-    'hwyd.apps.HwydConfig',
-    'todos.apps.TodosConfig',
     'taggit',
     'pomodoro',
-    "debug_toolbar",
+    'debug_toolbar',
     'notifications',
     'widget_tweaks',
     'webpush',
@@ -57,13 +63,31 @@ INSTALLED_APPS = [
     'django_celery_beat',
 ]
 
+LOCAL_APPS = [
+    'general_app.apps.GeneralAppConfig',
+    'hwyd.apps.HwydConfig',
+    'todos.apps.TodosConfig',
+]
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+
+# =========================================================
+# WEB PUSH
+# =========================================================
+
 WEBPUSH_SETTINGS = {
     "VAPID_PUBLIC_KEY": "BB83EoTTC8cO73kgpsJqVBlSH1FrivQoHgG5hD33jXLbDAXiLBvb_PLzVbpeEed5keHXcSKPuYVMdoEZuzqSqME",
     "VAPID_PRIVATE_KEY":"DwEU-oa03b66w492jz_KCmWxx3ulDJtVsLYn5_Xh44c",
     "VAPID_ADMIN_EMAIL": "ddimsa70@gmail.com"
 }
 
-if hosting:
+
+# =========================================================
+# CELERY
+# =========================================================
+
+if HOSTING:
     CELERY_BROKER_URL = 'redis+socket:///home/a0853298/tmp/redis.sock'
     CELERY_RESULT_BACKEND = 'redis+socket:///home/a0853298/tmp/redis.sock'
 else:
@@ -74,23 +98,36 @@ else:
 CELERY_ENABLE_UTC = True
 CELERY_TIMEZONE = 'Europe/Moscow'
 
+
+# =========================================================
+# MIDDLEWARE
+# =========================================================
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
+
     'django_user_agents.middleware.UserAgentMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'maintenance_middleware.MaintenanceMiddleware',
     'maintenance_middleware.UserActivityLoggingMiddleware',
 ]
 
+
+# =========================================================
+# TEMPLATES
+# =========================================================
+
 ROOT_URLCONF = 'my_site.urls'
+WSGI_APPLICATION = 'my_site.wsgi.application'
 
 TEMPLATES = [
     {
@@ -109,37 +146,25 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'my_site.wsgi.application'
 
-if hosting:
-    if test_server:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.mysql',
-                'NAME': 'a0853298_test',
-                'USER': 'a0853298_test',
-                'PASSWORD': 'kwriCWcr3AQw5PxK2hKN7WUdTTF7gd',
-                'HOST': 'localhost',
-                'PORT': '3306',
-                'OPTIONS': {
-                    'charset': 'utf8mb4',
-                },
-            }
+# =========================================================
+# DATABASE
+# =========================================================
+
+if HOSTING:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'a0853298_productivum',
+            'USER': 'a0853298_productivum',
+            'PASSWORD': 'JzwEambciu86h9EoJYfNy7LofL5nAw',
+            'HOST': 'localhost',
+            'PORT': '3306',
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+            },
         }
-    else:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.mysql',
-                'NAME': 'a0853298_productivum',
-                'USER': 'a0853298_productivum',
-                'PASSWORD': 'JzwEambciu86h9EoJYfNy7LofL5nAw',
-                'HOST': 'localhost',
-                'PORT': '3306',
-                'OPTIONS': {
-                    'charset': 'utf8mb4',
-                },
-            }
-        }
+    }
 else:
     DATABASES = {
         'default': {
@@ -148,31 +173,35 @@ else:
         }
     }
 
+
+# =========================================================
+# AUTH PASSWORD VALIDATION
+# =========================================================
+
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-LANGUAGE_CODE = 'ru'
 
+# =========================================================
+# INTERNATIONALIZATION
+# =========================================================
+
+LANGUAGE_CODE = 'ru'
 LANGUAGES = [
     ('ru', _('Russian')),
 ]
 
 TIME_ZONE = 'Europe/Moscow'
-
 USE_I18N = True
-
 USE_TZ = True
+
+
+# =========================================================
+# DJANGO DEFAULTS
+# =========================================================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
