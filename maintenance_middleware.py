@@ -5,7 +5,7 @@ from django.utils.deprecation import MiddlewareMixin
 from hwyd.models import UserActivityLog
 from django.utils import timezone
 from django.db import transaction, IntegrityError
-from zoneinfo import ZoneInfo
+from backports.zoneinfo import ZoneInfo
 
 
 class UserActivityLoggingMiddleware:
