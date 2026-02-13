@@ -1,24 +1,78 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.forms.models import model_to_dict
-
+from datetime import timedelta
+from zoneinfo import ZoneInfo
 
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class UserActivityLog(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activity_logs')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='activity_logs'
+    )
+
+    # Дата в локальной timezone пользователя
     date = models.DateField(verbose_name='Дата посещения')
-    first_visit = models.DateTimeField(verbose_name='Первое посещение', auto_now_add=True)
-    last_visit = models.DateTimeField(verbose_name='Последнее посещение', auto_now=True)
+
+    # Храним UTC
+    first_visit = models.DateTimeField(verbose_name='Первое посещение (UTC)')
+    last_visit = models.DateTimeField(verbose_name='Последнее посещение (UTC)')
+
+    # TZ пользователя на момент визита
+    timezone = models.CharField(
+        max_length=64,
+        default="Europe/Moscow",
+        verbose_name="Часовой пояс"
+    )
 
     class Meta:
         verbose_name = 'Лог активности пользователя'
         verbose_name_plural = 'Логи активности пользователей'
-        unique_together = ('user', 'date')  # чтобы один день был только один раз
+        unique_together = ('user', 'date')
 
     def __str__(self):
-        return f"{self.user.username} — {self.date}: {self.first_visit.time()} — {self.last_visit.time()}"
+        return f"{self.user.username} — {self.date}"
+    
+    def get_login_streak(self):
+        """
+        Возвращает текущий стрик пользователя на основе date.
+        """
+
+        dates = (
+            UserActivityLog.objects
+            .filter(user=self.user)
+            .order_by('-date')
+            .values_list('date', flat=True)
+        )
+
+        if not dates:
+            return 0
+
+        streak = 1
+        previous_date = dates[0]
+
+        for current_date in dates[1:]:
+            if previous_date - current_date == timedelta(days=1):
+                streak += 1
+                previous_date = current_date
+            else:
+                break
+
+        return streak
+
+    @property
+    def first_visit_local(self):
+        dt = self.first_visit.astimezone(ZoneInfo(self.timezone))
+        return dt.replace(tzinfo=None)
+
+    @property
+    def last_visit_local(self):
+        dt = self.last_visit.astimezone(ZoneInfo(self.timezone))
+        return dt.replace(tzinfo=None)
 
 
 class CustomFieldsUser(models.Model):

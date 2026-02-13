@@ -2,7 +2,7 @@ from django.urls import path
 from hwyd.views import (start, by_date, create_last_activities, delete_activity, create_activity, global_colors,
                         get_comments, delete_all, signin, user_logout, check_cell, open_group, open_all, change_setting,
                         add_setting, delete_setting, questionnaire, activity_users, export_data_as_json, edit_settings,
-                        select_setting)
+                        select_setting, set_timezone)
 
 urlpatterns = [
     path('', start, name="index"),
@@ -30,4 +30,6 @@ urlpatterns = [
     path('activityusers/', activity_users, name="activity_users"),
 
     path('export-json/', export_data_as_json, name='export_json'),
+
+    path("set-timezone/", set_timezone, name="set_timezone"),
 ]

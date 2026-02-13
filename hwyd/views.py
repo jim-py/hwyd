@@ -5,7 +5,7 @@ from calendar import monthrange, day_name, weekday, Calendar
 from datetime import datetime, date, timedelta
 from locale import setlocale, LC_ALL
 from itertools import groupby
-from operator import itemgetter
+from operator import attrgetter
 
 # Импорты из сторонних библиотек
 from django.http import HttpResponse, Http404, JsonResponse, HttpResponseRedirect
@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 from django.db.models import Value, BooleanField
 from django_user_agents.utils import get_user_agent
 
@@ -24,31 +25,34 @@ from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser
 setlocale(category=LC_ALL, locale="Russian")
 
 
+@require_POST
+def set_timezone(request):
+    try:
+        data = json.loads(request.body)
+        tz = data.get("timezone")
+
+        if tz:
+            request.session["user_timezone"] = tz
+
+    except Exception:
+        pass
+
+    return JsonResponse({"status": "ok"})
+
+
 @login_required(login_url='entry')
 def activity_users(request):
-    # Проверка прав пользователя
     if not (request.user.is_staff or request.user.is_superuser):
         raise Http404("Страница не найдена")
 
-    # Получаем все логи, отсортированные по дате и последнему визиту
-    logs = UserActivityLog.objects.select_related('user')\
+    logs = (
+        UserActivityLog.objects
+        .select_related('user')
         .order_by('-date', '-last_visit')
+    )
 
-    # Преобразуем в список словарей
-    users_data = [
-        {
-            'user': log.user,
-            'firstVisit': log.first_visit.time(),
-            'lastActive': log.last_visit.time(),
-            'date': log.date
-        }
-        for log in logs
-        if not log.user.is_superuser
-    ]
-
-    # Группируем по дате для сброса нумерации
     grouped_data = []
-    for date, group in groupby(users_data, key=itemgetter('date')):
+    for date, group in groupby(logs, key=attrgetter('date')):
         grouped_data.append({
             'date': date,
             'users': list(group)
@@ -57,7 +61,7 @@ def activity_users(request):
     return render(
         request,
         'hwyd/activityUsers.html',
-        context={
+        {
             'grouped_data': grouped_data
         }
     )

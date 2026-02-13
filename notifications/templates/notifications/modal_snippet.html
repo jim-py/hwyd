@@ -1,5 +1,21 @@
 {% load static %}
 
+<script>
+(function() {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    fetch("{% url 'set_timezone' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ timezone: tz })
+    });
+})();
+</script>
+
+
 {% if unread_notification %}
 <div id="notif-modal" class="notif-modal" role="dialog" aria-modal="true" aria-hidden="true"
   data-notif-id="{{ unread_notification.id }}">

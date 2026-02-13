@@ -36,8 +36,8 @@
             <tr>
                 <td>{{ forloop.counter }}</td>
                 <td>{{ person.user.username }}</td>
-                <td>{{ person.firstVisit }}</td>
-                <td>{{ person.lastActive }}</td>
+                <td>{{ person.first_visit_local|date:"H:i" }}</td>
+                <td>{{ person.last_visit_local|date:"H:i" }}</td>
             </tr>
             {% endfor %}
 
