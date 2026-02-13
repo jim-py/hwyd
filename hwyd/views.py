@@ -386,6 +386,23 @@ def by_date(request, picked_date):
             a.todayCheck = a.marks.split(' ')[today - 1]
 
         json_activities = json.dumps(list(activities.values()))
+
+        # ===== LOGIN STREAK =====
+        login_streak = 0
+        streak_icon = "fa-circle"
+
+        last_log = (
+            UserActivityLog.objects
+            .filter(user=request.user)
+            .order_by('-date')
+            .first()
+        )
+
+        if last_log:
+            login_streak = last_log.get_login_streak()
+            streak_icon = get_streak_icon(login_streak)
+        # ========================
+
         context = {'range_activities': activities, 'range_days': range_days, 'weekends': weekends,
                    'cellsToClick': activated_cells, 'date': picked_date, 'onOffDays': [i for i in range(-1, days)][:-1],
                    'settings': setting, 'progress': progress_activities, 'today': today, 'month_name': month_name,
@@ -394,9 +411,44 @@ def by_date(request, picked_date):
                    'lst_group_conns': group_to_activities, 'group_open': group_open, 'connections': connections,
                    'weekdays': weekdays, 'hide_activities': hide_activities, 'all_settings': settings,
                    'calendar': Calendar().monthdatescalendar(year, month), 'month': month,
-                   'jsonActivities': json_activities}
+                   'jsonActivities': json_activities, 'login_streak': login_streak, 'streak_icon': streak_icon}
 
         return render(request, 'hwyd/base.html', context=context)
+
+
+def get_streak_icon(streak: int) -> str:
+    """
+    Возвращает FontAwesome иконку уровня streak.
+    """
+
+    if streak <= 0:
+        return "fa-circle"
+
+    elif streak <= 2:
+        return "fa-seedling"
+
+    elif streak <= 6:
+        return "fa-fire"
+
+    elif streak <= 13:
+        return "fa-fire-flame-curved"
+
+    elif streak <= 29:
+        return "fa-star-of-life"
+
+    elif streak <= 59:
+        return "fa-trophy"
+
+    elif streak <= 99:
+        return "fa-crown"
+
+    elif streak <= 179:
+        return "fa-gem"
+
+    elif streak <= 364:
+        return "fa-rocket"
+
+    return "fa-star"
 
 
 @login_required(login_url='entry')

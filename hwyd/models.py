@@ -2,7 +2,10 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.forms.models import model_to_dict
 from datetime import timedelta
-from backports.zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 from django.db import models
 from django.contrib.auth.models import User

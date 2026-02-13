@@ -282,6 +282,33 @@
         color: black;
         padding: 2px 5px;
     }
+
+    #loginStreak {
+        width: auto;
+        padding: 0 10px;
+        gap: 6px;
+
+        background: #fff4e5;
+        color: #b45309;
+
+        font-weight: 600;
+    }
+
+    #loginStreak:hover {
+        background: #ffe7cc;
+        color: #7c2d12;
+    }
+
+    #loginStreak .streak-count {
+        font-size: 14px;
+        min-width: 16px;
+        text-align: center;
+    }
+
+    #loginStreak:hover i {
+        transform: scale(1.15);
+    }
+
 </style>
 
 <div id="divButtons" class="toolbar">
@@ -290,13 +317,13 @@
         <i class="fa-solid fa-gear"></i>
     </button>
 
-    <button id="screenShot" type="button" title="Сделать скриншот">
+    {% comment %} <button id="screenShot" type="button" title="Сделать скриншот">
         <i class="fa-solid fa-camera"></i>
     </button>
 
     <button id="hideActivities" type="button" title="Скрыть для фото">
         <i class="fa-solid fa-eye-slash"></i>
-    </button>
+    </button> {% endcomment %}
 
     <button id="hideCompleteActivities" type="button" title="Показать выполненные">
         <i class="fa-solid fa-eye"></i>
@@ -332,6 +359,12 @@
         </button>
     </form>
 
+    <button id="loginStreak"
+            title="Стрик: {{ login_streak }} дней подряд">
+
+        <i class="fa-solid {{ streak_icon }}"></i>
+        <span class="streak-count">{{ login_streak }}</span>
+    </button>
 </div>
 
 <script>
