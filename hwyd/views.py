@@ -67,20 +67,6 @@ def activity_users(request):
     )
 
 
-def questionnaire(request):
-    if request.POST:
-        answer = ''
-        for post in request.POST:
-            if post != 'csrfmiddlewaretoken':
-                answer += f'{post}: {request.POST[post]} ~~~~~~~~~~ '
-        cus_user = CustomFieldsUser.objects.get(user=request.user)
-        cus_user.answers = answer
-        cus_user.save()
-        current_date = datetime.today()
-        return redirect('by_date', f'{current_date.year}-{current_date.month:0>2}')
-    return render(request, 'hwyd/questionnaire.html')
-
-
 @login_required(login_url='entry')
 def by_date(request, picked_date):
     """
