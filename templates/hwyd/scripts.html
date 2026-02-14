@@ -835,7 +835,7 @@ document.querySelector('#openAll').addEventListener('click', function (evt) {
 </script>
 <script src="{% static 'js/html2canvas.js' %}"></script>
 <script>
-    window.takeScreenShot = function () {
+    {% comment %} window.takeScreenShot = function () {
         openAllGroups();
   const myTable = document.getElementById("myTable");
   const tableWidth = myTable.offsetWidth;
@@ -892,10 +892,10 @@ document.querySelector('#openAll').addEventListener('click', function (evt) {
             }, 1000);
         }
     })
-};
+}; {% endcomment %}
 
 
-	window.onload = function() {
+	{% comment %} window.onload = function() {
 
         document.getElementById("screenShot").onclick = function () {
             openAllGroups();
@@ -956,7 +956,7 @@ document.querySelector('#openAll').addEventListener('click', function (evt) {
                 window.location.reload();
             }, 1000);
         }
-    }
+    } {% endcomment %}
 function openAllGroups() {
         let groups = document.querySelectorAll('tbody td[class*=isGroup]')
         let opened = []
@@ -991,7 +991,7 @@ function openAllGroups() {
     }
 </script>
 <script>
-    document.querySelector('#hideActivities').addEventListener('click', function () {
+    {% comment %} document.querySelector('#hideActivities').addEventListener('click', function () {
         let hide_activities = {{ hide_activities }};
         for (let elem of document.querySelectorAll('p.paragraph')) {
             for (let pk of hide_activities) {
@@ -1001,7 +1001,7 @@ function openAllGroups() {
                 }
             }
         }
-    })
+    }) {% endcomment %}
     document.querySelector('#hideCompleteActivities').addEventListener('click', function () {
         let trElements = document.querySelectorAll('tbody tr'), check = true;
         let currentDate = new Date();

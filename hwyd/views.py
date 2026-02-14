@@ -736,51 +736,6 @@ def delete_setting(request, setting_id):
     return HttpResponseRedirect(reverse('edit_settings'))
 
 
-def signin(request):
-    """
-    Функция для входа/регистрации пользователя
-
-    :param request: request
-    :return: отправляет контекст в html шаблон
-    """
-
-    context = {}
-    registration_form = RegisterForm()
-    login_form = LoginForm()
-    context['registration_form'] = registration_form
-    context['login_form'] = login_form
-    if request.POST:
-        if request.POST['type_form'] == 'registration_form':
-            registration_form = RegisterForm(request.POST)
-            if registration_form.is_valid():
-                user = registration_form.save(commit=False)
-                user.username = user.username.lower()
-                user.save()
-                create_setting(user, 'default')
-                login(request, user)
-                return redirect('index')
-            else:
-                return render(request, 'hwyd/index.html', {'form': login_form,
-                                                           'messages': list(registration_form.errors.values())})
-        elif request.POST['type_form'] == 'login_form':
-            login_form = LoginForm(request.POST)
-            if login_form.is_valid():
-                username = login_form.cleaned_data['username']
-                password = login_form.cleaned_data['password']
-                user = authenticate(request, username=username, password=password)
-                if user:
-                    login(request, user)
-                    return redirect('index')
-                else:
-                    try:
-                        User.objects.get(username=login_form.cleaned_data['username'].lower())
-                        message = 'Введите логин маленькими буквами!'
-                    except User.DoesNotExist:
-                        message = 'Некорректные данные!'
-                    return render(request, 'hwyd/index.html', {'form': login_form, 'messages': message})
-    return render(request, 'hwyd/index.html', context=context)
-
-
 @login_required(login_url='entry')
 def user_logout(request):
     """

@@ -59,7 +59,7 @@ p.headParagraph {
 
 input[type=text], input[type=number] {
     box-shadow: 0 1px 3px -2px #9098A9;
-    font-size: 14px;
+    font-size: 16px;
     border-radius: 3px;
     width: 110px;
     border: 1px solid #ccc;

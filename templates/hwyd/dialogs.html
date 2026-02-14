@@ -353,11 +353,57 @@
     {% endif %}
 
     <form action="{% url 'create_last_activities' date %}" method="post" style="display:{% if not range_activities %}inline;{% else %}none;{% endif %}">
-    {% csrf_token %}
+        {% csrf_token %}
         <button id="btnActLastMonth" type="submit" class="calendar-button" title="Создать активности прошлого месяца">
             <i class="fa-solid fa-clock-rotate-left"></i>
         </button>
     </form>
+
+    {% if settings.showCreateActivity %}
+    <button type="button"
+            class="calendar-button"
+            title="Создать активность"
+            onclick="openCreateActivityModal()">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <div id="createActivityModal" class="modal" onclick="openModalActivityModal(event)">
+        <div class="modal-content">
+            <form action="{% url 'create_activity' date 0 %}" method="post">
+                {% csrf_token %}
+                <input
+                    type="text"
+                    name="createActivityInput"
+                    placeholder="Имя активности"
+                    autofocus
+                    required>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if settings.showCreateActivityGroup %}
+    <button type="button"
+            class="calendar-button"
+            title="Создать группу"
+            onclick="openCreateGroupModal()">
+        <i class="fa-solid fa-layer-group"></i>
+    </button>
+
+    <div id="createActivityGroupModal" class="modal" onclick="openModalActivityGroupModal(event)">
+        <div class="modal-content">
+            <form action="{% url 'create_activity' date 1 %}" method="post">
+                {% csrf_token %}
+                <input
+                    type="text"
+                    name="createActivityGroupInput"
+                    placeholder="Имя группы"
+                    autofocus
+                    required>
+            </form>
+        </div>
+    </div>
+    {% endif %}
 
     <button id="loginStreak"
             title="Стрик: {{ login_streak }} дней подряд">
@@ -366,6 +412,43 @@
         <span class="streak-count">{{ login_streak }}</span>
     </button>
 </div>
+
+<script>
+function openModalActivityGroupModal() {
+    document.getElementById('createActivityGroupModal').style.display = 'flex';
+}
+
+function closeModalActivityGroupModal() {
+    document.getElementById('createActivityGroupModal').style.display = 'none';
+}
+
+function onModalClick(event) {
+    const modalContent = document.querySelector('.modal-content');
+
+    if (!modalContent.contains(event.target)) {
+        closeModalActivityGroupModal();
+    }
+}
+</script>
+
+<script>
+function openModalActivityModal() {
+    document.getElementById('createActivityModal').style.display = 'flex';
+}
+
+function closeModalActivityModal() {
+    document.getElementById('createActivityModal').style.display = 'none';
+}
+
+function onModalClick(event) {
+    const modalContent = document.querySelector('.modal-content');
+
+    if (!modalContent.contains(event.target)) {
+        closeModalActivityModal();
+    }
+}
+</script>
+
 
 <script>
 function vibrateOrHaptic() {
@@ -543,56 +626,3 @@ function vibrateOrHaptic() {
         <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
     </form>
 </dialog>  <!-- Диалоговое окно текста клетки -->
-
-<style>
-    .tabs {
-        font-size: 0;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .tabs > input[type="radio"] {
-        display: none;
-    }
-
-    .tabs > div {
-        /* скрыть контент по умолчанию */
-        display: none;
-        border: 1px solid #e0e0e0;
-        padding: 10px 15px;
-        font-size: 16px;
-    }
-
-    /* отобразить контент, связанный с выбранной радиокнопкой (input type="radio") */
-    #tab-btn-1:checked ~ #content-1,
-    #tab-btn-2:checked ~ #content-2,
-    #tab-btn-3:checked ~ #content-3,
-    #tab-btn-4:checked ~ #content-4 {
-        display: block;
-    }
-
-    .tabs > label {
-        display: inline-block;
-        text-align: center;
-        vertical-align: middle;
-        user-select: none;
-        background-color: #f5f5f5;
-        border: 1px solid #e0e0e0;
-        padding: 2px 8px;
-        font-size: 16px;
-        line-height: 1.5;
-        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
-        cursor: pointer;
-        position: relative;
-        top: 1px;
-    }
-
-    .tabs > label:not(:first-of-type) {
-        border-left: none;
-    }
-
-    .tabs > input[type="radio"]:checked + label {
-        background-color: #fff;
-        border-bottom: 1px solid #fff;
-    }
-</style>
