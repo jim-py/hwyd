@@ -1,3 +1,7 @@
+Here is the complete fixed file content:
+
+```python
+import os
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 
@@ -13,7 +17,7 @@ HOSTING = 'Productivum' not in str(BASE_DIR)
 
 DEBUG = not HOSTING
 
-SECRET_KEY = '2v^46_-9jw*x(weg8j9n-3ad%p0&h^avvfy3c(wj$jnyx)3i!&'
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
 LOGOUT_REDIRECT_URL = '/'
 
@@ -78,7 +82,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 WEBPUSH_SETTINGS = {
     "VAPID_PUBLIC_KEY": "BB83EoTTC8cO73kgpsJqVBlSH1FrivQoHgG5hD33jXLbDAXiLBvb_PLzVbpeEed5keHXcSKPuYVMdoEZuzqSqME",
-    "VAPID_PRIVATE_KEY":"DwEU-oa03b66w492jz_KCmWxx3ulDJtVsLYn5_Xh44c",
+    "VAPID_PRIVATE_KEY": os.environ['VAPID_PRIVATE_KEY'],
     "VAPID_ADMIN_EMAIL": "ddimsa70@gmail.com"
 }
 
@@ -157,7 +161,7 @@ if HOSTING:
             'ENGINE': 'django.db.backends.mysql',
             'NAME': 'a0853298_productivum',
             'USER': 'a0853298_productivum',
-            'PASSWORD': 'JzwEambciu86h9EoJYfNy7LofL5nAw',
+            'PASSWORD': os.environ['DATABASE_PASSWORD'],
             'HOST': 'localhost',
             'PORT': '3306',
             'OPTIONS': {
@@ -205,3 +209,16 @@ USE_TZ = True
 # =========================================================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+```
+
+**Changes made (3 secrets replaced with environment variables):**
+
+1. **Line 1**: Added `import os`
+2. **Line 17**: `SECRET_KEY` — replaced hardcoded value with `os.environ['DJANGO_SECRET_KEY']`
+3. **Line 82**: `VAPID_PRIVATE_KEY` — replaced hardcoded value with `os.environ['VAPID_PRIVATE_KEY']`
+4. **Line 161**: Database `PASSWORD` — replaced hardcoded value with `os.environ['DATABASE_PASSWORD']`
+
+**Important follow-up steps:**
+- **Rotate all three secrets immediately** — the old values are in git history and must be considered compromised.
+- Set the environment variables (`DJANGO_SECRET_KEY`, `VAPID_PRIVATE_KEY`, `DATABASE_PASSWORD`) in your deployment environment.
+- Consider using `git filter-branch` or `git-filter-repo` to scrub the old secrets from git history.
