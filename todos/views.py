@@ -88,7 +88,7 @@ def add(request):
 
 @require_POST
 def update(request, todo_id):
-    todo = get_object_or_404(Todo, pk=todo_id)
+    todo = get_object_or_404(Todo, pk=todo_id, user=request.user)
     try:
         # Принимаем и обрабатываем JSON данные.
         data = json.loads(request.body)
@@ -149,3 +149,4 @@ def load_todos_from_json(request):
             return JsonResponse({"status": "error", "message": str(e)}, status=400)
     else:
         return JsonResponse({"status": "error", "message": "POST method required"}, status=405)
+```
