@@ -2,18 +2,31 @@
 {% load tags %}
 
 <script>
-function openModal() {
-    document.getElementById('calendarModal').style.display = 'flex';
+let currentModal = null;
+
+// открыть модалку
+function openModal(modalId) {
+    currentModal = document.getElementById(modalId);
+    if (currentModal) {
+        currentModal.style.display = 'flex';
+    }
 }
 
+// закрыть текущую модалку
 function closeModal() {
-    document.getElementById('calendarModal').style.display = 'none';
+    if (currentModal) {
+        currentModal.style.display = 'none';
+        currentModal = null;
+    }
 }
 
+// клик вне окна — закрытие
 function onModalClick(event) {
-    const modalContent = document.querySelector('.modal-content');
+    if (!currentModal) return;
 
-    if (!modalContent.contains(event.target)) {
+    const modalContent = currentModal.querySelector('.modal-content');
+
+    if (modalContent && !modalContent.contains(event.target)) {
         closeModal();
     }
 }
@@ -665,18 +678,6 @@ function onModalClick(event) {
 
 {# ОТПРАВКА ФОРМ СОЗДАНИЯ АКТИВНОСТЕЙ И ВЫБОРА МЕСЯЦА В КАЛЕНДАРЕ #}
 <script>
-    {% if settings.showCreateActivity %}
-        document.querySelector("#createActivityInput").addEventListener("change", function () {
-            document.getElementById("createActivity").submit();
-        });
-    {% endif %}  // Отправка формы создания активности
-
-    {% if settings.showCreateActivityGroup %}
-        document.querySelector("#createActivityGroupInput").addEventListener("change", function () {
-            document.getElementById("createActivityGroup").submit();
-        });
-    {% endif %}  // Отправка формы создания группы
-
     {% if settings.showCalendar %}
         document.getElementById('chooseDate').addEventListener("change", function () {
             document.getElementById("chooseDate").submit();

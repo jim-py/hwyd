@@ -338,7 +338,7 @@
     </button>
 
     {% if settings.showCalendar %}
-    <button type="button" class="calendar-button" onclick="openModal()">
+    <button type="button" class="calendar-button" onclick="openModal('calendarModal')">
         <i class="fa-solid fa-calendar"></i>
     </button>
 
@@ -363,11 +363,11 @@
     <button type="button"
             class="calendar-button"
             title="Создать активность"
-            onclick="openCreateActivityModal()">
+            onclick="openModal('createActivityModal')">
         <i class="fa-solid fa-plus"></i>
     </button>
 
-    <div id="createActivityModal" class="modal" onclick="openModalActivityModal(event)">
+    <div id="createActivityModal" class="modal" onclick="onModalClick(event)">
         <div class="modal-content">
             <form action="{% url 'create_activity' date 0 %}" method="post">
                 {% csrf_token %}
@@ -386,11 +386,11 @@
     <button type="button"
             class="calendar-button"
             title="Создать группу"
-            onclick="openCreateGroupModal()">
+            onclick="openModal('createActivityGroupModal')">
         <i class="fa-solid fa-layer-group"></i>
     </button>
 
-    <div id="createActivityGroupModal" class="modal" onclick="openModalActivityGroupModal(event)">
+    <div id="createActivityGroupModal" class="modal" onclick="onModalClick(event)">
         <div class="modal-content">
             <form action="{% url 'create_activity' date 1 %}" method="post">
                 {% csrf_token %}
@@ -412,43 +412,6 @@
         <span class="streak-count">{{ login_streak }}</span>
     </button>
 </div>
-
-<script>
-function openModalActivityGroupModal() {
-    document.getElementById('createActivityGroupModal').style.display = 'flex';
-}
-
-function closeModalActivityGroupModal() {
-    document.getElementById('createActivityGroupModal').style.display = 'none';
-}
-
-function onModalClick(event) {
-    const modalContent = document.querySelector('.modal-content');
-
-    if (!modalContent.contains(event.target)) {
-        closeModalActivityGroupModal();
-    }
-}
-</script>
-
-<script>
-function openModalActivityModal() {
-    document.getElementById('createActivityModal').style.display = 'flex';
-}
-
-function closeModalActivityModal() {
-    document.getElementById('createActivityModal').style.display = 'none';
-}
-
-function onModalClick(event) {
-    const modalContent = document.querySelector('.modal-content');
-
-    if (!modalContent.contains(event.target)) {
-        closeModalActivityModal();
-    }
-}
-</script>
-
 
 <script>
 function vibrateOrHaptic() {
