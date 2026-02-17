@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import HomeView, LoginRegisterView, LogoutView, profile_update, math_training, MathTrainingResultsView, about
+from .views import HomeView, LoginRegisterView, LogoutView, profile_update, math_training, MathTrainingResultsView, about, mark_guide_viewed, should_show_guide
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
@@ -9,4 +9,6 @@ urlpatterns = [
     path('math/', math_training, name='mathtraining'),
     path('math/results/', MathTrainingResultsView.as_view(), name='math_training_results'),
     path('about/', about, name='about'),
+    path("guides/<slug:slug>/should-show/", should_show_guide),
+    path("guides/<slug:slug>/viewed/", mark_guide_viewed),
 ]

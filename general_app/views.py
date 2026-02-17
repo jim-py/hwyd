@@ -9,14 +9,17 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
+from django.utils import timezone
+from django.http import JsonResponse
 
 from .forms import UserUpdateForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import HttpResponseRedirect, HttpResponse
-from .models import MathTrainingResult
+from .models import MathTrainingResult, Guide, UserGuideProgress
 from django.views.generic.list import ListView
 from django.db.models import F, ExpressionWrapper, FloatField, OuterRef, Subquery
 from django.db.models.functions import Round
+from django.views.decorators.http import require_POST
 
 
 def about(request):
@@ -193,3 +196,39 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         return context
+
+
+def should_show_guide(request, slug):
+    guide = Guide.objects.get(slug=slug, is_active=True)
+
+    progress, _ = UserGuideProgress.objects.get_or_create(
+        user=request.user,
+        guide=guide
+    )
+
+    should_show = (
+        not progress.viewed
+        or progress.version_seen < guide.version
+    )
+
+    return JsonResponse({
+        "show": should_show,
+        "version": guide.version
+    })
+
+
+@require_POST
+def mark_guide_viewed(request, slug):
+    guide = Guide.objects.get(slug=slug)
+
+    progress, _ = UserGuideProgress.objects.get_or_create(
+        user=request.user,
+        guide=guide
+    )
+
+    progress.viewed = True
+    progress.version_seen = guide.version
+    progress.viewed_at = timezone.now()
+    progress.save()
+
+    return JsonResponse({"status": "ok"})

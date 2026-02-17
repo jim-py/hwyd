@@ -2,19 +2,23 @@
 <!DOCTYPE html>
 <html id="html" lang="ru">
 <head>
-    <meta http-equiv="cache-control" content="no-cache">
-    <meta http-equiv="expires" content="0">
     <title>Habitus</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" href="{% static 'css/tableCells.css' %}">
     <link rel="stylesheet" href="{% static 'css/buttons.css' %}">
+
     <script src="{% static 'js/jquery.js' %}"></script>
+
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
+    
     {% include 'hwyd/styles.html' %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="manifest" href="{% static 'manifest_habitus.json' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css"/>
 </head>
 <body>
 
@@ -175,6 +179,616 @@ window.IS_AUTHENTICATED = {{ request.user.is_authenticated|yesno:"true,false" }}
 })();
 </script>
 
+
+
+<script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
+
+
+<script>
+/* =====================================================
+   CONFIG
+===================================================== */
+
+const GUIDE_SLUG = "main_toolbar";
+
+const I18N = {
+    next: "Далее",
+    prev: "Назад",
+    done: "Понятно",
+    confirmClose: "Вы точно хотите прервать обучение?"
+};
+
+
+/* =====================================================
+   CSRF (Django)
+===================================================== */
+
+let csrfTokenCache = null;
+
+function getCSRFToken() {
+    if (csrfTokenCache) return csrfTokenCache;
+
+    const name = "csrftoken";
+    const cookies = document.cookie.split(";");
+
+    for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(name + "=")) {
+            csrfTokenCache = decodeURIComponent(
+                cookie.substring(name.length + 1)
+            );
+            return csrfTokenCache;
+        }
+    }
+    return "";
+}
+
+function csrfHeaders() {
+    return {
+        "X-CSRFToken": getCSRFToken(),
+        "Content-Type": "application/json"
+    };
+}
+
+
+/* =====================================================
+   FETCH HELPERS (единая точка работы с API)
+===================================================== */
+
+async function fetchJSON(url, options = {}) {
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+    }
+
+    // если сервер вернул пустое тело
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
+}
+
+const GuidesAPI = {
+    async shouldShow(slug) {
+        const data = await fetchJSON(
+            `/home/guides/${slug}/should-show/`
+        );
+        return data.show === true;
+    },
+
+    async markViewed(slug) {
+        await fetchJSON(
+            `/home/guides/${slug}/viewed/`,
+            {
+                method: "POST",
+                headers: csrfHeaders()
+            }
+        );
+    }
+};
+
+
+/* =====================================================
+   TEMPORARY VISIBILITY HELPERS
+===================================================== */
+
+function forceShowHiddenButtons(selectors) {
+    const modified = [];
+
+    selectors.forEach(selector => {
+        const el = document.querySelector(selector);
+        if (!el) return;
+
+        const computed = window.getComputedStyle(el);
+
+        if (computed.display === "none" || el.hidden) {
+            modified.push({
+                el,
+                originalDisplay: el.style.display,
+                wasHidden: el.hidden
+            });
+
+            el.hidden = false;
+
+            // не ломаем layout — используем block как безопасный fallback
+            if (computed.display === "none") {
+                el.style.display = "block";
+            }
+        }
+    });
+
+    return function restore() {
+        modified.forEach(item => {
+            item.el.hidden = item.wasHidden;
+            item.el.style.display = item.originalDisplay;
+        });
+    };
+}
+
+
+/* =====================================================
+   ONBOARDING STEPS (Font Awesome + bottom positioning)
+===================================================== */
+
+const ONBOARDING_STEPS = [
+    /* =====================================================
+      FINAL STEP / ЗАВЕРШЕНИЕ ОБУЧЕНИЯ
+      (будет ПОСЛЕДНИМ из-за reverse())
+    ===================================================== */
+    {
+        popover: {
+            title: 'Готово!',
+            description: `
+                <i class="fa-solid fa-heart onboarding-icon"></i>
+                Спасибо, что прошли короткое обучение!
+
+                <br><br>
+
+                Теперь вы знаете основные элементы управления
+                трекером привычек и можете начать пользоваться
+                приложением максимально эффективно.
+
+                <br><br>
+
+                <i class="fa-solid fa-gear onboarding-icon"></i>
+                Помните — большинство кнопок можно включать
+                или отключать в настройках под себя.
+
+                <br><br>
+
+                Желаем стабильных привычек,
+                длинных стриков
+                <i class="fa-solid fa-fire onboarding-icon"></i>
+                и отличных результатов!
+            `,
+            side: "center",
+            align: "center"
+        }
+    },
+
+    /* ---------- НАСТРОЙКИ ---------- */
+    {
+        element: "#buttonSettings",
+        popover: {
+            title: '<i class="fa-solid fa-gear onboarding-icon"></i> Настройки',
+            description:
+                "Здесь находятся настройки отображения, поведения и внешний вид трекера привычек.",
+            side: "bottom",
+            align: "start"
+        }
+    },
+
+    /* ---------- СКРЫТЬ ВЫПОЛНЕННЫЕ ---------- */
+    {
+        element: "#hideCompleteActivities",
+        popover: {
+            title: '<i class="fa-solid fa-eye onboarding-icon"></i> Выполненные привычки',
+            description:
+                "Позволяет скрыть выполненные привычки, чтобы сфокусироваться только на текущих.",
+            side: "bottom",
+            align: "center"
+        }
+    },
+
+    /* ---------- ОЧИСТКА ---------- */
+    {
+        element: "#deleteAll",
+        popover: {
+            title: '<i class="fa-solid fa-trash onboarding-icon"></i> Очистить привычки',
+            description:
+                "Удаляет все привычки выбранного периода. Кнопка появляется только когда очистка доступна.",
+            side: "bottom",
+            align: "center"
+        }
+    },
+
+    /* ---------- ГРУППЫ ---------- */
+    {
+        element: "#openAll",
+        popover: {
+            title: '<i class="fa-solid fa-folder-open onboarding-icon"></i> Управление группами',
+            description:
+                "Позволяет раскрыть или свернуть сразу все группы привычек.",
+            side: "bottom",
+            align: "center"
+        }
+    },
+
+    /* ---------- КАЛЕНДАРЬ ---------- */
+    {
+        element: '.calendar-button[onclick*="calendarModal"]',
+        popover: {
+            title: '<i class="fa-solid fa-calendar onboarding-icon"></i> Календарь',
+            description:
+                "Быстрый переход к любому месяцу. Можно просматривать прошлые периоды.",
+            side: "bottom",
+            align: "center"
+        }
+    },
+
+    /* ---------- ПОВТОР ПРОШЛОГО МЕСЯЦА ---------- */
+    {
+        element: "#btnActLastMonth",
+        popover: {
+            title: '<i class="fa-solid fa-clock-rotate-left onboarding-icon"></i> Повтор прошлого месяца',
+            description:
+                "Автоматически создаёт привычки на основе прошлого месяца. Кнопка появляется только когда привычек ещё нет.",
+            side: "bottom",
+            align: "center"
+        }
+    },
+
+    /* ---------- СОЗДАТЬ ПРИВЫЧКУ ---------- */
+    {
+        element: '.calendar-button[title="Создать активность"]',
+        popover: {
+            title: '<i class="fa-solid fa-plus onboarding-icon"></i> Новая привычка',
+            description:
+                "Создаёт новую привычку или задачу, которую вы хотите отслеживать.",
+            side: "bottom",
+            align: "center"
+        }
+    },
+
+    /* ---------- СОЗДАТЬ ГРУППУ ---------- */
+    {
+        element: '.calendar-button[title="Создать группу"]',
+        popover: {
+            title: '<i class="fa-solid fa-layer-group onboarding-icon"></i> Группа привычек',
+            description:
+                "Позволяет объединять привычки в группы для удобной организации.",
+            side: "bottom",
+            align: "center"
+        }
+    },
+
+    /* ---------- СТРИК ---------- */
+    {
+        element: "#loginStreak",
+        popover: {
+            title: '<i class="fa-solid fa-fire onboarding-icon"></i> Стрик посещений',
+            description:
+                "Показывает, сколько дней подряд вы заходите в приложение. Не прерывайте цепочку!",
+            side: "bottom",
+            align: "end"
+        }
+    },
+
+    /* ---------- INTRO / ДОБРО ПОЖАЛОВАТЬ ---------- */
+    {
+        popover: {
+            title: '<i class="fa-solid fa-hand-sparkles onboarding-icon"></i> Добро пожаловать!',
+            description: `
+                Сейчас мы коротко покажем основные кнопки управления трекером привычек.
+
+                <br><br>
+
+                <i class="fa-solid fa-gear onboarding-icon"></i> Некоторые кнопки могут быть отключены в настройках.
+                Во время обучения они временно отображаются, чтобы вы могли
+                увидеть все возможности интерфейса.
+
+                <br><br>
+
+                Вы всегда можете включить или скрыть их позже в настройках.
+            `,
+            side: "center",
+            align: "center"
+        }
+    },
+];
+
+
+/* =====================================================
+   ONBOARDING LOGIC
+===================================================== */
+
+let onboardingStarted = false;
+
+function validateSteps(steps) {
+    return steps.filter(step => {
+
+        if (!step.element) {
+            return true;
+        }
+
+        const exists = document.querySelector(step.element);
+
+        if (!exists) {
+            console.warn("Onboarding element not found:", step.element);
+        }
+
+        return exists;
+    });
+}
+
+function startOnboarding() {
+    if (onboardingStarted) return;
+    onboardingStarted = true;
+
+    const driver = window.driver?.js?.driver;
+
+    if (!driver) {
+        console.error("Driver.js не найден");
+        return;
+    }
+
+    /* временно показываем скрытые кнопки */
+    const restoreButtons = forceShowHiddenButtons([
+        "#deleteAll",
+        "#openAll",
+        "#createLastMonthActivitiesForm",
+        "#createActivityButton",
+        "#createGroupButton",
+        "#calendarButton"
+    ]);
+
+    const tour = driver({
+
+        /* UI */
+        showProgress: false,
+        allowClose: false,
+
+        nextBtnText: I18N.next,
+        prevBtnText: I18N.prev,
+        doneBtnText: I18N.done,
+
+        overlayOpacity: 0.65,
+        stagePadding: 8,
+        stageRadius: 10,
+        popoverClass: "onboarding-popover",
+        popoverOffset: window.innerWidth < 640 ? 20 : 12,
+
+        onHighlightStarted: (element, step, { state }) => {
+
+            if (!onboardingStartedCheck) {
+                onboardingStartedCheck = true;
+                enableOnboardingLock();
+            }
+        },
+
+        onDestroyed: async () => {
+            restoreButtons();
+
+            try {
+                await GuidesAPI.markViewed(GUIDE_SLUG);
+            } catch (e) {
+                console.error("Ошибка сохранения просмотра:", e);
+            }
+
+            disableOnboardingLock();
+        },
+
+        onCloseClick: () => {
+            if (confirm(I18N.confirmClose)) {
+                tour.destroy();
+            }
+        }
+    });
+
+    const REVERSED_ONBOARDING_STEPS = [...ONBOARDING_STEPS].reverse();
+    const validSteps = validateSteps(REVERSED_ONBOARDING_STEPS);
+
+    if (!validSteps.length) {
+        console.warn("Нет доступных шагов onboarding");
+        return;
+    }
+
+    tour.setSteps(validSteps);
+    tour.drive();
+}
+
+
+/* =====================================================
+   ONBOARDING INTERACTION LOCK
+===================================================== */
+
+let onboardingStartedCheck = false;
+
+function enableOnboardingLock() {
+    document.body.classList.add("onboarding-lock");
+}
+
+function disableOnboardingLock() {
+    document.body.classList.remove("onboarding-lock");
+    onboardingStartedCheck = false;
+}
+
+/* --- глобальный перехват событий toolbar --- */
+
+function blockToolbarEvents(e) {
+
+    if (!document.body.classList.contains("onboarding-lock"))
+        return;
+
+    const toolbar = e.target.closest("#divButtons");
+    if (!toolbar) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+
+    return false;
+}
+
+/* capture phase — раньше onclick */
+document.addEventListener("click", blockToolbarEvents, true);
+document.addEventListener("submit", blockToolbarEvents, true);
+document.addEventListener("mousedown", blockToolbarEvents, true);
+document.addEventListener("touchstart", blockToolbarEvents, true);
+
+
+/* =====================================================
+   AUTO START
+===================================================== */
+
+document.addEventListener("DOMContentLoaded", async () => {
+    let showGuide = false;
+
+    try {
+        showGuide = await GuidesAPI.shouldShow(GUIDE_SLUG);
+    } catch (e) {
+        console.error("Ошибка проверки гайда:", e);
+        return;
+    }
+
+    if (!showGuide) return;
+
+    // Ждём стабилизацию layout вместо setTimeout
+    requestAnimationFrame(() => {
+        requestAnimationFrame(startOnboarding);
+    });
+});
+</script>
+<style>
+/* =====================================================
+   ONBOARDING POPOVER BUTTON LAYOUT
+===================================================== */
+
+/* контейнер кнопок */
+.onboarding-popover .driver-popover-footer {
+    display: flex !important;
+    align-items: center;
+    width: 100%;
+}
+
+/* группа кнопок */
+.onboarding-popover .driver-popover-navigation-btns {
+    display: flex;
+    width: 100%;
+}
+
+/* КНОПКА НАЗАД — слева */
+.onboarding-popover .driver-popover-prev-btn {
+    margin-right: auto !important;
+}
+
+/* КНОПКА ДАЛЕЕ — справа */
+.onboarding-popover .driver-popover-next-btn {
+    margin-left: auto !important;
+}
+
+/* кнопка закрытия (если есть) остаётся справа */
+.onboarding-popover .driver-popover-close-btn {
+    margin-left: 8px;
+}
+
+
+
+  /* =====================================================
+   DRIVER.JS — ONBOARDING POPOVER ONLY
+   (затрагивает ТОЛЬКО гайд)
+===================================================== */
+
+.onboarding-popover {
+    max-width: 420px;     /* больше стандартного */
+    width: min(92vw, 420px);
+
+    padding: 18px 20px;
+    border-radius: 14px;
+
+    font-size: 15px;
+    line-height: 1.45;
+}
+
+
+/* ---------- заголовок ---------- */
+
+.onboarding-popover .driver-popover-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+
+/* ---------- текст ---------- */
+
+.onboarding-popover .driver-popover-description {
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+
+/* ---------- кнопки ---------- */
+
+.onboarding-popover .driver-popover-footer button {
+    min-height: 40px;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+
+/* =====================================================
+   DESKTOP — чуть больше
+===================================================== */
+
+@media (min-width: 1024px) {
+
+    .onboarding-popover {
+        max-width: 480px;
+        padding: 22px 24px;
+        font-size: 16px;
+    }
+
+    .onboarding-popover .driver-popover-title {
+        font-size: 20px;
+    }
+
+    .onboarding-popover .driver-popover-description {
+        font-size: 16px;
+    }
+}
+
+
+/* =====================================================
+   MOBILE — значительно крупнее
+===================================================== */
+
+@media (max-width: 640px) {
+
+    .onboarding-popover {
+        width: calc(100vw - 24px);
+        max-width: none;
+
+        padding: 20px 18px;
+        border-radius: 16px;
+
+        font-size: 16px;
+    }
+
+    .onboarding-popover .driver-popover-title {
+        font-size: 19px;
+    }
+
+    .onboarding-popover .driver-popover-description {
+        font-size: 16px;
+        line-height: 1.55;
+    }
+
+    .onboarding-popover .driver-popover-footer {
+        margin-top: 14px;
+    }
+
+    .onboarding-popover .driver-popover-footer button {
+        min-height: 44px; /* удобный touch target */
+        font-size: 15px;
+        padding: 10px 16px;
+    }
+}
+
+/* =====================================================
+   ONBOARDING ICON STYLE (Driver.js only)
+===================================================== */
+
+.onboarding-popover .onboarding-icon {
+    margin-right: 8px;
+    font-size: 16px;
+    vertical-align: middle;
+    opacity: 0.9;
+}
+.onboarding-popover {
+    transform-origin: top center;
+}
+</style>
 
 {% include 'hwyd/scripts.html' %}
 

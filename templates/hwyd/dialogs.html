@@ -337,8 +337,7 @@
         <i class="fa-solid fa-folder-open"></i>
     </button>
 
-    {% if settings.showCalendar %}
-    <button type="button" class="calendar-button" onclick="openModal('calendarModal')">
+    <button id="calendarButton" type="button" class="calendar-button" onclick="openModal('calendarModal')" style="display:{% if settings.showCalendar %}flex;{% else %}none;{% endif %}">
         <i class="fa-solid fa-calendar"></i>
     </button>
 
@@ -350,19 +349,19 @@
             </form>
         </div>
     </div>
-    {% endif %}
 
-    <form action="{% url 'create_last_activities' date %}" method="post" style="display:{% if not range_activities %}inline;{% else %}none;{% endif %}">
+    <form id="createLastMonthActivitiesForm" action="{% url 'create_last_activities' date %}" method="post" style="display:{% if not range_activities %}inline;{% else %}none;{% endif %}">
         {% csrf_token %}
         <button id="btnActLastMonth" type="submit" class="calendar-button" title="Создать активности прошлого месяца">
             <i class="fa-solid fa-clock-rotate-left"></i>
         </button>
     </form>
 
-    {% if settings.showCreateActivity %}
     <button type="button"
+            id="createActivityButton"
             class="calendar-button"
             title="Создать активность"
+            style="display:{% if settings.showCreateActivity %}flex;{% else %}none;{% endif %}"
             onclick="openModal('createActivityModal')">
         <i class="fa-solid fa-plus"></i>
     </button>
@@ -380,12 +379,12 @@
             </form>
         </div>
     </div>
-    {% endif %}
 
-    {% if settings.showCreateActivityGroup %}
     <button type="button"
+            id="createGroupButton"
             class="calendar-button"
             title="Создать группу"
+            style="display:{% if settings.showCreateActivityGroup %}flex;{% else %}none;{% endif %}"
             onclick="openModal('createActivityGroupModal')">
         <i class="fa-solid fa-layer-group"></i>
     </button>
@@ -403,7 +402,6 @@
             </form>
         </div>
     </div>
-    {% endif %}
 
     <button id="loginStreak"
             title="Стрик: {{ login_streak }} дней подряд">
