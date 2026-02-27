@@ -462,141 +462,250 @@ function onModalClick(event) {
     handleColorInputChange('input#colorTextFormText', 'input#colorTextForm');
 </script>
 
+
+
+
+
 {# ПРАВЫЙ КЛИК НА АКТИВНОСТЬ, ЗАПОЛНЕНИЕ ПОЛЕЙ МОДАЛЬНОГО ОКНА #}
+{% comment %} Отформатировал {% endcomment %}
 <script>
-    // Присоединяем обработчик события правого клика всем активностям
-    for (let elem of document.querySelectorAll('td.header')) {
-        elem.oncontextmenu = rightClick;
+    /* ===============================
+    ПОДКЛЮЧЕНИЕ ПРАВОЙ КНОПКИ КЛАВИШИ НА АКТИВНОСТИ
+    ================================ */
+    document.addEventListener("contextmenu", (e) => {
+        const target = e.target.closest("td.header");
+
+        if (!target) return;
+
+        rightClick(e);
+    });
+
+
+    /* ===============================
+    CACHE DOM (один раз)
+    ================================ */
+
+    const dialog = document.getElementById("dialog");
+
+    const UI = {
+        title: dialog.querySelector(".dialog__title"),
+        form: document.getElementById("formActivitySettings"),
+
+        activityPk: dialog.querySelector('input[name="activityPk"]'),
+        activityName: document.getElementById("activityName"),
+
+        colorBg: document.getElementById("colorBackgroundForm"),
+        colorBgText: document.getElementById("colorBackgroundFormText"),
+
+        colorText: document.getElementById("colorTextForm"),
+        colorTextText: document.getElementById("colorTextFormText"),
+
+        beginDay: document.getElementById("beginDay"),
+        endDay: document.getElementById("endDay"),
+
+        sections: {
+            onOffDays: document.querySelector(".onOffDaysDiv"),
+            weekdays: document.querySelector(".onOffWeekdays"),
+            grid: document.querySelector(".grid-container"),
+            repaint: document.querySelector(".repaintActivities"),
+            addToGroup: document.querySelector(".addActivityToGroup"),
+            activateDays: document.querySelector(".activateDayOfActivity"),
+            beginDay: document.querySelector(".beginDay"),
+            endDay: document.querySelector(".endDay"),
+        },
+
+        labels: {
+            name: document.getElementById("activityNameLabel"),
+        },
+
+        hrs: {
+            up: document.getElementById("upHr"),
+            down: document.getElementById("downHr"),
+        }
+    };
+
+
+    /* ===============================
+    DATA CACHE
+    ================================ */
+
+    const ACTIVITIES = {{ jsonActivities|safe }};
+    const activityMap = new Map(
+        ACTIVITIES.map(a => [a.name, a])
+    );
+
+
+    /* ===============================
+    HELPERS
+    ================================ */
+
+    function show(el, state = true, display = "block") {
+        el.style.display = state ? display : "none";
     }
 
-    // Обработка правого клика на активность
+    function setMargins(size) {
+        UI.hrs.up.style.margin = size;
+        UI.hrs.down.style.margin = size;
+    }
+
+
+    /* ===============================
+    FILL FORM
+    ================================ */
+
+    function fillForm(activity, targetEl, type) {
+
+        UI.title.innerText = `Настройка ${type}`;
+
+        UI.activityPk.value = activity.id;
+        UI.activityName.value = activity.name;
+
+        UI.colorBg.value = activity.backgroundColor;
+        UI.colorBgText.value = activity.backgroundColor;
+
+        UI.colorText.value = activity.color;
+        UI.colorTextText.value = activity.color;
+
+        UI.beginDay.value = activity.beginDay + 1;
+        UI.endDay.value = activity.endDay + 1;
+
+        // сохраняем ссылку на исходный элемент (как у тебя)
+        UI.colorBg.data = targetEl;
+        UI.colorText.data = targetEl;
+    }
+
+
+    /* ===============================
+    ACTIVITY MODE UI
+    ================================ */
+
+    function setupActivityMode(activity) {
+
+        const days = activity.onOffCells.split(" ");
+
+        for (let i = 0; i < days.length; i++) {
+            const dayEl = document.getElementById(`day${i + 1}`);
+            if (!dayEl) continue;
+            dayEl.classList.remove("on");
+
+            if (days[i] === "True") {
+                dayEl.click();
+            }
+        }
+
+        show(UI.sections.onOffDays, true, "inline-block");
+        show(UI.sections.weekdays, true, "flex");
+        show(UI.sections.grid, false);
+        show(UI.sections.beginDay, true, "flex");
+        show(UI.sections.endDay, true, "flex");
+
+        show(UI.sections.repaint, false);
+        show(UI.sections.addToGroup, false);
+        show(UI.sections.activateDays, true);
+
+        setMargins("10px");
+        UI.labels.name.innerText = "Название активности:";
+    }
+
+
+    /* ===============================
+    GROUP MODE UI
+    ================================ */
+
+    function setupGroupMode(activity, connections) {
+
+        document
+            .querySelectorAll('[id*=activityToGroup]')
+            .forEach(input => {
+
+                input.checked = false;
+                input.parentNode.classList.remove("activityOn");
+
+                if (connections.includes(Number(input.name))) {
+                    input.checked = true;
+                    input.parentNode.classList.add("activityOn");
+                }
+            });
+
+        show(UI.sections.onOffDays, false);
+        show(UI.sections.weekdays, false);
+        show(UI.sections.grid, true, "grid");
+        show(UI.sections.beginDay, false);
+        show(UI.sections.endDay, false);
+
+        show(UI.sections.repaint, true);
+        show(UI.sections.addToGroup, true);
+        show(UI.sections.activateDays, false);
+
+        setMargins("20px");
+        UI.labels.name.innerText = "Название группы:";
+    }
+
+
+    /* ===============================
+    NAME MARQUEE ANIMATION
+    ================================ */
+
+    function animateOverflowNames() {
+
+        document.querySelectorAll(".spanActivityName").forEach(span => {
+
+            const parent = span.parentElement;
+
+            const divSize = parent.offsetWidth - 10;
+            const spanSize = span.offsetWidth + 10;
+
+            if (divSize - spanSize < 0) {
+                span.animate(
+                    [
+                        { transform: `translateX(${divSize - spanSize}px)` },
+                        { transform: "translateX(0)" }
+                    ],
+                    {
+                        direction: "alternate-reverse",
+                        duration: 3000,
+                        iterations: Infinity
+                    }
+                );
+            } else {
+                parent.style.justifyContent = "center";
+            }
+        });
+    }
+
+
+    /* ===============================
+    MAIN HANDLER
+    ================================ */
+
     function rightClick(e) {
         e.preventDefault();
 
-        // Получаем необходимые элементы
-        const dialog = document.getElementById('dialog');
-        const elements = dialog.querySelectorAll('[class*=elementActivitySettings]');
-        const onOffDaysDiv = document.querySelector('div.onOffDaysDiv');
-        const onOffWeekdays = document.querySelector('div.onOffWeekdays');
-        const gridContainer = document.querySelector('div.grid-container');
-        const beginDay = document.querySelector('div.beginDay');
-        const endDay = document.querySelector('div.endDay');
-        {#const hrGridContainer = document.querySelector('hr.grid-container');#}
-        const btnSaveWithColor = document.querySelector('#saveWithColor');
-        const repaintActivities = document.querySelector('div.repaintActivities');
-        const addActivityToGroup = document.querySelector('div.addActivityToGroup');
-        const activateDayOfActivity = document.querySelector('div.activateDayOfActivity');
-        const upHr = document.querySelector('#upHr');
-        const downHr = document.querySelector('#downHr');
-        const activityNameLabel = document.querySelector('#activityNameLabel');
-        const hideOnLabel = document.querySelector('#hideOnLabel');
+        const name = e.target.dataset.name;
+        const type = e.target.dataset.type;
 
-        let tmp = {{ jsonActivities|safe }}, selected_activity;
-        for (let activity of tmp) {
-            if (activity['name'] === e.target.getAttribute('data-name')) {
-                selected_activity = activity
-            }
-        }
+        const activity = activityMap.get(name);
+        if (!activity) return;
 
-        // Извлекаем атрибуты из нажатого элемента
-        const targetType = e.target.getAttribute('data-type');
-        const targetName = selected_activity['name'];
-        const targetPk = selected_activity['id'];
-        const targetColorActivity = selected_activity['backgroundColor'];
-        const targetColorText = selected_activity['color'];
-        const beginDayAct = selected_activity['beginDay'];
-        const endDayAct = selected_activity['endDay'];
-        const hideOn = selected_activity['hide'];
-        const targetOnOffDays = selected_activity['onOffCells'].split(' ');
-        const targetConn = JSON.parse(e.target.getAttribute('data-conn'));
+        const connections =
+            JSON.parse(e.target.dataset.conn || "[]");
 
-        // Заполняем поля ввода и обновляем текст на основе атрибутов активности
-        document.querySelector('input#colorBackgroundFormText').value = targetColorActivity;
-        document.querySelector('input#colorTextFormText').value = targetColorText;
-        elements[0].innerText = `Настройка ${targetType}`;
-        elements[1].value = targetPk;
-        elements[2].value = targetName;
-        elements[3].checked = hideOn;
-        elements[4].value = targetColorActivity;
-        elements[4].data = e.target;
-        elements[5].value = targetColorText;
-        elements[5].data = e.target;
-        elements[6].value = beginDayAct + 1;
-        elements[7].value = endDayAct + 1;
+        fillForm(activity, e.target, type);
 
-        // Подстраиваем отображение на основе типа активности
-        if (targetType === 'активности') {
-            // Очищаем и прокликиваем кнопки связанные с отключением дней у активности
-            for (let i = 0; i < {{ days }}; i += 1) {
-                const dayElement = document.querySelector(`[id=day${i + 1}]`);
-                $(dayElement).removeClass('on')
-                if (targetOnOffDays[i] === 'True') {
-                    dayElement.click();
-                }
-            }
-            // Обновляем стили отображения под тип 'активность'
-            onOffDaysDiv.style.display = 'inline-block';
-            onOffWeekdays.style.display = 'flex';
-            gridContainer.style.display = 'none';
-            beginDay.style.display = 'flex';
-            endDay.style.display = 'flex';
-            {#hrGridContainer.style.display = 'none';#}
-            btnSaveWithColor.style.display = 'none';
-            repaintActivities.style.display = 'none';
-            addActivityToGroup.style.display = 'none';
-            activateDayOfActivity.style.display = 'block';
-            upHr.style.margin = '10px';
-            downHr.style.margin = '10px';
-            activityNameLabel.innerText = 'Название активности:';
-            hideOnLabel.innerText = 'Добавить активность в скрытые';
+        if (type === "активности") {
+            setupActivityMode(activity);
         } else {
-            // Очищаем и прокликиваем активности связанные с группой
-            for (let elem of document.querySelectorAll('[id*=activityToGroup]')) {
-                $(elem.parentNode).removeClass('activityOn');
-                if (targetConn.includes(Number(elem.name))){
-                    $(elem.parentNode).toggleClass('activityOn');
-                    elem.checked = true;
-                }
-            }
-            // Обновляем стили отображения под тип 'группа'
-            onOffDaysDiv.style.display = 'none';
-            onOffWeekdays.style.display = 'none';
-            gridContainer.style.display = 'grid';
-            beginDay.style.display = 'none';
-            endDay.style.display = 'none';
-            {#hrGridContainer.style.display = '';#}
-            {#btnSaveWithColor.style.display = 'inline-block';#}
-            repaintActivities.style.display = 'block';
-            addActivityToGroup.style.display = 'block';
-            activateDayOfActivity.style.display = 'none';
-            upHr.style.margin = '20px';
-            downHr.style.margin = '20px';
-            activityNameLabel.innerText = 'Название группы:';
-            hideOnLabel.innerText = 'Добавить группу в скрытые';
+            setupGroupMode(activity, connections);
         }
 
-        // Отображаем модальный диалог
         dialog.showModal();
-        for (let span of document.querySelectorAll('.spanActivityName')) {
-            let divSize = span.parentElement.offsetWidth - 10;
-            let spanSize = span.offsetWidth + 10;
-            if(divSize - spanSize < 0) {
-                span.animate([
-                    // key frames
-                    {transform: `translateX(${divSize - spanSize}px)`},
-                    {transform: `translateX(0)`}
-                ], {
-                    // sync options
-                    direction: 'alternate-reverse',
-                    duration: 3000,
-                    iterations: Infinity
-                });
-            } else {
-                span.parentElement.style.justifyContent = 'center';
-            }
-        }
+        animateOverflowNames();
     }
 </script>
+
+
+
+
 
 {# Перетаскивание строк #}
 <script>

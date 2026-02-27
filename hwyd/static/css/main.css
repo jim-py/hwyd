@@ -1,4 +1,4 @@
-/*Убрать полосу прокрутки для всей страницы*/
+
 ::-webkit-scrollbar {
   width: 0;
 }
@@ -14,12 +14,7 @@ input[type=checkbox] {
     display: none;
 }
 
-input[type=color] {
-    width: 25px;
-    height: 25px;
-    cursor: pointer;
-}
-
+/* Привычки */
 p.paragraph {
     border: 1px solid #a1a1a1;
     padding: 0 10px 0 10px;
@@ -57,6 +52,21 @@ p.headParagraph {
     align-items: center
 }
 
+
+
+
+input[type=text]:focus {
+    border: 1px solid #626262;
+    outline: #626262;
+    width: 150px;
+}
+
+input.elementActivitySettings {
+    display:inline-block;
+    margin-right: 0;
+    margin-left: auto;
+}
+
 input[type=text], input[type=number] {
     box-shadow: 0 1px 3px -2px #9098A9;
     font-size: 16px;
@@ -66,11 +76,32 @@ input[type=text], input[type=number] {
     transition: all 0.25s ease-in-out;
 }
 
+input[type=color] {
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+}
+
+
+
+/* +++ Модальное окно настроек привычки +++ */
+.modal__header {
+    cursor: move;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.modal__header img {
+    cursor: pointer;
+}
+
 input[type=text].inputSettings:focus {
     width: 100%;
 }
 
-input[type=text].inputSettingsColor:focus, input[type=number].inputSettingsColor:focus {
+input[type=text].inputSettingsColor:focus,
+input[type=number].inputSettingsColor:focus {
     width: 70px;
     border: 1px solid #626262;
     outline: #626262;
@@ -89,17 +120,39 @@ input[type=text].inputSettings {
     width: 100%;
 }
 
-input[type=text].inputSettingsColor, input[type=number].inputSettingsColor {
+input[type=text].inputSettingsColor,
+input[type=number].inputSettingsColor {
     background-color: #EDEDED;
     width: 70px;
     padding: 3px;
 }
 
-input[type=text]:focus {
-    border: 1px solid #626262;
-    outline: #626262;
-    width: 150px;
+.calendarWeek {
+    background-color: #eaeaea !important;
 }
+
+.calendarDay,
+.calendarWeek {
+    background-color: #cecece;
+    border: 2px solid #cecece;
+    border-radius: 7px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2px 5px;
+    cursor: pointer;
+    transition: all 250ms ease-out;
+}
+
+.calendarDay:hover,
+.calendarWeek:hover {
+    background-color: #f0f0f0;
+}
+/* --- */
+
+
 
 span.progress {
     background-color: #2f2f2f;
@@ -301,12 +354,6 @@ div.activityCell:hover {
 /*    }*/
 /*}*/
 
-input.elementActivitySettings {
-    display:inline-block;
-    margin-right: 0;
-    margin-left: auto;
-}
-
 .hasText {
     background-image: url(hastext.png);
     background-repeat: no-repeat;
@@ -350,28 +397,6 @@ select:focus, select:focus-visible {
 
 .selectPicker:hover {
     background-image: url("data:image/svg+xml,<svg height='15px' width='15px' viewBox='0 0 16 16' fill='%236b90ff' xmlns='http://www.w3.org/2000/svg'><path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/></svg>");
-}
-
-.calendarWeek {
-    background-color: #eaeaea !important;
-}
-
-.calendarDay, .calendarWeek {
-    background-color: #cecece;
-    border: 2px solid #cecece;
-    border-radius: 7px;
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 2px 5px;
-    cursor: pointer;
-    transition: all 250ms ease-out;
-}
-
-.calendarDay:hover, .calendarWeek:hover {
-    background-color: #f0f0f0;
 }
 
 #formColorSettings {
