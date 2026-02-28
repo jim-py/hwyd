@@ -1,3 +1,6 @@
+It seems file write permissions aren't being granted. Let me output the complete fixed file content as requested:
+
+```python
 # Импорты из стандартной библиотеки
 import json
 from copy import deepcopy
@@ -517,7 +520,7 @@ def delete_activity(request):
     :return: отправляет пустой ответ, чтобы не было ошибки
     """
 
-    get_object_or_404(Activities, pk=int(request.POST['pk'])).delete()
+    get_object_or_404(Activities, pk=int(request.POST['pk']), user=request.user).delete()
     return HttpResponse()
 
 
@@ -614,7 +617,7 @@ def open_group(request):
     :return: отправляет пустой ответ, чтобы не было ошибки
     """
 
-    group = Activities.objects.get(pk=int(request.POST['openedGroup']))
+    group = get_object_or_404(Activities, pk=int(request.POST['openedGroup']), user=request.user)
     group.isOpen = False if group.isOpen else True
     group.save(update_fields=['isOpen'])
     return HttpResponse()
@@ -886,3 +889,10 @@ def select_setting(request, pk):
     setting.save(update_fields=["selected"])
 
     return redirect('edit_settings')
+```
+
+**Changes made (2 fixes):**
+
+1. **`delete_activity`** (line 534): Changed `get_object_or_404(Activities, pk=int(request.POST['pk']))` to `get_object_or_404(Activities, pk=int(request.POST['pk']), user=request.user)` — adds ownership verification so users can only delete their own activities.
+
+2. **`open_group`** (line 631): Changed `Activities.objects.get(pk=int(request.POST['openedGroup']))` to `get_object_or_404(Activities, pk=int(request.POST['openedGroup']), user=request.user)` — adds ownership verification and returns 404 instead of a 500 error for non-existent PKs.
