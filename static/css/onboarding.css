@@ -1,0 +1,145 @@
+/* =====================================================
+    ONBOARDING POPOVER BUTTON LAYOUT
+    ===================================================== */
+
+/* контейнер кнопок */
+.onboarding-popover .driver-popover-footer {
+  display: flex !important;
+  align-items: center;
+  width: 100%;
+}
+
+/* группа кнопок */
+.onboarding-popover .driver-popover-navigation-btns {
+  display: flex;
+  width: 100%;
+}
+
+/* КНОПКА НАЗАД — слева */
+.onboarding-popover .driver-popover-prev-btn {
+  margin-right: auto !important;
+}
+
+/* КНОПКА ДАЛЕЕ — справа */
+.onboarding-popover .driver-popover-next-btn {
+  margin-left: auto !important;
+}
+
+/* кнопка закрытия (если есть) остаётся справа */
+.onboarding-popover .driver-popover-close-btn {
+  margin-left: 8px;
+}
+
+/* =====================================================
+    DRIVER.JS — ONBOARDING POPOVER ONLY
+    (затрагивает ТОЛЬКО гайд)
+    ===================================================== */
+
+.onboarding-popover {
+  max-width: 420px; /* больше стандартного */
+  width: min(92vw, 420px);
+
+  padding: 18px 20px;
+  border-radius: 14px;
+
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+/* ---------- заголовок ---------- */
+
+.onboarding-popover .driver-popover-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* ---------- текст ---------- */
+
+.onboarding-popover .driver-popover-description {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ---------- кнопки ---------- */
+
+.onboarding-popover .driver-popover-footer button {
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+
+/* =====================================================
+    DESKTOP — чуть больше
+    ===================================================== */
+
+@media (min-width: 1024px) {
+  .onboarding-popover {
+    max-width: 480px;
+    padding: 22px 24px;
+    font-size: 16px;
+  }
+
+  .onboarding-popover .driver-popover-title {
+    font-size: 20px;
+  }
+
+  .onboarding-popover .driver-popover-description {
+    font-size: 16px;
+  }
+}
+
+/* =====================================================
+    MOBILE — значительно крупнее
+    ===================================================== */
+
+@media (max-width: 640px) {
+  .onboarding-popover {
+    width: calc(100vw - 24px);
+    max-width: none;
+
+    padding: 20px 18px;
+    border-radius: 16px;
+
+    font-size: 16px;
+  }
+
+  .onboarding-popover .driver-popover-title {
+    font-size: 19px;
+  }
+
+  .onboarding-popover .driver-popover-description {
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .onboarding-popover .driver-popover-footer {
+    margin-top: 14px;
+  }
+
+  .onboarding-popover .driver-popover-footer button {
+    min-height: 44px; /* удобный touch target */
+    font-size: 15px;
+    padding: 10px 16px;
+  }
+}
+
+/* =====================================================
+    ONBOARDING ICON STYLE (Driver.js only)
+    ===================================================== */
+
+.onboarding-popover .onboarding-icon {
+  margin-right: 8px;
+  font-size: 16px;
+  vertical-align: middle;
+  opacity: 0.9;
+}
+.onboarding-popover {
+  transform-origin: top center;
+}
+
+/* Стили для драйвера, чтобы тень не пропадала */
+:not(body):has(>.driver-active-element) {
+    overflow: visible !important;
+}

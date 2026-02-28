@@ -21,8 +21,35 @@ from django_user_agents.utils import get_user_agent
 # Импорты из локальных модулей приложения
 from .forms import LoginForm, RegisterForm, SettingsForm
 from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, UserActivityLog
+from general_app.models import Guide, UserGuideProgress
 
 setlocale(category=LC_ALL, locale="Russian")
+
+
+def get_pending_guides(user):
+    """
+    Возвращает список slug гайдов,
+    которые нужно показать пользователю.
+    """
+
+    if not user.is_authenticated:
+        return []
+
+    guides = Guide.objects.filter(is_active=True)
+
+    pending = []
+
+    for guide in guides:
+        progress, _ = UserGuideProgress.objects.get_or_create(
+            user=user,
+            guide=guide,
+        )
+
+        # новый гайд или новая версия
+        if not progress.viewed or progress.version_seen < guide.version:
+            pending.append(guide.slug)
+
+    return pending
 
 
 @require_POST
@@ -389,6 +416,9 @@ def by_date(request, picked_date):
             streak_icon = get_streak_icon(login_streak)
         # ========================
 
+        guides = get_pending_guides(request.user)
+        print("Pending guides:", len(guides))
+
         context = {'range_activities': activities, 'range_days': range_days, 'weekends': weekends,
                    'cellsToClick': activated_cells, 'date': picked_date, 'onOffDays': [i for i in range(-1, days)][:-1],
                    'settings': setting, 'progress': progress_activities, 'today': today, 'month_name': month_name,
@@ -397,7 +427,8 @@ def by_date(request, picked_date):
                    'lst_group_conns': group_to_activities, 'group_open': group_open, 'connections': connections,
                    'weekdays': weekdays, 'hide_activities': hide_activities, 'all_settings': settings,
                    'calendar': Calendar().monthdatescalendar(year, month), 'month': month,
-                   'jsonActivities': json_activities, 'login_streak': login_streak, 'streak_icon': streak_icon}
+                   'jsonActivities': json_activities, 'login_streak': login_streak, 'streak_icon': streak_icon,
+                   'pending_guides': guides, 'guides': len(guides) > 0}
 
         return render(request, 'hwyd/base.html', context=context)
 
