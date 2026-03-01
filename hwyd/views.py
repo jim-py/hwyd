@@ -417,7 +417,6 @@ def by_date(request, picked_date):
         # ========================
 
         guides = get_pending_guides(request.user)
-        print("Pending guides:", len(guides))
 
         context = {'range_activities': activities, 'range_days': range_days, 'weekends': weekends,
                    'cellsToClick': activated_cells, 'date': picked_date, 'onOffDays': [i for i in range(-1, days)][:-1],
