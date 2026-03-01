@@ -48,8 +48,9 @@ def get_pending_guides(user):
         # новый гайд или новая версия
         if not progress.viewed or progress.version_seen < guide.version:
             pending.append(guide.slug)
-
-    return pending
+            return pending
+    
+    return []
 
 
 @require_POST
