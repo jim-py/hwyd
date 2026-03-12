@@ -26,11 +26,7 @@
 
 <body>
     {% block navbar %}
-    {% if request.user_agent.is_mobile %}
-    {% include 'navibarMobile.html' %}
-    {% else %}
     {% include 'navibar.html' %}
-    {% endif %}
     {% endblock %}
 
     {% block content %}{% endblock %}
