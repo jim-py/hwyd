@@ -1,19 +1,23 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
 
-<dialog class="dialog" id="some-modal-id">
-    <h3 class="dialog__title">Настройки</h3>
-
-    <hr style="margin-bottom: 15px;">
+<dialog class="dialog modalActivity settings-dialog" id="some-modal-id" aria-labelledby="settings-dialog-title">
+    <div class="modal__header">
+        <h3 class="dialog__title" id="settings-dialog-title">Настройки</h3>
+        <button type="button" class="settings-dialog__close" aria-label="Закрыть настройки" onclick="this.closest('dialog').close();">
+            <img src="{% static 'cansel.svg' %}" width="25" height="25" alt="">
+        </button>
+    </div>
+    <hr color="#c7c7c7" style="margin: 0;">
 
     <form id="settingsGlobal" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
-        <div>
+        <div class="settings-dialog__preset">
             <label for="selectSettings">Настройка</label>
             <button type="button" id="addSetting" class="button-6" style="width: auto;height: auto;background-color:#dfffdf;">add</button>
             <input type="text" id="nameSetting" name="nameSetting" value="{{ settings.name }}">
         <button type="button" id="delSetting" class="button-6" style="width: auto;height: auto;background-color:#ffdfdf;">del</button>
-            <select id="selectSettings" name="selectSettings" style="margin-left: 10px;">
+            <select id="selectSettings" name="selectSettings">
                 {% for setting in all_settings %}
                     <option {% if setting.selected %}selected{% endif %} value="{{ setting.pk }}">{{ setting.name }}</option>
                 {% endfor %}
@@ -21,7 +25,7 @@
         </div>
         <div>
         <label for="selectFont">Шрифт</label>
-        <select id="selectFont" name="selectFont" style="margin-left: 10px;">
+        <select id="selectFont" name="selectFont">
             <option {% if settings.fontFamily == 'Consolas' %}selected{% endif %} style="font-family: 'Consolas', serif" name="Consolas">Consolas</option>
             <option {% if settings.fontFamily == 'Montserrat' %}selected{% endif %} style="font-family: 'Montserrat', serif" name="Montserrat">Montserrat</option>
             <option {% if settings.fontFamily == 'Montserrat Alternates' %}selected{% endif %} style="font-family: 'Montserrat Alternates', serif" name="Montserrat Alternates">Montserrat Alternates</option>
@@ -39,7 +43,7 @@
         </select>
         </div>
 
-        <div>
+        <div class="settings-dialog__options">
             <div>
                 <label for="enableSortTable">Перетаскивание строк</label>
                 <input name="radioSettings" id="enableSortTable" type="radio" value="sort" autofocus
@@ -52,7 +56,7 @@
             </div>
         </div>
 
-        <div style="display: inline-block">
+        <div class="settings-dialog__options">
             <div>
                 <label for="showCalendar">Календарь</label>
                 <input name="showCalendar" id="showCalendar" type="checkbox"
@@ -80,7 +84,7 @@
             </div>
         </div>
 
-        <div style="display: inline-block">
+        <div class="settings-dialog__options">
             <div>
                 <label for="onSounds">Звуки</label>
                 <input name="onSounds" id="onSounds" type="checkbox"
@@ -117,19 +121,20 @@
             </select>
         </div>
 
-        <hr style="margin-top: 15px;">
         <input id="data" name="data">
     </form>
 
-    <button class="button-6" role="button" onclick="btnSaveSettings();" style="background-color:#dfffdf;">Сохранить</button>
-
-    <form id="closeDialog" method="dialog" style="margin-right: 35px;">
-        <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
-    </form>
-
-    <a href="#" class="button-6 jsonBtn" id="downloadJson">
-        <img src="https://cdn-icons-png.flaticon.com/512/4239/4239049.png" height=16px width=16px alt="Download" class="icon"> JSON
-    </a>
+    <div class="settings-dialog__footer">
+        <button type="button" class="button-save" role="button" onclick="btnSaveSettings();">Сохранить</button>
+        <div class="settings-dialog__actions">
+            <form id="closeDialog" method="dialog">
+                <button class="button-6" role="button">Закрыть</button>
+            </form>
+            <a href="#" class="button-6 jsonBtn" id="downloadJson">
+                <img src="https://cdn-icons-png.flaticon.com/512/4239/4239049.png" height=16px width=16px alt="Download" class="icon"> JSON
+            </a>
+        </div>
+    </div>
 
 </dialog>  <!-- Диалоговое окно настроек сайта -->
 
@@ -316,6 +321,13 @@
     <button id="buttonSettings" type="button" title="Настройки" onclick="window['some-modal-id'].showModal();" aria-controls="some-modal-id">
         <i class="fa-solid fa-gear"></i>
     </button>
+
+    {% if request.user.is_authenticated %}
+    <button id="buttonChat" type="button" title="Чат" aria-label="Чат" aria-controls="chatDialog">
+        <i class="fa-solid fa-comments" aria-hidden="true"></i>
+        <span id="chatUnreadDot" class="chat-unread-dot" hidden aria-hidden="true"></span>
+    </button>
+    {% endif %}
 
     {% comment %} <button id="screenShot" type="button" title="Сделать скриншот">
         <i class="fa-solid fa-camera"></i>

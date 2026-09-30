@@ -25,3 +25,5 @@ media/
 
 *.md
 migrations/
+!chat/migrations/
+!chat/migrations/*.py

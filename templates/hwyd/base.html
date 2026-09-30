@@ -15,6 +15,9 @@
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" href="{% static 'css/tableCells.css' %}">
     <link rel="stylesheet" href="{% static 'css/buttons.css' %}">
+    {% if request.user.is_authenticated %}
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+    {% endif %}
 
     <script src="{% static 'js/jquery.js' %}"></script>
 
@@ -31,6 +34,9 @@
 {% include 'navibar.html' %}
 
 {% include 'hwyd/dialogs.html' %}
+{% if request.user.is_authenticated %}
+{% include 'hwyd/chat.html' %}
+{% endif %}
 
 {% include 'hwyd/table.html' %}
 
@@ -189,6 +195,9 @@ window.PENDING_GUIDES = {{ pending_guides|safe }};
 {% endif %}
 
 {% include 'hwyd/scripts.html' %}
+{% if request.user.is_authenticated %}
+<script type="module" src="{% static 'js/chat.js' %}"></script>
+{% endif %}
 
 </body>
 </html>

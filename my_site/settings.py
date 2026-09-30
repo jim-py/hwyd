@@ -64,6 +64,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    'chat.apps.ChatConfig',
     'general_app.apps.GeneralAppConfig',
     'hwyd.apps.HwydConfig',
     'todos.apps.TodosConfig',

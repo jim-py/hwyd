@@ -1,0 +1,28 @@
+{% load static %}
+<dialog id="chatDialog" class="modalActivity chat-dialog" aria-labelledby="chatTitle"
+        data-messages-url="{% url 'chat:messages' %}" data-status-url="{% url 'chat:status' %}"
+        data-read-url="{% url 'chat:read' %}">
+    <div class="modal__header">
+        <h3 id="chatTitle" class="dialog__title">Чат</h3>
+        <form method="dialog">
+            <button type="submit" class="chat-close" aria-label="Закрыть чат">
+                <img src="{% static 'cansel.svg' %}" width="25" height="25" alt="">
+            </button>
+        </form>
+    </div>
+    <div id="chatMessages" class="chat-messages" role="log" aria-live="polite" aria-label="Сообщения общего чата" tabindex="0">
+        <p id="chatEmpty">Сообщений пока нет.</p>
+    </div>
+    <form id="chatComposer" class="chat-composer">
+        {% csrf_token %}
+        <p id="chatError" class="chat-error" role="status" hidden></p>
+        <div class="chat-input-row">
+            <textarea id="chatText" maxlength="2000" rows="2" placeholder="Написать сообщение..."
+                      aria-label="Текст сообщения" required></textarea>
+            <button id="chatEmojiToggle" class="button-6" type="button" aria-label="Выбрать emoji"
+                    aria-expanded="false" aria-controls="chatEmojiPicker">😀</button>
+        </div>
+        <div id="chatEmojiPicker" class="chat-emoji-picker" role="group" aria-label="Emoji" hidden></div>
+        <button id="chatSend" class="button-save" type="submit">Отправить</button>
+    </form>
+</dialog>
