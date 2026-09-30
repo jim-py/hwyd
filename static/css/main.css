@@ -177,8 +177,44 @@ form[id=settingsGlobal] > div > div > input[type=checkbox] {
     height: 16px;
 }
 
-form[id=settingsGlobal] > div > div > input[type=checkbox]:checked {
-    border: 1px solid black;
+/* Общие отступы modalActivity; только содержимое Settings прокручивается. */
+#some-modal-id {
+    width: 420px;
+    max-width: calc(100% - 32px);
+    max-height: calc(100% - 32px);
+    padding: 0;
+    overflow: hidden;
+}
+
+#some-modal-id[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+#some-modal-id > .modal__header,
+.settings-dialog__footer {
+    flex-shrink: 0;
+}
+
+#some-modal-id > .modal__header {
+    cursor: default;
+}
+
+.settings-dialog__close {
+    display: flex;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+#settingsGlobal {
+    min-height: 0;
+    overflow-y: auto;
+}
+
+#settingsGlobal::-webkit-scrollbar {
+    width: 6px;
 }
 
 form[id=settingsGlobal] > div {
@@ -186,16 +222,66 @@ form[id=settingsGlobal] > div {
     margin-bottom: 7px;
     display: flex;
     justify-content: space-between;
-    padding: 5px;
-    border-radius: 5px;
-    box-shadow: 0 0 2px 0 black;
+    gap: 7px;
+    flex-wrap: wrap;
 }
 
 form[id=settingsGlobal] > div > div {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: nowrap;
+    gap: 7px;
+}
+
+#settingsGlobal > .settings-dialog__options {
+    display: grid;
+    justify-content: stretch;
+    gap: 7px;
+    padding-top: 7px;
+}
+
+#settingsGlobal label {
+    min-width: 0;
+}
+
+#settingsGlobal input[type=radio],
+#settingsGlobal input[type=checkbox] {
+    flex-shrink: 0;
+}
+
+#settingsGlobal select {
+    max-width: 100%;
+}
+
+#settingsGlobal > .settings-dialog__preset > label,
+#settingsGlobal > .settings-dialog__preset > select {
+    width: 100%;
+}
+
+#settingsGlobal #nameSetting {
+    flex: 1;
+    min-width: 0;
+}
+
+.settings-dialog__footer {
+    padding: 15px;
+}
+
+.settings-dialog__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 7px;
+    margin-top: 7px;
+}
+
+.settings-dialog__actions .jsonBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    text-decoration: none;
+    box-sizing: border-box;
 }
 
 form[id=formColorSettings] > div {
@@ -206,7 +292,7 @@ form[id=formActivitySettings] > div {
     margin-bottom: 7px;
 }
 
-form[id=formActivitySettings] {
+form[id=formActivitySettings], form[id=settingsGlobal] {
     font-weight: 400;
     padding: 15px 20px;
 }
@@ -382,7 +468,8 @@ select:focus, select:focus-visible {
     outline: 0;
 }
 
-#dialog, #dialog:focus, #dialog:focus-visible {
+#dialog, #dialog:focus, #dialog:focus-visible,
+#some-modal-id, #some-modal-id:focus, #some-modal-id:focus-visible {
     border: 2px solid #c7c7c7;
     outline: 0;
 }
