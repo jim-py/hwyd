@@ -195,6 +195,7 @@ window.PENDING_GUIDES = {{ pending_guides|safe }};
 {% endif %}
 
 {% include 'hwyd/scripts.html' %}
+<script type="module" src="{% static 'js/streak-firework.js' %}"></script>
 {% if request.user.is_authenticated %}
 <script type="module" src="{% static 'js/chat.js' %}"></script>
 {% endif %}
