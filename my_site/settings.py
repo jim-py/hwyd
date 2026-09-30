@@ -53,7 +53,6 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'whitenoise.runserver_nostatic',
     'django_user_agents',
-    'taggit',
     'debug_toolbar',
     'notifications',
     'widget_tweaks',
