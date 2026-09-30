@@ -84,21 +84,6 @@
             </a>
         </li>
         <li class="nav-menu__item">
-            <a href="{% url 'todos:index' %}" class="nav-menu__link" data-section="todos" title="Todo">
-                <i class="fa-solid fa-list-check"></i>
-            </a>
-        </li>
-        <li class="nav-menu__item">
-            <a href="{% url 'pomodoro:base' %}" class="nav-menu__link" data-section="pomodoro" title="Pomodoro">
-                <i class="fa-solid fa-clock"></i>
-            </a>
-        </li>
-        <li class="nav-menu__item">
-            <a href="{% url 'mathtraining' %}" class="nav-menu__link" data-section="math" title="Math">
-                <i class="fa-solid fa-square-root-variable"></i>
-            </a>
-        </li>
-        <li class="nav-menu__item">
             <a href="{% url 'profile' %}" class="nav-menu__link" data-section="profile" title="Profile">
                 <i class="fa-solid fa-user"></i>
             </a>
@@ -130,10 +115,7 @@
 
 <script>
 const rules = {
-    todos: () => location.pathname.includes('/todos/'),
     habitus: () => location.pathname.includes('/habitus/'),
-    pomodoro: () => location.pathname.includes('/pomodoro/'),
-    math: () => location.pathname.includes('/math/'),
     profile: () => location.pathname.includes('/profile/'),
     about: () => location.pathname.includes('/about/'),
     home: () => location.pathname === '/home/',

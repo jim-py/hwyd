@@ -3,6 +3,8 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 
+# Legacy schema retained to preserve historical results and migration state.
+# Math Training has no routes, views or UI; data/schema cleanup is a separate task.
 class MathTrainingResult(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)

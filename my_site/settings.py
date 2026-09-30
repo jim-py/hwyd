@@ -54,7 +54,6 @@ THIRD_PARTY_APPS = [
     'whitenoise.runserver_nostatic',
     'django_user_agents',
     'taggit',
-    'pomodoro',
     'debug_toolbar',
     'notifications',
     'widget_tweaks',
@@ -67,7 +66,6 @@ LOCAL_APPS = [
     'chat.apps.ChatConfig',
     'general_app.apps.GeneralAppConfig',
     'hwyd.apps.HwydConfig',
-    'todos.apps.TodosConfig',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

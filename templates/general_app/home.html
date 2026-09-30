@@ -49,28 +49,6 @@
                 Создавайте и отслеживайте свои привычки для достижения целей.
             </div>
         </article>
-        <article class="feature" id="todoapp">
-            <h2>Actus</h2>
-            <p>
-            <div class="text-feature">Трекер задач
-                <div class="custom-hr"></div>
-                Записывайте задачи и следите за их исполнением, чтобы ничего не упустить.
-            </div>
-        </article>
-        <article class="feature" id="pomodorotimer">
-            <h2>Focusi</h2>
-            <div class="text-feature">Трекер концентрации
-                <div class="custom-hr"></div>
-                Используйте метод Помодоро для улучшения управления временем и повышения продуктивности.
-            </div>
-        </article>
-        <article class="feature" id="mathtraining">
-            <h2>Algeo</h2>
-            <div class="text-feature">Математический тренажёр
-                <div class="custom-hr"></div>
-                Решайте математические примеры на скорость для поддержания мозговой активности.
-            </div>
-        </article>
         <article class="feature-locked" id="time-tracker">
             <h2>Tempus</h2>
             <p>
@@ -113,15 +91,6 @@
 <script>
     document.getElementById('hwyd').addEventListener('click', function () {
         window.location.href = '{% url 'index' %}';
-    });
-    document.getElementById('todoapp').addEventListener('click', function () {
-        window.location.href = '{% url 'todos:index' %}';
-    });
-    document.getElementById('mathtraining').addEventListener('click', function () {
-        window.location.href = '{% url 'mathtraining' %}';
-    });
-    document.getElementById('pomodorotimer').addEventListener('click', function () {
-        window.location.href = '{% url 'pomodoro:base' %}';
     });
 </script>
 {% endblock %}

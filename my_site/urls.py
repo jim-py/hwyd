@@ -27,8 +27,6 @@ urlpatterns = [
     path('home/', include('general_app.urls')),
     path('habitus/', include('hwyd.urls')),
     path('hwyd/', RedirectView.as_view(url='/habitus/', permanent=True)),
-    path('todos/', include('todos.urls')),
-    path('pomodoro/', include('pomodoro.urls')),
     path('notifications/', include('notifications.urls', namespace='notifications')),
     path('webpush/', include('webpush.urls')),
 ]

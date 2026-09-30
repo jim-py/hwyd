@@ -1,4 +1,3 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.views import View
 from django.contrib.auth import authenticate, login
@@ -14,74 +13,13 @@ from django.http import JsonResponse
 
 from .forms import UserUpdateForm
 from django.contrib.auth.forms import PasswordChangeForm
-from django.http import HttpResponseRedirect, HttpResponse
-from .models import MathTrainingResult, Guide, UserGuideProgress
-from django.views.generic.list import ListView
-from django.db.models import F, ExpressionWrapper, FloatField, OuterRef, Subquery
-from django.db.models.functions import Round
+from django.http import HttpResponseRedirect
+from .models import Guide, UserGuideProgress
 from django.views.decorators.http import require_POST
 
 
 def about(request):
     return render(request, "general_app/about.html")
-
-
-class MathTrainingResultsView(LoginRequiredMixin, ListView):
-    model = MathTrainingResult
-    template_name = 'general_app/mathtraining_results.html'
-    context_object_name = 'results'
-
-    def get_queryset(self):
-        # Аннотация среднего времени на пример
-        base_qs = MathTrainingResult.objects.annotate(
-            average_time=ExpressionWrapper(
-                Round(F('time_spent') / F('problems_solved'), 2),
-                output_field=FloatField()
-            )
-        )
-
-        # Подзапрос: находим минимальное среднее время для каждой пары (user, problems_solved)
-        best_times_subquery = base_qs.filter(
-            user=OuterRef('user'),
-            problems_solved=OuterRef('problems_solved')
-        ).order_by('average_time', 'date')  # если одинаковое время — берём более ранний результат
-
-        # Оставляем только "лучшие" результаты
-        queryset = base_qs.filter(
-            pk=Subquery(best_times_subquery.values('pk')[:1])
-        ).order_by('problems_solved', 'average_time')
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        results_sorted = {}
-
-        for result in self.get_queryset():
-            problems_solved = result.problems_solved
-            if problems_solved not in results_sorted:
-                results_sorted[problems_solved] = []
-            results_sorted[problems_solved].append(result)
-
-        context['results_sorted'] = dict(sorted(results_sorted.items()))
-        return context
-
-
-@login_required(login_url="entry")
-def math_training(request):
-    if request.method == "GET":
-        return render(request, "general_app/mathtraining.html")
-    elif request.method == "POST":
-        time_spent = request.POST.get("time")
-        problems_solved = request.POST.get("examples_solved")
-        result = MathTrainingResult(
-            user=request.user,
-            time_spent=int(time_spent) / 1000,
-            problems_solved=int(problems_solved),
-        )
-        result.save()
-        print(result)
-        return HttpResponse()
 
 
 @login_required(login_url="entry")
