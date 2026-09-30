@@ -3,18 +3,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 
-# Legacy schema retained to preserve historical results and migration state.
-# Math Training has no routes, views or UI; data/schema cleanup is a separate task.
-class MathTrainingResult(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
-    time_spent = models.DecimalField(max_digits=5, decimal_places=2)
-    problems_solved = models.IntegerField()
-
-    def __str__(self):
-        return f'{self.user.username} - {self.problems_solved} - {self.time_spent}'
-
-
 class Guide(models.Model):
     """
     Описывает onboarding / обучение в системе.
