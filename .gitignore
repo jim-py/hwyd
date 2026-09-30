@@ -26,3 +26,5 @@ media/
 # Технические файлы
 AGENTS.md
 CODEBASE_INDEX.md
+
+migrations/
