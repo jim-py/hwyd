@@ -1,0 +1,195 @@
+.activity-users-page {
+    --au-surface: var(--bs-body-bg, #fff);
+    --au-surface-muted: var(--bs-tertiary-bg, #f8f9fa);
+    --au-border: var(--bs-border-color, #dee2e6);
+    --au-text: var(--bs-body-color, #212529);
+    --au-muted: var(--bs-secondary-color, #59616b);
+    --au-focus: var(--bs-primary, #0a84ff);
+
+    width: min(100%, 1120px);
+    margin: 0 auto;
+    padding: 32px 24px 56px;
+    color: var(--au-text);
+    line-height: 1.5;
+}
+
+.activity-users-page__header {
+    margin-bottom: 28px;
+}
+
+.activity-users-page__header h1 {
+    margin: 0 0 8px;
+    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.025em;
+}
+
+.activity-users-page__header p {
+    margin: 0;
+    color: var(--au-muted);
+    font-size: 0.875rem;
+}
+
+.activity-users-page__days {
+    display: grid;
+    gap: 24px;
+}
+
+.activity-users-day {
+    min-width: 0;
+    border: 1px solid var(--au-border);
+    border-radius: 6px;
+    background: var(--au-surface);
+}
+
+.activity-users-day__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--au-border);
+}
+
+.activity-users-day__header h2 {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.activity-users-day__weekday,
+.activity-users-day__count {
+    color: var(--au-muted);
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.activity-users-day__scroll {
+    overflow-x: auto;
+    border-radius: 0 0 6px 6px;
+    scrollbar-width: thin;
+}
+
+/* The shared scroll stylesheet hides WebKit scrollbars globally. */
+.activity-users-day__scroll::-webkit-scrollbar {
+    display: block;
+    height: 8px;
+}
+
+.activity-users-day__scroll::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background: var(--au-muted);
+}
+
+.activity-users-day__scroll:focus-visible {
+    outline: 2px solid var(--au-focus);
+    outline-offset: 3px;
+}
+
+.activity-users-table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 0.875rem;
+}
+
+.activity-users-table th,
+.activity-users-table td {
+    padding: 12px 20px;
+    vertical-align: middle;
+}
+
+.activity-users-table thead th {
+    background: var(--au-surface-muted);
+    color: var(--au-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.activity-users-table tbody tr + tr {
+    border-top: 1px solid var(--au-border);
+}
+
+.activity-users-table tbody tr:hover {
+    background: var(--au-surface-muted);
+}
+
+.activity-users-table .activity-users-table__number {
+    width: 56px;
+    padding-right: 8px;
+    color: var(--au-muted);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.activity-users-table .activity-users-table__user {
+    text-align: left;
+    font-weight: 500;
+}
+
+.activity-users-table__name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.activity-users-table .activity-users-table__time {
+    width: 160px;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.activity-users-empty {
+    padding: 40px 24px;
+    border: 1px solid var(--au-border);
+    border-radius: 6px;
+    background: var(--au-surface);
+    text-align: center;
+}
+
+.activity-users-empty h2 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.activity-users-empty p {
+    max-width: 480px;
+    margin: 0 auto;
+    color: var(--au-muted);
+    font-size: 0.875rem;
+}
+
+@media (max-width: 600px) {
+    .activity-users-page {
+        padding: 24px 16px 40px;
+    }
+
+    .activity-users-page__header {
+        margin-bottom: 20px;
+    }
+
+    .activity-users-page__days {
+        gap: 20px;
+    }
+
+    .activity-users-day__header {
+        padding: 12px 16px;
+    }
+
+    .activity-users-table th,
+    .activity-users-table td {
+        padding: 10px 16px;
+    }
+}

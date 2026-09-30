@@ -1,48 +1,62 @@
 {% extends 'general_app/base.html' %}
+{% load static %}
 
-{% block title %}Last activity{% endblock %}
+{% block title %}Активность пользователей · Productivum{% endblock %}
 
 {% block extra_css %}
-<style>
-    .table-responsive {
-        padding: 2rem;
-    }
-
-    .table {
-        border-color: #a2a2a2;
-        margin-bottom: 5rem;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/activity-users.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="table-responsive">
+<main class="activity-users-page" aria-labelledby="activity-users-title">
+    <header class="activity-users-page__header">
+        <h1 id="activity-users-title">Активность пользователей</h1>
+        <p>История посещений по дням. Время указано в часовом поясе пользователя.</p>
+    </header>
+
+    <div class="activity-users-page__days">
     {% for group in grouped_data %}
-    <table class="table table-hover table-bordered text-center">
-        <thead>
-            <tr>
-                <th colspan="4">{{ group.date }}</th>
-            </tr>
-            <tr>
-                <th>#</th>
-                <th>Имя</th>
-                <th>Первый вход</th>
-                <th>Последний вход</th>
-            </tr>
-        </thead>
-        <tbody>
+        <section class="activity-users-day" aria-labelledby="activity-users-day-{{ forloop.counter }}">
+            <header class="activity-users-day__header">
+                <h2 id="activity-users-day-{{ forloop.counter }}">
+                    <time datetime="{{ group.date|date:'Y-m-d' }}">{{ group.date|date:"j E Y" }}</time>
+                    <span class="activity-users-day__weekday">{{ group.date|date:"l" }}</span>
+                </h2>
+                <span class="activity-users-day__count">Записей: {{ group.users|length }}</span>
+            </header>
 
-            {% for person in group.users %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ person.user.username }}</td>
-                <td>{{ person.first_visit_local|date:"H:i" }}</td>
-                <td>{{ person.last_visit_local|date:"H:i" }}</td>
-            </tr>
-            {% endfor %}
-
-        </tbody>
-    </table>
+            <div class="activity-users-day__scroll" role="region" tabindex="0"
+                 aria-labelledby="activity-users-day-{{ forloop.counter }}">
+                <table class="activity-users-table" aria-labelledby="activity-users-day-{{ forloop.counter }}">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="activity-users-table__number"><span aria-label="Номер">#</span></th>
+                            <th scope="col" class="activity-users-table__user">Имя</th>
+                            <th scope="col" class="activity-users-table__time">Первый вход</th>
+                            <th scope="col" class="activity-users-table__time">Последний вход</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for person in group.users %}
+                        <tr>
+                            <td class="activity-users-table__number">{{ forloop.counter }}</td>
+                            <th scope="row" class="activity-users-table__user">
+                                <span class="activity-users-table__name" title="{{ person.user.username }}">{{ person.user.username }}</span>
+                            </th>
+                            <td class="activity-users-table__time">{{ person.first_visit_local|date:"H:i" }}</td>
+                            <td class="activity-users-table__time">{{ person.last_visit_local|date:"H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% empty %}
+        <div class="activity-users-empty">
+            <h2>Пока нет посещений</h2>
+            <p>Здесь появится история активности, когда пользователи начнут посещать приложение.</p>
+        </div>
     {% endfor %}
-</div>
+    </div>
+</main>
 {% endblock %}

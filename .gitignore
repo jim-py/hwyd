@@ -22,3 +22,6 @@ media/
 .vscode/
 .idea/
 *.swp
+
+*.md
+migrations/
