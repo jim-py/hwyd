@@ -23,5 +23,7 @@ media/
 .idea/
 *.swp
 
-*.md
+# Технические файлы
+AGENTS.md
+CODEBASE_INDEX.md
 migrations/
