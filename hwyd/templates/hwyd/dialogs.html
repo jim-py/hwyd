@@ -268,13 +268,13 @@ function vibrateOrHaptic() {
 
 
 
-<dialog id="dialog" class="modalActivity">
+<dialog id="dialog" class="modalActivity activity-dialog">
     <div class="modal__header">
         <h3 class="dialog__title elementActivitySettings"></h3>
         <img onclick="$('#closeSettingsActivity').click();" src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt=""  class="dialog-close-image">
     </div>
     <hr color="#c7c7c7"  class="dialog-divider">
-    <form id="formActivitySettings" action="{% url 'by_date' date %}" method="post">
+    <form id="formActivitySettings" class="activity-dialog__body" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
         <input class="elementActivitySettings" type="hidden" name="activityPk"/>
         <div>
@@ -359,69 +359,83 @@ function vibrateOrHaptic() {
     </form>
 </dialog>  <!-- Диалоговое окно настроек группы/активности -->
 
-<dialog id="dialogHead" class="modalColors">
+<dialog id="dialogHead" class="modalColors modalActivity activity-dialog activity-dialog--colors" aria-labelledby="color-dialog-title">
     <div class="modal__header">
-    <h3 class="dialog__title dialogHeadSettings">Глобальные настройки цвета</h3>
+        <h3 id="color-dialog-title" class="dialog__title dialogHeadSettings">Глобальные настройки цвета</h3>
+        <button type="button" class="settings-dialog__close" aria-label="Закрыть настройки цвета" onclick="this.closest('dialog').close();">
+            <img src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt="">
+        </button>
     </div>
-    <hr>
-    <form id="formColorSettings" action="{% url 'global_colors' date %}" method="post">
+    <hr color="#c7c7c7" class="dialog-divider">
+    <form id="formColorSettings" class="activity-dialog__body" action="{% url 'global_colors' date %}" method="post">
         {% csrf_token %}
-        <div>
+        <div class="activity-color-row">
             <label for="tableHeadColor*changeParagraph">Цвет фона заголовка</label>
-            <input name="tableHeadColor" id="tableHeadColor*changeParagraph" type="color"
+            <input name="tableHeadColor" id="tableHeadColor*changeParagraph" type="color" autofocus
                    value="{{ settings.tableHeadColor }}">
         </div>
-        <div>
+        <div class="activity-color-row">
             <label for="tableHeadColorWeekend">Цвет фона выходных</label>
             <input name="tableHeadColorWeekend" id="tableHeadColorWeekend" type="color"
                    value="{{ settings.tableHeadColorWeekend }}">
         </div>
-        <div>
+        <div class="activity-color-row">
             <label for="tableHeadTextColor*changeParagraph">Цвет текста заголовка</label>
             <input name="tableHeadTextColor" id="tableHeadTextColor*changeParagraph"
                    type="color" value="{{ settings.tableHeadTextColor }}">
         </div>
-        <div>
+        <div class="activity-color-row">
             <label for="backgroundColor">Цвет заднего фона сайта</label>
             <input name="backgroundColor" id="backgroundColor" type="color"
                    value="{{ settings.backgroundColor }}">
         </div>
-        <div>
+        <div class="activity-color-row">
             <label for="rowColumnLight">Цвет выделения строки и столбца</label>
             <input name="rowColumnLight" id="rowColumnLight" type="color"
                    value="{{ settings.rowColumnLight }}">
         </div>
 
     </form>
-    <hr>
-    <div id="buttonsFooter">
-    <button class="button-6 dialog-button--save" onclick="document.querySelector('form[id=formColorSettings]').submit();"
-            role="button" >Сохранить</button>
-    <form method="dialog" id="closeDialog">
-        <button class="button-6 dialog-button--close" role="button" >Закрыть</button>
-    </form>
+    <hr color="#ffffff" class="dialog-divider">
+    <div id="buttonsFooter" class="activity-dialog-footer">
+        <button type="button" class="button-save" onclick="document.querySelector('form[id=formColorSettings]').submit();">Сохранить</button>
+        <div class="activity-dialog__actions">
+            <form method="dialog" id="closeDialog">
+                <button class="button-6 dialog-button--close">Закрыть</button>
+            </form>
         </div>
+    </div>
 </dialog>  <!-- Диалоговое окно глобальных настроек цвета -->
 
-<dialog id="dialogCell">
-    <h3 class="dialog__title dialogHeadSettings">Настройка клетки</h3>
-    <hr>
-    <form id="formCellCommentSettings" action="{% url 'by_date' date %}" method="post">
+<dialog id="dialogCell" class="modalActivity activity-dialog" aria-labelledby="cell-dialog-title">
+    <div class="modal__header">
+        <h3 id="cell-dialog-title" class="dialog__title dialogHeadSettings">Текст клетки</h3>
+        <button type="button" class="settings-dialog__close" aria-label="Закрыть текст клетки" onclick="this.closest('dialog').close();">
+            <img src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt="">
+        </button>
+    </div>
+    <hr color="#c7c7c7" class="dialog-divider">
+    <form id="formCellCommentSettings" class="activity-dialog__body" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
         <div>
             <label for="symbolsOnCell">Надпись в клетке</label>
-            <input id="symbolsOnCell" name="symbols" type="text">
+            <div class="dialog-spacer"></div>
+            <input id="symbolsOnCell" class="inputSettings" name="symbols" type="text" autofocus>
         </div>
         <div>
             <label for="commentOnCell">Комментарий в клетке</label>
-            <textarea id="commentOnCell" name="comment"></textarea>
+            <div class="dialog-spacer"></div>
+            <textarea id="commentOnCell" class="inputSettings" name="comment"></textarea>
         </div>
         <input id="cellNum" type="hidden" name="cell">
     </form>
-    <hr>
-    <button class="button-6 dialog-button--save" onclick="document.querySelector('form[id=formCellCommentSettings]').submit();"
-            role="button" >Сохранить</button>
-    <form method="dialog" id="closeDialog">
-        <button class="button-6 dialog-button--close" role="button" >Закрыть</button>
-    </form>
+    <hr color="#ffffff" class="dialog-divider">
+    <div class="activity-dialog-footer">
+        <button type="button" class="button-save" onclick="document.querySelector('form[id=formCellCommentSettings]').submit();">Сохранить</button>
+        <div class="activity-dialog__actions">
+            <form method="dialog" id="closeDialog">
+                <button class="button-6 dialog-button--close">Закрыть</button>
+            </form>
+        </div>
+    </div>
 </dialog>  <!-- Диалоговое окно текста клетки -->

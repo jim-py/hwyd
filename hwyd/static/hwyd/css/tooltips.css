@@ -22,7 +22,7 @@
     background: 0;
 }
 
-#dialogHead, #dialog {
+.activity-dialog {
     overflow: hidden;
     bottom: auto;
     right: auto;

@@ -67,7 +67,7 @@ input.elementActivitySettings {
     margin-left: auto;
 }
 
-input[type=text], input[type=number] {
+input[type=text], input[type=number], textarea.inputSettings {
     box-shadow: 0 1px 3px -2px #9098A9;
     font-size: 16px;
     border-radius: 3px;
@@ -96,8 +96,11 @@ input[type=color] {
     cursor: pointer;
 }
 
-input[type=text].inputSettings:focus {
+input[type=text].inputSettings:focus,
+textarea.inputSettings:focus {
     width: 100%;
+    border: 1px solid #626262;
+    outline: #626262;
 }
 
 input[type=text].inputSettingsColor:focus,
@@ -111,7 +114,8 @@ input[type=number].inputSettingsColor:focus {
     margin: 10px 0 7px 0;
 }
 
-input[type=text].inputSettings {
+input[type=text].inputSettings,
+textarea.inputSettings {
     box-sizing: border-box;
     padding: 7px 0 7px 12px;
     font-weight: 400;
@@ -284,15 +288,7 @@ form[id=settingsGlobal] > div > div {
     box-sizing: border-box;
 }
 
-form[id=formColorSettings] > div {
-    margin-bottom: 7px;
-}
-
-form[id=formActivitySettings] > div {
-    margin-bottom: 7px;
-}
-
-form[id=formActivitySettings], form[id=settingsGlobal] {
+form[id=settingsGlobal] {
     font-weight: 400;
     padding: 15px 20px;
 }
@@ -484,24 +480,4 @@ select:focus, select:focus-visible {
 
 .selectPicker:hover {
     background-image: url("data:image/svg+xml,<svg height='15px' width='15px' viewBox='0 0 16 16' fill='%236b90ff' xmlns='http://www.w3.org/2000/svg'><path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/></svg>");
-}
-
-#formColorSettings {
-    padding: 10px 25px;
-}
-
-#formColorSettings > div {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#buttonsFooter {
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
-}
-
-#dialogHead:focus, #dialogHead:focus-visible {
-    border: 1px solid #ccc;
 }

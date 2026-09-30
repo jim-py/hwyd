@@ -156,10 +156,77 @@ hr.dialog-divider { margin: 0; }
 #dialog .dialog-close-image { float:right; }
 dialog .dialog-spacer { margin-bottom: 7px; }
 #formActivitySettings hr.activity-divider { margin: 20px; }
-#formActivitySettings .activity-color-row { display: flex; justify-content: space-between }
+.activity-dialog .activity-color-row { display: flex; justify-content: space-between }
 #formActivitySettings input.activity-color-input { margin-right: 20px; }
 .onOffDaysDiv .calendar-week-row { display: flex }
-#dialog .activity-dialog-footer { padding: 15px }
+.activity-dialog-footer { padding: 15px }
 dialog button.button-6.dialog-button--close { background-color:#ffdfdf; }
 dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
 #saveWithColor.dialog-button--repaint { background-color:#fffcdf; width:auto; }
+
+/* Shared shell follows the activity/group settings dialog. */
+.activity-dialog {
+    box-sizing: border-box;
+    width: 340px;
+    max-width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    padding: 0;
+    border: 2px solid #c7c7c7;
+    outline: 0;
+}
+
+.activity-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-dialog > .modal__header,
+.activity-dialog > .dialog-divider,
+.activity-dialog > .activity-dialog-footer {
+    flex-shrink: 0;
+}
+
+.activity-dialog .dialog__title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.activity-dialog .settings-dialog__close {
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+
+.activity-dialog__body {
+    min-height: 0;
+    margin: 0;
+    padding: 15px 20px;
+    overflow-y: auto;
+    font-weight: 400;
+}
+
+.activity-dialog__body > div {
+    margin-bottom: 7px;
+}
+
+.activity-dialog__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 7px;
+}
+
+.activity-dialog--colors .activity-color-row {
+    align-items: center;
+    gap: 20px;
+}
+
+.activity-dialog--colors input[type=color] {
+    flex-shrink: 0;
+}
+
+.activity-dialog textarea.inputSettings {
+    min-height: 120px;
+    height: 120px;
+    padding: 7px 12px;
+    resize: vertical;
+}

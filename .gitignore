@@ -25,6 +25,6 @@ media/
 
 # Технические файлы
 AGENTS.md
-CODEBASE_INDEX.md
+CODEBASE_MAP.md
 
 migrations/

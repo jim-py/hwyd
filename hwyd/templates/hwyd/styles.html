@@ -160,8 +160,8 @@
 <link rel="stylesheet" href="{% static 'hwyd/css/tooltips.css' %}">
 <style>
 {% if not request.user_agent.is_mobile %}
-        #dialogHead, #dialog {
-            left: 40%;
+        .activity-dialog {
+            left: clamp(16px, 40%, calc(100% - 356px));
         {#top: 25%;#} padding: 0;
         }
     {% endif %}
