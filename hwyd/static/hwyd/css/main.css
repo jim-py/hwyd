@@ -441,7 +441,7 @@ div.activityCell:hover {
 /*}*/
 
 .hasText {
-    background-image: url(hastext.png);
+    background-image: url(../images/hastext.png);
     background-repeat: no-repeat;
     background-position: right bottom;
 }

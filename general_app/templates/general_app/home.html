@@ -4,34 +4,10 @@
 {% block title %}Productivum{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'general_app/font.css' %}">
-<link rel="stylesheet" href="{% static 'general_app/home.css' %}">
-<link rel="stylesheet" href="{% static 'general_app/scroll.css' %}">
-<style>
-    .feature:hover .custom-hr {
-        background-color: #5f99e8;
-    }
-
-    .custom-hr {
-        height: 1px;
-        background-color: #888;
-        margin: 8px 0;
-    }
-
-    .text-feature {
-        text-align: center
-    }
-
-    h2 {
-        margin-top: 8px;
-    }
-
-    h1,
-    h2 {
-        font-weight: 700;
-        font-size: 32px;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'general_app/css/font.css' %}">
+<link rel="stylesheet" href="{% static 'general_app/css/home.css' %}">
+<link rel="stylesheet" href="{% static 'general_app/css/scroll.css' %}">
+<link rel="stylesheet" href="{% static 'general_app/css/home-overrides.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -68,7 +44,7 @@
     <section class="section company-section">
         <h2>О компании Productivum</h2>
         <div class="company-content">
-            <img src="{% static 'general_app/image.png' %}" alt="Фото Философа" class="philosopher-photo">
+            <img src="{% static 'general_app/images/image.png' %}" alt="Фото Философа" class="philosopher-photo">
             <div class="company-text">
                 <p>Компания Productivum укрепляет мост между древней мудростью и современной технологией, вдохновляясь
                     бесценными идеями великих мыслителей.</p>

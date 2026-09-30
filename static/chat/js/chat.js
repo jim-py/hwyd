@@ -1,4 +1,4 @@
-import { getCSRFToken } from './csrf.js';
+import { getCSRFToken } from '../../site/js/csrf.js';
 
 const dialog = document.getElementById('chatDialog');
 const button = document.getElementById('buttonChat');

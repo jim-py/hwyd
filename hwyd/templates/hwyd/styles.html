@@ -1,23 +1,11 @@
 {% load static %}
 {% if not request.user_agent.is_mobile %}
-    <style>
-        html {
-            display: table;
-            margin: auto;
-        }
-        body {
-            display: table-cell;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'hwyd/css/layout-desktop.css' %}">
 {% else %}
-    <style>
-        body {
-            margin: auto;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'hwyd/css/layout-mobile.css' %}">
 {% endif %}
+<link rel="stylesheet" href="{% static 'hwyd/css/fonts.css' %}">
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Istok+Web&family=JetBrains+Mono:wght@400;500;600&family=Montserrat+Alternates:wght@400;500;600&family=Montserrat:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&family=Ubuntu:wght@300&display=swap');
 
     body {
         font-family: '{{ settings.fontFamily }}', serif;
@@ -169,45 +157,13 @@
         }
     {% endif %}
 </style>
+<link rel="stylesheet" href="{% static 'hwyd/css/tooltips.css' %}">
 <style>
-    .divClick.hasText.bigger15:hover::before {
-        left: auto;
-        right: 105%;
-    }
-
-    .divClick.hasText:hover::before {
-        content: attr(data-title);
-        position: absolute;
-        z-index: 9999;
-        width: 75px;
-        top: -5px;
-        left: 105%;
-        color: #000000;
-        background-color: #fff;
-        padding: 5px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
-    }
-
-    .modalActivity::backdrop, .modalColors::backdrop {
-        background: 0;
-    }
-
-    #dialogHead, #dialog {
-        overflow: hidden;
-        bottom: auto;
-        right: auto;
-    }
-
-    {% if not request.user_agent.is_mobile %}
+{% if not request.user_agent.is_mobile %}
         #dialogHead, #dialog {
             left: 40%;
         {#top: 25%;#} padding: 0;
         }
     {% endif %}
-
-    .ui-sortable-handle {
-        cursor: move !important;
-    }
 </style>
+<link rel="stylesheet" href="{% static 'hwyd/css/sortable.css' %}">

@@ -1,7 +1,13 @@
+"""Manual delivery to real users. Never run as part of automated verification."""
+
 import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_site.settings")  # <-- замени my_site.settings на свой путь
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_site.settings")
 django.setup()
 
 from django.contrib.auth import get_user_model

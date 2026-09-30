@@ -1,22 +1,22 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
+<link rel="stylesheet" href="{% static 'hwyd/css/dropdown.css' %}">
 
 <dialog class="dialog modalActivity settings-dialog" id="some-modal-id" aria-labelledby="settings-dialog-title">
     <div class="modal__header">
         <h3 class="dialog__title" id="settings-dialog-title">Настройки</h3>
         <button type="button" class="settings-dialog__close" aria-label="Закрыть настройки" onclick="this.closest('dialog').close();">
-            <img src="{% static 'cansel.svg' %}" width="25" height="25" alt="">
+            <img src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt="">
         </button>
     </div>
-    <hr color="#c7c7c7" style="margin: 0;">
+    <hr color="#c7c7c7"  class="dialog-divider">
 
     <form id="settingsGlobal" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
         <div class="settings-dialog__preset">
             <label for="selectSettings">Настройка</label>
-            <button type="button" id="addSetting" class="button-6" style="width: auto;height: auto;background-color:#dfffdf;">add</button>
+            <button type="button" id="addSetting" class="button-6 preset-button preset-button--add" >add</button>
             <input type="text" id="nameSetting" name="nameSetting" value="{{ settings.name }}">
-        <button type="button" id="delSetting" class="button-6" style="width: auto;height: auto;background-color:#ffdfdf;">del</button>
+        <button type="button" id="delSetting" class="button-6 preset-button preset-button--delete" >del</button>
             <select id="selectSettings" name="selectSettings">
                 {% for setting in all_settings %}
                     <option {% if setting.selected %}selected{% endif %} value="{{ setting.pk }}">{{ setting.name }}</option>
@@ -26,20 +26,20 @@
         <div>
         <label for="selectFont">Шрифт</label>
         <select id="selectFont" name="selectFont">
-            <option {% if settings.fontFamily == 'Consolas' %}selected{% endif %} style="font-family: 'Consolas', serif" name="Consolas">Consolas</option>
-            <option {% if settings.fontFamily == 'Montserrat' %}selected{% endif %} style="font-family: 'Montserrat', serif" name="Montserrat">Montserrat</option>
-            <option {% if settings.fontFamily == 'Montserrat Alternates' %}selected{% endif %} style="font-family: 'Montserrat Alternates', serif" name="Montserrat Alternates">Montserrat Alternates</option>
-            <option {% if settings.fontFamily == 'Georgia' %}selected{% endif %} style="font-family: 'Georgia', serif" name="Georgia">Georgia</option>
-            <option {% if settings.fontFamily == 'JetBrains Mono' %}selected{% endif %} style="font-family: 'JetBrains Mono', serif" name="JetBrains Mono">JetBrains Mono</option>
-            <option {% if settings.fontFamily == 'Arial' %}selected{% endif %} style="font-family: 'Arial', serif" name="Arial">Arial</option>
-            <option {% if settings.fontFamily == 'Courier New' %}selected{% endif %} style="font-family: 'Courier New', serif" name="Courier New">Courier New</option>
-            <option {% if settings.fontFamily == 'Lucida Console' %}selected{% endif %} style="font-family: 'Lucida Console', serif" name="Lucida Console">Lucida Console</option>
-            <option {% if settings.fontFamily == 'Trebuchet MS' %}selected{% endif %} style="font-family: 'Trebuchet MS', serif" name="Trebuchet MS">Trebuchet MS</option>
-            <option {% if settings.fontFamily == 'Istok Web' %}selected{% endif %} style="font-family: 'Istok Web', serif" name="Istok Web">Istok Web</option>
-            <option {% if settings.fontFamily == 'Roboto Mono' %}selected{% endif %} style="font-family: 'Roboto Mono', serif" name="Roboto Mono">Roboto Mono</option>
-            <option {% if settings.fontFamily == 'Inter' %}selected{% endif %} style="font-family: 'Inter', serif" name="Inter">Inter</option>
-            <option {% if settings.fontFamily == 'Ubuntu' %}selected{% endif %} style="font-family: 'Ubuntu', serif" name="Ubuntu">Ubuntu</option>
-            <option {% if settings.fontFamily == 'Comic Sans MS' %}selected{% endif %} style="font-family: 'Comic Sans MS', serif" name="Comic Sans MS">Comic Sans MS</option>
+            <option {% if settings.fontFamily == 'Consolas' %}selected{% endif %}  name="Consolas" class="font-preview--consolas">Consolas</option>
+            <option {% if settings.fontFamily == 'Montserrat' %}selected{% endif %}  name="Montserrat" class="font-preview--montserrat">Montserrat</option>
+            <option {% if settings.fontFamily == 'Montserrat Alternates' %}selected{% endif %}  name="Montserrat Alternates" class="font-preview--montserrat-alternates">Montserrat Alternates</option>
+            <option {% if settings.fontFamily == 'Georgia' %}selected{% endif %}  name="Georgia" class="font-preview--georgia">Georgia</option>
+            <option {% if settings.fontFamily == 'JetBrains Mono' %}selected{% endif %}  name="JetBrains Mono" class="font-preview--jetbrains-mono">JetBrains Mono</option>
+            <option {% if settings.fontFamily == 'Arial' %}selected{% endif %}  name="Arial" class="font-preview--arial">Arial</option>
+            <option {% if settings.fontFamily == 'Courier New' %}selected{% endif %}  name="Courier New" class="font-preview--courier-new">Courier New</option>
+            <option {% if settings.fontFamily == 'Lucida Console' %}selected{% endif %}  name="Lucida Console" class="font-preview--lucida-console">Lucida Console</option>
+            <option {% if settings.fontFamily == 'Trebuchet MS' %}selected{% endif %}  name="Trebuchet MS" class="font-preview--trebuchet-ms">Trebuchet MS</option>
+            <option {% if settings.fontFamily == 'Istok Web' %}selected{% endif %}  name="Istok Web" class="font-preview--istok-web">Istok Web</option>
+            <option {% if settings.fontFamily == 'Roboto Mono' %}selected{% endif %}  name="Roboto Mono" class="font-preview--roboto-mono">Roboto Mono</option>
+            <option {% if settings.fontFamily == 'Inter' %}selected{% endif %}  name="Inter" class="font-preview--inter">Inter</option>
+            <option {% if settings.fontFamily == 'Ubuntu' %}selected{% endif %}  name="Ubuntu" class="font-preview--ubuntu">Ubuntu</option>
+            <option {% if settings.fontFamily == 'Comic Sans MS' %}selected{% endif %} class="font-preview--comic-sans-ms" name="Comic Sans MS">Comic Sans MS</option>
         </select>
         </div>
 
@@ -140,181 +140,7 @@
 
 
 
-<style>
-    .toolbar {
-        display: flex;
-        gap: 14px; /* больше воздуха между кнопками */
-        margin-bottom: 10px;
-        flex-direction: row-reverse;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .toolbar button {
-        width: 2.5rem;
-        height: 2.5rem;
-        border: none;
-        border-radius: 20%;
-
-        background: #ffffff;
-        color: #444;
-
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        box-shadow: 0px 1px 2px 1px rgba(34, 60, 80, 0.1);
-
-        transition:
-            background-color 0.2s ease,
-            color 0.2s ease,
-            box-shadow 0.2s ease,
-            transform 0.12s ease;
-    }
-
-    .toolbar button i {
-        font-size: 18px;
-    }
-
-    .toolbar button:hover {
-        background: #f3f5f8;
-        color: #000;
-        box-shadow: 0px 1px 3px 2px rgba(34, 60, 80, 0.1);
-    }
-
-    .toolbar button:active {
-        transform: translateY(1px);
-        box-shadow:
-            0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .toolbar button:focus-visible {
-        outline: 2px solid #4a90e2;
-        outline-offset: 3px;
-    }
-
-    /* Специальные цвета для новых кнопок */
-    #deleteAll {
-        background-color: #ffdfdf;
-        color: #a00;
-    }
-
-    #deleteAll:hover {
-        background-color: #fbbcbc;
-        color: #700;
-    }
-
-    #openAll {
-        background-color: #dffffa;
-        color: #055;
-    }
-
-    #openAll:hover {
-        background-color: #bce7f7;
-        color: #033;
-    }
-
-    .calendar-button {
-    width: 2.5rem;
-    height: 2.5rem;
-    border: none;
-    border-radius: 20%;
-
-    background: #ffffff;
-    color: #444;
-
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    box-shadow: 0px 1px 2px 1px rgba(34, 60, 80, 0.1);
-
-    transition:
-        background-color 0.2s ease,
-        color 0.2s ease,
-        box-shadow 0.2s ease,
-        transform 0.12s ease;
-    }
-
-    .calendar-button:hover {
-        background: #f3f5f8;
-        color: #000;
-        box-shadow: 0px 1px 3px 2px rgba(34, 60, 80, 0.1);
-    }
-
-    .calendar-button:active {
-        transform: translateY(1px);
-        box-shadow:
-            0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .calendar-button:focus-visible {
-        outline: 2px solid #4a90e2;
-        outline-offset: 3px;
-    }
-
-    /* Специальный цвет для кнопки создания активностей */
-    #btnActLastMonth {
-        background-color: #e6f4ff;
-        color: #045;
-    }
-
-    #btnActLastMonth:hover {
-        background-color: #cfe8ff;
-        color: #023;
-    }
-    .modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.2);
-    justify-content: center;
-    align-items: center;
-        z-index: 1000;
-    }
-
-    .modal-content {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    scale: 1.5;
-    }
-    
-    .jsonBtn {
-        text-decoration: none;
-        color: black;
-        padding: 2px 5px;
-    }
-
-    #loginStreak {
-        width: auto;
-        padding: 0 10px;
-        gap: 6px;
-
-        background: #fff4e5;
-        color: #b45309;
-
-        font-weight: 600;
-    }
-
-    #loginStreak:hover {
-        background: #ffe7cc;
-        color: #7c2d12;
-    }
-
-    #loginStreak .streak-count {
-        font-size: 14px;
-        min-width: 16px;
-        text-align: center;
-    }
-
-    #loginStreak:hover i {
-        transform: scale(1.15);
-    }
-
-</style>
+<link rel="stylesheet" href="{% static 'hwyd/css/dialogs.css' %}">
 
 <div id="divButtons" class="toolbar">
 
@@ -445,43 +271,43 @@ function vibrateOrHaptic() {
 <dialog id="dialog" class="modalActivity">
     <div class="modal__header">
         <h3 class="dialog__title elementActivitySettings"></h3>
-        <img onclick="$('#closeSettingsActivity').click();" src="{% static 'cansel.svg' %}" width="25" height="25" alt="" style="float:right;">
+        <img onclick="$('#closeSettingsActivity').click();" src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt=""  class="dialog-close-image">
     </div>
-    <hr color="#c7c7c7" style="margin: 0;">
+    <hr color="#c7c7c7"  class="dialog-divider">
     <form id="formActivitySettings" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
         <input class="elementActivitySettings" type="hidden" name="activityPk"/>
         <div>
             <label id="activityNameLabel" for="activityName">Название группы:</label>
-            <div style="margin-bottom: 7px;"></div>
+            <div  class="dialog-spacer"></div>
             <input class="elementActivitySettings inputSettings" name="activityName" id="activityName" type="text">
         </div>
         {% comment %} <div class="hideOn">
             <label id="hideOnLabel" for="hideOn">Добавить группу в скрытые</label> ??????????????????????????????????
             <input name="hideOn" id="hideOn" type="checkbox" class="elementActivitySettings">
         </div> {% endcomment %}
-        <hr id="upHr" color="#ffffff" style="margin: 20px;">
-        <div style="display: flex; justify-content: space-between">
+        <hr id="upHr" color="#ffffff"  class="activity-divider">
+        <div  class="activity-color-row">
             <label for="colorBackgroundForm">Цвет заливки:</label>
-            <div style="margin-bottom: 7px;"></div>
-            <input style="margin-right: 20px;" id="colorBackgroundForm" name="backgroundColor" class="colorBackgroundForm elementActivitySettings" type="color">
+            <div  class="dialog-spacer"></div>
+            <input  id="colorBackgroundForm" name="backgroundColor" class="colorBackgroundForm elementActivitySettings activity-color-input" type="color">
             <input id="colorBackgroundFormText" class="inputSettingsColor" maxlength="7" type="text">
         </div>
-        <div style="display: flex; justify-content: space-between">
+        <div  class="activity-color-row">
             <label for="colorTextForm">Цвет текста:</label>
-            <div style="margin-bottom: 7px;"></div>
-            <input style="margin-right: 20px;" id="colorTextForm" name="color" class="colorTextForm elementActivitySettings" type="color">
+            <div  class="dialog-spacer"></div>
+            <input  id="colorTextForm" name="color" class="colorTextForm elementActivitySettings activity-color-input" type="color">
             <input id="colorTextFormText" class="inputSettingsColor" maxlength="7" type="text">
         </div>
         <div class="repaintActivities">
             <label for="choiceColor">Перекрасить:</label>
-            <div style="margin-bottom: 7px;"></div>
+            <div  class="dialog-spacer"></div>
             <select id="choiceColor" name="saveWithColor" class="selectColor selectPicker">
                 <option value="false">Только цвет группы</option>
                 <option value="true">Цвет группы и цвет её активностей</option>
             </select>
         </div>
-        <hr id="downHr" color="#ffffff" style="margin: 20px;">
+        <hr id="downHr" color="#ffffff"  class="activity-divider">
         <div class="beginDay">
             <label for="beginDay">День начала:</label>
             <input name="beginDay" id="beginDay" type="number" min="1" max="{{ days }}" class="elementActivitySettings inputSettingsColor">
@@ -510,7 +336,7 @@ function vibrateOrHaptic() {
         </div>
         <div class="onOffDaysDiv">
             {% for week in calendar %}
-                <div style="display: flex">
+                <div  class="calendar-week-row">
                     {% for day in week %}
                         {% if day.month == month %}
                             <p id="day{{ day.day }}" class="calendarDay thisDay">{{ day.day }}</p>
@@ -522,14 +348,14 @@ function vibrateOrHaptic() {
             {% endfor %}
         </div>
     </form>
-    <hr color="#ffffff" style="margin: 0;">
-    <div style="padding: 15px">
+    <hr color="#ffffff"  class="dialog-divider">
+    <div  class="activity-dialog-footer">
     <button class="button-save" onclick="submitActivitySettings();" role="button">Сохранить изменения</button>
     </div>
-    <button class="button-6" onclick="submitActivitySettings('default');" role="button" style="background-color:#dfffdf;display:none;">Сохранить</button>
-    <button id="saveWithColor" onclick="submitActivitySettings('saveWithColor');" class="button-6" role="button" style="background-color:#fffcdf; width: auto; display:none;">Сохранить с переносом цвета</button>
+    <button class="button-6 dialog-button--save" onclick="submitActivitySettings('default');" role="button" style="display:none;">Сохранить</button>
+    <button id="saveWithColor" onclick="submitActivitySettings('saveWithColor');" class="button-6 dialog-button--repaint" role="button" style="display:none;">Сохранить с переносом цвета</button>
     <form style="display: none" method="dialog" id="closeDialog">
-        <button id="closeSettingsActivity" class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
+        <button id="closeSettingsActivity" class="button-6 dialog-button--close" role="button" >Закрыть</button>
     </form>
 </dialog>  <!-- Диалоговое окно настроек группы/активности -->
 
@@ -569,10 +395,10 @@ function vibrateOrHaptic() {
     </form>
     <hr>
     <div id="buttonsFooter">
-    <button class="button-6" onclick="document.querySelector('form[id=formColorSettings]').submit();"
-            role="button" style="background-color:#dfffdf;">Сохранить</button>
+    <button class="button-6 dialog-button--save" onclick="document.querySelector('form[id=formColorSettings]').submit();"
+            role="button" >Сохранить</button>
     <form method="dialog" id="closeDialog">
-        <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
+        <button class="button-6 dialog-button--close" role="button" >Закрыть</button>
     </form>
         </div>
 </dialog>  <!-- Диалоговое окно глобальных настроек цвета -->
@@ -593,9 +419,9 @@ function vibrateOrHaptic() {
         <input id="cellNum" type="hidden" name="cell">
     </form>
     <hr>
-    <button class="button-6" onclick="document.querySelector('form[id=formCellCommentSettings]').submit();"
-            role="button" style="background-color:#dfffdf;">Сохранить</button>
+    <button class="button-6 dialog-button--save" onclick="document.querySelector('form[id=formCellCommentSettings]').submit();"
+            role="button" >Сохранить</button>
     <form method="dialog" id="closeDialog">
-        <button class="button-6" role="button" style="background-color:#ffdfdf;">Закрыть</button>
+        <button class="button-6 dialog-button--close" role="button" >Закрыть</button>
     </form>
 </dialog>  <!-- Диалоговое окно текста клетки -->

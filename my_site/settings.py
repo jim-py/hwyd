@@ -25,6 +25,8 @@ MAINTENANCE_MODE = False
 # =========================================================
 
 STATIC_URL = '/static/'
+# Authored project-wide assets; STATIC_ROOT remains collected output.
+STATICFILES_DIRS = [BASE_DIR / "assets"]
 
 if HOSTING:
     ALLOWED_HOSTS = [
@@ -115,8 +117,8 @@ MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
-    'maintenance_middleware.MaintenanceMiddleware',
-    'maintenance_middleware.UserActivityLoggingMiddleware',
+    'my_site.middleware.MaintenanceMiddleware',
+    'my_site.middleware.UserActivityLoggingMiddleware',
 ]
 
 

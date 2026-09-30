@@ -1,11 +1,11 @@
 async function loadDriver() {
     if (window.driver) return;
 
-    await import("/static/js/driver.js.iife.js");
+    await import("/static/hwyd/vendor/driver/driver.js.iife.js");
 }
 
 async function loadGuide(slug) {
-    return import(`/static/js/onboarding/guides/${slug}.js`);
+    return import(`/static/hwyd/js/onboarding/guides/${slug}.js`);
 }
 
 async function startOnboarding() {

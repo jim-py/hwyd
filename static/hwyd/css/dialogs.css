@@ -1,0 +1,165 @@
+.toolbar {
+    display: flex;
+    gap: 14px; /* больше воздуха между кнопками */
+    margin-bottom: 10px;
+    flex-direction: row-reverse;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.toolbar button,
+.calendar-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: 20%;
+
+    background: #ffffff;
+    color: #444;
+
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow: 0px 1px 2px 1px rgba(34, 60, 80, 0.1);
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.12s ease;
+}
+
+.toolbar button i {
+    font-size: 18px;
+}
+
+.toolbar button:hover,
+.calendar-button:hover {
+    background: #f3f5f8;
+    color: #000;
+    box-shadow: 0px 1px 3px 2px rgba(34, 60, 80, 0.1);
+}
+
+.toolbar button:active,
+.calendar-button:active {
+    transform: translateY(1px);
+    box-shadow:
+        0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar button:focus-visible,
+.calendar-button:focus-visible {
+    outline: 2px solid #4a90e2;
+    outline-offset: 3px;
+}
+
+/* Специальные цвета для новых кнопок */
+#deleteAll {
+    background-color: #ffdfdf;
+    color: #a00;
+}
+
+#deleteAll:hover {
+    background-color: #fbbcbc;
+    color: #700;
+}
+
+#openAll {
+    background-color: #dffffa;
+    color: #055;
+}
+
+#openAll:hover {
+    background-color: #bce7f7;
+    color: #033;
+}
+
+/* Специальный цвет для кнопки создания активностей */
+#btnActLastMonth {
+    background-color: #e6f4ff;
+    color: #045;
+}
+
+#btnActLastMonth:hover {
+    background-color: #cfe8ff;
+    color: #023;
+}
+.modal {
+display: none;
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,.2);
+justify-content: center;
+align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+background: white;
+padding: 20px;
+border-radius: 8px;
+scale: 1.5;
+}
+
+.jsonBtn {
+    text-decoration: none;
+    color: black;
+    padding: 2px 5px;
+}
+
+#loginStreak {
+    width: auto;
+    padding: 0 10px;
+    gap: 6px;
+
+    background: #fff4e5;
+    color: #b45309;
+
+    font-weight: 600;
+}
+
+#loginStreak:hover {
+    background: #ffe7cc;
+    color: #7c2d12;
+}
+
+#loginStreak .streak-count {
+    font-size: 14px;
+    min-width: 16px;
+    text-align: center;
+}
+
+#loginStreak:hover i {
+    transform: scale(1.15);
+}
+
+/* Static presentation formerly inline; selectors preserve local overrides. */
+hr.dialog-divider { margin: 0; }
+#addSetting.preset-button { width: auto;height: auto;background-color:#dfffdf; }
+#delSetting.preset-button { width: auto;height: auto;background-color:#ffdfdf; }
+#selectFont option.font-preview--consolas { font-family: 'Consolas', serif }
+#selectFont option.font-preview--montserrat { font-family: 'Montserrat', serif }
+#selectFont option.font-preview--montserrat-alternates { font-family: 'Montserrat Alternates', serif }
+#selectFont option.font-preview--georgia { font-family: 'Georgia', serif }
+#selectFont option.font-preview--jetbrains-mono { font-family: 'JetBrains Mono', serif }
+#selectFont option.font-preview--arial { font-family: 'Arial', serif }
+#selectFont option.font-preview--courier-new { font-family: 'Courier New', serif }
+#selectFont option.font-preview--lucida-console { font-family: 'Lucida Console', serif }
+#selectFont option.font-preview--trebuchet-ms { font-family: 'Trebuchet MS', serif }
+#selectFont option.font-preview--istok-web { font-family: 'Istok Web', serif }
+#selectFont option.font-preview--roboto-mono { font-family: 'Roboto Mono', serif }
+#selectFont option.font-preview--inter { font-family: 'Inter', serif }
+#selectFont option.font-preview--ubuntu { font-family: 'Ubuntu', serif }
+#selectFont option.font-preview--comic-sans-ms { font-family: 'Comic Sans MS', serif }
+#dialog .dialog-close-image { float:right; }
+dialog .dialog-spacer { margin-bottom: 7px; }
+#formActivitySettings hr.activity-divider { margin: 20px; }
+#formActivitySettings .activity-color-row { display: flex; justify-content: space-between }
+#formActivitySettings input.activity-color-input { margin-right: 20px; }
+.onOffDaysDiv .calendar-week-row { display: flex }
+#dialog .activity-dialog-footer { padding: 15px }
+dialog button.button-6.dialog-button--close { background-color:#ffdfdf; }
+dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
+#saveWithColor.dialog-button--repaint { background-color:#fffcdf; width:auto; }

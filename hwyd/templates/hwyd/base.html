@@ -8,40 +8,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {% if pending_guides %}
-    <link rel="stylesheet" href="{% static 'css/driver.css' %}"/>
-    <link rel="stylesheet" href="{% static 'css/onboarding.css' %}">
+    <link rel="stylesheet" href="{% static 'hwyd/vendor/driver/driver.css' %}"/>
+    <link rel="stylesheet" href="{% static 'hwyd/css/onboarding.css' %}">
     {% endif %}
 
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <link rel="stylesheet" href="{% static 'css/tableCells.css' %}">
-    <link rel="stylesheet" href="{% static 'css/buttons.css' %}">
+    <link rel="stylesheet" href="{% static 'hwyd/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'hwyd/css/tableCells.css' %}">
+    <link rel="stylesheet" href="{% static 'hwyd/css/buttons.css' %}">
     {% if request.user.is_authenticated %}
-    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+    <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}">
     {% endif %}
 
-    <script src="{% static 'js/jquery.js' %}"></script>
+    <script src="{% static 'hwyd/vendor/jquery/jquery.js' %}"></script>
 
-    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
+    <link rel="shortcut icon" type="image/png" href="{% static 'site/images/favicon.png' %}"/>
     
     {% include 'hwyd/styles.html' %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="manifest" href="{% static 'manifest_habitus.json' %}">
+    <link rel="manifest" href="{% static 'hwyd/manifest_habitus.json' %}">
 </head>
 <body>
 
 {% include 'notifications/modal_snippet.html' %}
 
-{% include 'navibar.html' %}
+{% include 'includes/navbar.html' %}
 
 {% include 'hwyd/dialogs.html' %}
 {% if request.user.is_authenticated %}
-{% include 'hwyd/chat.html' %}
+{% include 'chat/dialog.html' %}
 {% endif %}
 
 {% include 'hwyd/table.html' %}
 
-<script src="{% static 'js/jquery.min.js' %}"></script>
-<script src="{% static 'js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'hwyd/vendor/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'hwyd/vendor/jquery-ui/jquery-ui.min.js' %}"></script>
 
 <script>
 window.IS_AUTHENTICATED = {{ request.user.is_authenticated|yesno:"true,false" }};
@@ -190,14 +190,14 @@ window.IS_AUTHENTICATED = {{ request.user.is_authenticated|yesno:"true,false" }}
 window.PENDING_GUIDES = {{ pending_guides|safe }};
 </script>
 <script type="module"
-        src="{% static 'js/onboarding-loader.js' %}">
+        src="{% static 'hwyd/js/onboarding-loader.js' %}">
 </script>
 {% endif %}
 
 {% include 'hwyd/scripts.html' %}
-<script type="module" src="{% static 'js/streak-firework.js' %}"></script>
+<script type="module" src="{% static 'hwyd/js/streak-firework.js' %}"></script>
 {% if request.user.is_authenticated %}
-<script type="module" src="{% static 'js/chat.js' %}"></script>
+<script type="module" src="{% static 'chat/js/chat.js' %}"></script>
 {% endif %}
 
 </body>

@@ -1,6 +1,6 @@
 {% load static %}
 {% load tags %}
-<link rel="stylesheet" href="{% static 'css/footer.css' %}">
+<link rel="stylesheet" href="{% static 'hwyd/css/footer.css' %}">
 
 <div>
     {% if settings.enableSortTable %}
@@ -39,7 +39,7 @@
                             {% if settings.showDeleteActivity %}
                                 <a class="deleteActivityButt">
                                     <button class="deleteActivity" type="button">
-                                        <img class="cross" data-pk="{{ activity.pk }}" src="{% static 'cross.png' %}">
+                                        <img class="cross" data-pk="{{ activity.pk }}" src="{% static 'hwyd/images/cross.png' %}">
                                     </button>
                                 </a>
 

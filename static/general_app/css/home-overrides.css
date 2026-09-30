@@ -1,0 +1,23 @@
+.feature:hover .custom-hr {
+    background-color: #5f99e8;
+}
+
+.custom-hr {
+    height: 1px;
+    background-color: #888;
+    margin: 8px 0;
+}
+
+.text-feature {
+    text-align: center
+}
+
+h2 {
+    margin-top: 8px;
+}
+
+h1,
+h2 {
+    font-weight: 700;
+    font-size: 32px;
+}

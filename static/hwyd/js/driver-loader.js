@@ -3,7 +3,7 @@ export async function loadDriver() {
 
     await new Promise((resolve, reject) => {
         const script = document.createElement("script");
-        script.src = "/static/js/driver.js.iife.js";
+        script.src = new URL("../vendor/driver/driver.js.iife.js", import.meta.url).href;
         script.async = true;
 
         script.onload = () => {

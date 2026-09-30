@@ -1,4 +1,4 @@
-import { getCSRFToken } from "./csrf.js";
+import { getCSRFToken } from "../../site/js/csrf.js";
 
 export async function markViewed(slug) {
     await fetch(`/home/guides/${slug}/viewed/`, {

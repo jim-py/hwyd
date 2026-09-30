@@ -5,13 +5,7 @@
 {% block title %}Настройки{% endblock %}
 
 {% block extra_css %}
-<style>
-.toggle-green {
-    &:checked, &[aria-checked=true] {
-        --input-color: #2c6e49;
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'hwyd/css/settings.css' %}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css"/>
 <link href="https://cdn.jsdelivr.net/combine/npm/daisyui@5/base/rootcolor.css,npm/daisyui@5/components/toggle.css,npm/daisyui@5/components/select.css,npm/daisyui@5/theme/light.css" rel="stylesheet" type="text/css" />
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>

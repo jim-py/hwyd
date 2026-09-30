@@ -1,0 +1,5 @@
+.toggle-green {
+    &:checked, &[aria-checked=true] {
+        --input-color: #2c6e49;
+    }
+}

@@ -9,8 +9,8 @@ self.addEventListener('push', function(event) {
   const title = data.title || 'Уведомление';
   const options = {
     body: data.body || '',
-    icon: data.icon || '/static/logo.png',
-    badge: data.badge || '/static/logo.png',
+    icon: data.icon || '/static/site/images/logo.png',
+    badge: data.badge || '/static/site/images/logo.png',
     // Можно добавить другие опции, например actions, vibrate, tag и т.д.
   };
 

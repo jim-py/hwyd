@@ -1,0 +1,29 @@
+.divClick.hasText.bigger15:hover::before {
+    left: auto;
+    right: 105%;
+}
+
+.divClick.hasText:hover::before {
+    content: attr(data-title);
+    position: absolute;
+    z-index: 9999;
+    width: 75px;
+    top: -5px;
+    left: 105%;
+    color: #000000;
+    background-color: #fff;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.modalActivity::backdrop, .modalColors::backdrop {
+    background: 0;
+}
+
+#dialogHead, #dialog {
+    overflow: hidden;
+    bottom: auto;
+    right: auto;
+}
