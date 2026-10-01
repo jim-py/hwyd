@@ -192,12 +192,7 @@ function onModalClick(event) {
             if (group_id) {
                 let day = Number(this.id.split('-')[1]) + 1, newWidth, progress
                 let groups_progress_add = {% progress_cell_add %};
-                {% if request.user_agent.is_mobile %}
-                    let tmp = {{ range_days }};
-                    progress = document.querySelector('tr.isGroup' + group_id).children[tmp.indexOf(day - 1)].children[0]
-                {% else %}
-                    progress = document.querySelector('tr.isGroup' + group_id).children[day].children[0]
-                {% endif %}
+                progress = document.querySelector('tr.isGroup' + group_id).querySelector(`td[data-day="${day - 1}"] .progress`)
                 let progress_bar = progress.children[0]
 
                 {% if settings.showTabs %}
@@ -890,7 +885,9 @@ $(".activity-dialog").draggable({
 
 for (let elem of document.querySelectorAll('.deleteActivityButt')) {
     elem.addEventListener('click', function (evt) {
-        let pk = evt.target.getAttribute('data-pk')
+        const button = evt.currentTarget;
+        const pk = button.dataset.pk;
+        const row = button.closest('tr');
         $.ajax({
             type: 'POST',
             url: '{% url 'delete_activity' %}',
@@ -900,7 +897,7 @@ for (let elem of document.querySelectorAll('.deleteActivityButt')) {
                     csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
                 }
         }).done(function () {
-            $(evt.target.parentNode.parentNode.parentNode.parentNode.parentNode).remove()
+            $(row).remove()
             $(document.querySelector(`#activityToGroup${pk}`).parentNode).remove()
         });
     })
@@ -1226,4 +1223,3 @@ function openAllGroups() {
             .catch(error => console.error('Ошибка:', error));
     });
 </script>
-

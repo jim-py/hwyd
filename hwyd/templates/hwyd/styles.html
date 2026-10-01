@@ -126,7 +126,7 @@
             transition: 0.3s;
         }
 
-        .table td:not(:has(p)):hover:before {
+        .table td:not(.activity-delete-cell):not(:has(p)):hover:before {
             background-color: {{ settings.rowColumnLight }};
             content: '';
             height: 100%;
@@ -137,7 +137,7 @@
             z-index: -2;
         }
 
-        .table td:not(:has(p)):hover:after {
+        .table td:not(.activity-delete-cell):not(:has(p)):hover:after {
             background-color: {{ settings.rowColumnLight }};
             content: '';
             height: 10000px;
@@ -151,7 +151,7 @@
 
     {# Подсвечивает день и активность при наведении на клетку #}
     {% if settings.showActivityDayLight %}
-        .table tr:hover td:first-child > p {
+        .table tr:has(> td:not(.activity-delete-cell):hover) td.header > p {
             box-shadow: 0 0 3px -1px rgb(0, 0, 0) inset;
             border: 1px solid black;
         }
