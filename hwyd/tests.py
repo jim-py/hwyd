@@ -299,7 +299,7 @@ class SettingsInterfaceTests(TestCase):
     def settings_payload(self):
         return {'data': ','.join(['true'] * 10), 'nameSetting': 'Interface',
                 'radioSettings': 'group', 'selectFont': 'Georgia', 'selectFade': 'off',
-                'uiVisibilityVersion': '2'}
+                'uiVisibilityVersion': '3'}
 
     def test_new_visibility_defaults_preserve_existing_interface(self):
         preset = Settings.objects.get(user=self.user)
@@ -344,6 +344,50 @@ class SettingsInterfaceTests(TestCase):
             payload['uiVisibilityVersion'] = '1'
             self.client.post(self.url, payload)
             self.assertEqual(Settings.objects.get(user=self.user).showTop, enabled)
+
+    def test_older_clients_preserve_view_switch_visibility(self):
+        for version in ('1', '2'):
+            for enabled in (False, True):
+                with self.subTest(version=version, enabled=enabled):
+                    Settings.objects.filter(user=self.user).update(showViewSwitch=enabled)
+                    payload = self.settings_payload()
+                    payload['uiVisibilityVersion'] = version
+                    self.client.post(self.url, payload)
+                    self.assertEqual(Settings.objects.get(user=self.user).showViewSwitch, enabled)
+
+    def test_view_switch_off_uses_table_even_with_calendar_in_url(self):
+        payload = self.settings_payload()
+        payload.update({name: 'on' for name in UI_VISIBILITY_FIELDS if name != 'showViewSwitch'})
+        self.client.post(self.url, payload)
+        response = self.client.get(self.url, {'view': 'year', 'year': '2024'})
+        self.assertFalse(Settings.objects.get(user=self.user).showViewSwitch)
+        for fragment in ('id="trackerViewSwitch"', 'id="trackerYearView"', 'hwyd/js/year-calendar.js'):
+            self.assertNotContains(response, fragment)
+        self.assertContains(response, 'id="trackerTableView"')
+        self.assertContains(response, 'id="myTable"')
+        self.assertContains(response, 'Показывать переключатель «Таблица / Год»')
+        payload['showViewSwitch'] = 'on'
+        self.client.post(self.url, payload)
+        self.assertContains(self.client.get(self.url), 'id="trackerViewSwitch"')
+
+    def test_separate_settings_page_saves_toggle_and_preserves_it_for_old_clients(self):
+        from django.forms.models import model_to_dict
+
+        for enabled in (False, True):
+            preset = Settings.objects.get(user=self.user)
+            payload = model_to_dict(preset)
+            payload['vanishing'] = 'none'
+            payload['uiVisibilityVersion'] = '3'
+            if enabled:
+                payload['showViewSwitch'] = 'on'
+            else:
+                payload.pop('showViewSwitch')
+            self.assertEqual(self.client.post(reverse('edit_settings'), payload).status_code, 302)
+            self.assertEqual(Settings.objects.get(user=self.user).showViewSwitch, enabled)
+            payload.pop('uiVisibilityVersion')
+            payload.pop('showViewSwitch', None)
+            self.client.post(reverse('edit_settings'), payload)
+            self.assertEqual(Settings.objects.get(user=self.user).showViewSwitch, enabled)
 
     def test_top_button_visibility_is_independent_and_survives_reload(self):
         payload = self.settings_payload()

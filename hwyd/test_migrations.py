@@ -18,7 +18,26 @@ class TopVisibilityMigrationTests(TransactionTestCase):
             old_apps = executor.loader.project_state([('hwyd', '0003_interface_visibility')]).apps
             previous = old_apps.get_model('hwyd', 'Settings').objects.values().get(pk=preset.pk)
         finally:
-            MigrationExecutor(connection).migrate([('hwyd', '0004_settings_showtop')])
+            MigrationExecutor(connection).migrate([('hwyd', '0005_settings_showviewswitch')])
         current = Settings.objects.values().get(pk=preset.pk)
         self.assertTrue(current.pop('showTop'))
+        self.assertTrue(current.pop('showViewSwitch'))
+        self.assertEqual(current, previous)
+
+
+class ViewSwitchMigrationTests(TransactionTestCase):
+    def test_existing_preset_defaults_to_visible_without_changing_other_settings(self):
+        user = get_user_model().objects.create_user(username='view-switch-migration')
+        create_setting(user, 'Existing preset')
+        preset = Settings.objects.get(user=user)
+        Settings.objects.filter(pk=preset.pk).update(showTop=False, showChat=False, showViewSwitch=False)
+        executor = MigrationExecutor(connection)
+        executor.migrate([('hwyd', '0004_settings_showtop')])
+        try:
+            old_apps = executor.loader.project_state([('hwyd', '0004_settings_showtop')]).apps
+            previous = old_apps.get_model('hwyd', 'Settings').objects.values().get(pk=preset.pk)
+        finally:
+            MigrationExecutor(connection).migrate([('hwyd', '0005_settings_showviewswitch')])
+        current = Settings.objects.values().get(pk=preset.pk)
+        self.assertTrue(current.pop('showViewSwitch'))
         self.assertEqual(current, previous)

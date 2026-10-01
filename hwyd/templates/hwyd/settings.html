@@ -50,6 +50,7 @@
     {% if current_setting %}
     <form method="post" class="card shadow-sm p-4 rounded-3">
         {% csrf_token %}
+        <input type="hidden" name="uiVisibilityVersion" value="3">
         <div class="row g-3">
             {% for field in form %}
                 <div class="col-md-6">

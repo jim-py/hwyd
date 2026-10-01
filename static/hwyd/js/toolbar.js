@@ -156,5 +156,6 @@ bindAsyncForm(document.getElementById('deleteAllForm'), () => {
     document.getElementById('openAll').style.display = 'none';
     document.getElementById('createLastMonthActivitiesForm').style.display = 'inline';
     visibility.refresh();
+    window.dispatchEvent(new Event('habitus:rows-changed'));
     showToast('Все привычки и группы за выбранный месяц удалены.');
 });

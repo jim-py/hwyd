@@ -25,6 +25,7 @@ from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser
 from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS
 from .streaks import streak_position, streak_top
 from .timezones import browser_timezone
+from .year_stats import MAX_YEAR, MIN_YEAR, year_completion
 from general_app.models import Guide, UserGuideProgress
 
 setlocale(category=LC_ALL, locale="Russian")
@@ -50,6 +51,15 @@ def submit_feedback(request):
 @require_GET
 def top_streak(request):
     return JsonResponse(streak_top(request.user))
+
+
+@never_cache
+@login_required(login_url='entry')
+@require_GET
+def year_summary(request, year):
+    if not MIN_YEAR <= year <= MAX_YEAR:
+        return JsonResponse({'error': 'Год вне доступного диапазона.'}, status=400)
+    return JsonResponse(year_completion(request.user, year))
 
 
 def get_pending_guides(user):
@@ -156,9 +166,11 @@ def by_date(request, picked_date):
         settings.showTabs = lst[9]
         # A version marker distinguishes unchecked toggles from older clients.
         visibility_version = request.POST.get('uiVisibilityVersion')
-        if visibility_version in ('1', '2'):
+        if visibility_version in ('1', '2', '3'):
             for field in UI_VISIBILITY_FIELDS:
-                if field == 'showTop' and visibility_version != '2':
+                if field == 'showTop' and visibility_version == '1':
+                    continue
+                if field == 'showViewSwitch' and visibility_version != '3':
                     continue
                 setattr(settings, field, request.POST.get(field) == 'on')
         settings.name = request.POST['nameSetting']
@@ -930,7 +942,14 @@ def edit_settings(request):
     current_setting = settings_list.filter(selected=True).first()
 
     if request.method == 'POST' and current_setting:
-        form = SettingsForm(request.POST, instance=current_setting)
+        data = request.POST.copy()
+        if request.POST.get('uiVisibilityVersion') != '3':
+            # Older settings pages did not contain the new checkbox.
+            if current_setting.showViewSwitch:
+                data['showViewSwitch'] = 'on'
+            else:
+                data.pop('showViewSwitch', None)
+        form = SettingsForm(data, instance=current_setting)
         if form.is_valid():
             form.save()
             return redirect('edit_settings')

@@ -1,0 +1,36 @@
+<div id="trackerViewSwitch" class="tracker-view-switch" role="group" aria-label="Вид привычек"
+     data-year="{{ year }}" data-user="{{ request.user.pk }}" data-month="{{ date }}"
+     data-summary-url="{% url 'year_summary' 2020 %}" data-month-url="{% url 'by_date' '2020-01' %}">
+    <button type="button" data-tracker-view="table" aria-controls="trackerTableView" aria-pressed="true">
+        <i class="fa-solid fa-table-cells" aria-hidden="true"></i> Таблица
+    </button>
+    <button type="button" data-tracker-view="year" aria-controls="trackerYearView" aria-pressed="false">
+        <i class="fa-regular fa-calendar" aria-hidden="true"></i> Год
+    </button>
+</div>
+
+<section id="trackerYearView" class="year-calendar" aria-labelledby="yearCalendarTitle" hidden>
+    <header class="year-calendar__header">
+        <div>
+            <h1 id="yearCalendarTitle">Год в привычках</h1>
+        </div>
+        <div class="year-calendar__navigation" role="group" aria-label="Выбор года">
+            <button id="yearPrevious" type="button" aria-label="Предыдущий год">‹</button>
+            <select id="calendarYear" aria-label="Год календаря"></select>
+            <button id="yearNext" type="button" aria-label="Следующий год">›</button>
+        </div>
+    </header>
+    <div class="year-calendar__legend" aria-label="Заполнение кружков">
+        <span><i class="year-calendar__sample" style="--fill:0%" aria-hidden="true"></i>0%</span>
+        <span><i class="year-calendar__sample" style="--fill:50%" aria-hidden="true"></i>50%</span>
+        <span><i class="year-calendar__sample year-calendar__sample--full" aria-hidden="true"></i>100%</span>
+        <span><i class="year-calendar__sample year-calendar__sample--empty" aria-hidden="true"></i>Нет привычек</span>
+    </div>
+    <p id="yearCalendarStatus" class="year-calendar__status" role="status" aria-live="polite"></p>
+    <button id="yearCalendarRetry" class="year-calendar__retry" type="button" hidden>Попробовать ещё раз</button>
+    <div id="yearCalendarDetail" class="year-calendar__detail" role="status" aria-live="polite" hidden>
+        <span id="yearCalendarDetailText">Выберите день, чтобы посмотреть результат.</span>
+        <a id="yearCalendarMonthLink" hidden>Открыть месяц в таблице →</a>
+    </div>
+    <div id="yearCalendarMonths" class="year-calendar__months"></div>
+</section>

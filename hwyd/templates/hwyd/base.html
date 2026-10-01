@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="{% static 'hwyd/css/main.css' %}">
     <link rel="stylesheet" href="{% static 'hwyd/css/tableCells.css' %}">
     <link rel="stylesheet" href="{% static 'hwyd/css/buttons.css' %}">
+    {% if settings.showViewSwitch %}
+    <link rel="stylesheet" href="{% static 'hwyd/css/year-calendar.css' %}">
+    {% endif %}
     {% if request.user.is_authenticated %}
     <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}">
     {% endif %}
@@ -37,7 +40,12 @@
 {% include 'chat/dialog.html' %}
 {% endif %}
 
-{% include 'hwyd/table.html' %}
+{% if settings.showViewSwitch %}
+    {% include 'hwyd/year_calendar.html' %}
+{% endif %}
+<section id="trackerTableView" aria-label="Таблица привычек">
+    {% include 'hwyd/table.html' %}
+</section>
 
 <script src="{% static 'hwyd/vendor/jquery/jquery.min.js' %}"></script>
 <script src="{% static 'hwyd/vendor/jquery-ui/jquery-ui.min.js' %}"></script>
@@ -195,6 +203,9 @@ window.PENDING_GUIDES = {{ pending_guides|safe }};
 
 {% include 'hwyd/scripts.html' %}
 <script type="module" src="{% static 'hwyd/js/toolbar.js' %}"></script>
+{% if settings.showViewSwitch %}
+<script type="module" src="{% static 'hwyd/js/year-calendar.js' %}"></script>
+{% endif %}
 <script type="module" src="{% static 'hwyd/js/streak-firework.js' %}"></script>
 {% if request.user.is_authenticated %}
 <script type="module" src="{% static 'chat/js/chat.js' %}"></script>

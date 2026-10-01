@@ -9,5 +9,5 @@ FONT_FAMILIES = (
 
 UI_VISIBILITY_FIELDS = (
     'showStreak', 'showTop', 'showFeedback', 'showCompletedButton', 'showChat',
-    'showActivityIcons',
+    'showActivityIcons', 'showViewSwitch',
 )

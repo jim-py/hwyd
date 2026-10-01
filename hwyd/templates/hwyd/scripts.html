@@ -223,6 +223,8 @@
                         checkboxToCheck: elem.id,
                         csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
                     }
+            }).done(function () {
+                window.dispatchEvent(new Event('habitus:activities-saved'));
             })
         })
         elem.oncontextmenu = function (e) {
