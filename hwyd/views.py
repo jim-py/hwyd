@@ -24,6 +24,7 @@ from .forms import LoginForm, RegisterForm, SettingsForm, FeedbackForm
 from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, UserActivityLog
 from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS
 from .streaks import streak_position, streak_top
+from .timezones import browser_timezone
 from general_app.models import Guide, UserGuideProgress
 
 setlocale(category=LC_ALL, locale="Russian")
@@ -82,13 +83,13 @@ def get_pending_guides(user):
 def set_timezone(request):
     try:
         data = json.loads(request.body)
-        tz = data.get("timezone")
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse({"error": "Некорректный JSON."}, status=400)
 
-        if tz:
-            request.session["user_timezone"] = tz
-
-    except Exception:
-        pass
+    tz = data.get("timezone") if isinstance(data, dict) else None
+    if browser_timezone(tz) is None:
+        return JsonResponse({"error": "Неизвестный часовой пояс."}, status=400)
+    request.session["user_timezone"] = tz
 
     return JsonResponse({"status": "ok"})
 

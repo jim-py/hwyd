@@ -252,8 +252,10 @@ dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
     cursor: default;
 }
 
-#feedbackModal { position: fixed; }
-#feedbackModal > .modal__header {
+#feedbackModal,
+#topModal { position: fixed; }
+#feedbackModal > .modal__header,
+#topModal > .modal__header {
     cursor: move;
     touch-action: none;
     user-select: none;

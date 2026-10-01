@@ -5,10 +5,7 @@ from django.utils.deprecation import MiddlewareMixin
 from hwyd.models import UserActivityLog
 from django.utils import timezone
 from django.db import transaction, IntegrityError
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from hwyd.timezones import browser_timezone
 
 
 class UserActivityLoggingMiddleware:
@@ -32,13 +29,12 @@ class UserActivityLoggingMiddleware:
 
         user = request.user
 
-        tz_name = request.session.get("user_timezone") or "Europe/Moscow"
-
-        try:
-            user_tz = ZoneInfo(tz_name)
-        except Exception:
-            tz_name = "Europe/Moscow"
-            user_tz = ZoneInfo(tz_name)
+        tz_name = request.session.get("user_timezone")
+        user_tz = browser_timezone(tz_name)
+        if user_tz is None:
+            # The first page precedes the browser's timezone POST. Recording a
+            # Moscow fallback here could create a second, incorrect visit day.
+            return response
 
         now_utc = timezone.now()
         user_local_dt = now_utc.astimezone(user_tz)
@@ -67,7 +63,7 @@ class UserActivityLoggingMiddleware:
             UserActivityLog.objects.filter(
                 user=user,
                 date=user_local_date
-            ).update(last_visit=now_utc)
+            ).update(last_visit=now_utc, timezone=tz_name)
 
         return response
 

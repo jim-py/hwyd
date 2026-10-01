@@ -26,7 +26,9 @@ async function post(url, data) {
 
 const visibility = createVisibilityControls(document.getElementById('myTable'), post, showToast);
 const openers = new WeakMap();
-enableDialogDrag(document.getElementById('feedbackModal'));
+for (const dialog of document.querySelectorAll('#feedbackModal, #topModal')) {
+    enableDialogDrag(dialog);
+}
 for (const button of document.querySelectorAll('[data-dialog]')) {
     button.addEventListener('click', () => {
         const dialog = document.getElementById(button.dataset.dialog);
