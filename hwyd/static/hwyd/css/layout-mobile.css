@@ -1,3 +1,25 @@
 body {
     margin: auto;
 }
+
+.table-viewport {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 4px 8px;
+    overflow: hidden;
+}
+
+/* Keep the existing 150px name column plus its borders, independent of row text. */
+#myTable .paragraph {
+    box-sizing: border-box;
+    width: 152px;
+}
+
+/* Grouped habits already have a 10px indent; keep it inside the same column. */
+#myTable tr[data-group-id]:not([data-group-id=""]) .paragraph {
+    width: 142px;
+}
+
+#myTable .activity-delete-cell {
+    line-height: 0;
+}

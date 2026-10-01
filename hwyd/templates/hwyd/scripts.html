@@ -4,25 +4,6 @@
 
 
 
-{# Скрипты таблицы  - Костыль#}
-{% if request.user_agent.is_mobile %}
-<script>
-  function updateScale() {
-    const baseWidth = 390;       // базовая ширина экрана для масштаба 1.277
-    const baseScale = 1.27;
-    const viewportWidth = window.innerWidth;
-    const scale = (viewportWidth / baseWidth) * baseScale;
-
-    el = document.getElementById('myTable');
-    el.style.transform = `scale(${scale})`;
-  }
-
-  window.addEventListener('resize', updateScale);
-  window.addEventListener('load', updateScale);
-
-</script>
-{% endif %}
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const numberElements = document.querySelectorAll('.number');

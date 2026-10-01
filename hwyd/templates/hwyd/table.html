@@ -2,7 +2,7 @@
 {% load tags %}
 <link rel="stylesheet" href="{% static 'hwyd/css/footer.css' %}">
 
-<div>
+<div class="table-viewport">
     {% if settings.enableSortTable %}
         <table id="myTable" class="sortable-table table"
     {% else %}
@@ -108,3 +108,6 @@
     </tbody>
     </table>
 </div>  <!-- Таблица активностей -->
+{% if request.user_agent.is_mobile %}
+    {% include 'hwyd/mobile_table_fit.html' %}
+{% endif %}

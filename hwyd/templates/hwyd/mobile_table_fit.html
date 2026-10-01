@@ -1,0 +1,47 @@
+{# Run immediately after the table, before later scripts can delay the first fit. #}
+<script>
+(() => {
+    const table = document.getElementById('myTable');
+    const viewport = table.parentElement;
+    let frame = 0;
+    let lastScale = 0;
+    let lastHeight = 0;
+
+    function fitTable() {
+        const styles = getComputedStyle(viewport);
+        const horizontalPadding = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+        const verticalPadding = parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom);
+        const availableWidth = viewport.clientWidth - horizontalPadding;
+        // offset sizes exclude the transform, so repeated fitting cannot amplify it.
+        const width = table.offsetWidth;
+        if (availableWidth <= 0 || width <= 0) return;
+
+        const scale = availableWidth / width;
+        const height = Math.ceil(table.offsetHeight * scale + verticalPadding);
+        if (Math.abs(scale - lastScale) > 0.0001) {
+            table.style.transform = `scale(${scale})`;
+            lastScale = scale;
+        }
+        // A transform alone leaves the original height in the document layout.
+        if (height !== lastHeight) {
+            viewport.style.height = `${height}px`;
+            lastHeight = height;
+        }
+    }
+
+    function scheduleFit() {
+        if (frame) return;
+        frame = requestAnimationFrame(() => {
+            frame = 0;
+            fitTable();
+        });
+    }
+
+    fitTable();
+    const observer = new ResizeObserver(scheduleFit);
+    observer.observe(viewport);
+    observer.observe(table);
+    window.addEventListener('resize', scheduleFit, { passive: true });
+    if (document.fonts) document.fonts.ready.then(scheduleFit);
+})();
+</script>
