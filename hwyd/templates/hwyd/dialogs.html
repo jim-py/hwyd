@@ -180,7 +180,7 @@
     <button id="topStreak" type="button"{% if not settings.showTop %} hidden{% endif %} data-dialog="topModal" aria-controls="topModal"
             title="Ваше место по текущему стрику" aria-label="Top: место {{ top_rank|default:'—' }}">
         <i class="fa-solid fa-trophy" aria-hidden="true"></i>
-        <span>{% if top_rank <= 10 %}Топ-<span id="topRank">{% if top_rank %}{{ top_rank }}{% endif %}</span>{% endif %}</span>
+        {% if top_rank <= 10 %}<span>Топ-<span id="topRank">{% if top_rank %}{{ top_rank }}{% endif %}</span></span>{% endif %}
     </button>
 </div>
 <div id="habitusToast" class="habitus-toast" popover="manual" role="status" aria-live="polite" aria-atomic="true" hidden>
