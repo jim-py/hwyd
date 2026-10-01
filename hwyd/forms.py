@@ -1,5 +1,5 @@
 from django import forms
-from .models import Settings
+from .models import Settings, Feedback
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
@@ -19,6 +19,16 @@ class RegisterForm(UserCreationForm):
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=150)
     password = forms.CharField(max_length=150, widget=forms.PasswordInput)
+
+
+class FeedbackForm(forms.ModelForm):
+    message = forms.CharField(max_length=3000, strip=True,
+                              error_messages={'required': 'Напишите сообщение.',
+                                              'max_length': 'Не больше 3000 символов.'})
+
+    class Meta:
+        model = Feedback
+        fields = ['category', 'message']
 
 
 class SettingsForm(forms.ModelForm):

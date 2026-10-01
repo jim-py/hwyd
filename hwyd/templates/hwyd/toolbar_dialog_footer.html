@@ -1,0 +1,4 @@
+<div class="activity-dialog-footer toolbar-dialog__footer">
+    <button type="button" class="button-6 toolbar-dialog__button" data-dialog-close {% if initial_cancel %}data-initial-focus{% endif %}>Отмена</button>
+    <button type="submit" form="{{ form_id }}" class="button-6 toolbar-dialog__button {% if destructive %}toolbar-dialog__button--danger{% else %}toolbar-dialog__button--primary{% endif %}">{{ action_label }}</button>
+</div>

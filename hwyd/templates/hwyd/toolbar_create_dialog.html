@@ -1,0 +1,12 @@
+<dialog id="{{ modal_id }}" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="{{ title_id }}">
+    {% include 'hwyd/toolbar_dialog_header.html' %}
+    <form id="{{ form_id }}" class="activity-dialog__body" action="{% url 'create_activity' date group_type %}" method="post">
+        {% csrf_token %}
+        <div class="toolbar-dialog__field">
+            <label for="{{ input_name }}">{{ label }}</label>
+            <input id="{{ input_name }}" name="{{ input_name }}" type="text" class="inputSettings"
+                   placeholder="{{ placeholder }}" maxlength="100" required data-initial-focus>
+        </div>
+    </form>
+    {% include 'hwyd/toolbar_dialog_footer.html' with action_label='Создать' %}
+</dialog>

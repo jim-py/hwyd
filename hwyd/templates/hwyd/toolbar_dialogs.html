@@ -1,0 +1,68 @@
+{% include 'hwyd/toolbar_create_dialog.html' with modal_id='createActivityModal' title_id='createActivityTitle' title='Создать активность' form_id='createActivityForm' input_name='createActivityInput' group_type=0 label='Название активности' placeholder='Например, прогулка' %}
+{% include 'hwyd/toolbar_create_dialog.html' with modal_id='createActivityGroupModal' title_id='createGroupTitle' title='Создать группу' form_id='createGroupForm' input_name='createActivityGroupInput' group_type=1 label='Название группы' placeholder='Например, здоровье' %}
+
+<dialog id="calendarModal" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="calendarTitle">
+    {% include 'hwyd/toolbar_dialog_header.html' with title_id='calendarTitle' title='Выбрать месяц' %}
+    <form id="chooseDate" class="activity-dialog__body" action="{% url 'by_date' date %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="chooseDate" value="{{ date }}">
+        <div class="month-picker__year">
+            <button type="button" class="button-6" id="previousYear" aria-label="Предыдущий год">‹</button>
+            <strong id="pickerYear" aria-live="polite">{{ year }}</strong>
+            <button type="button" class="button-6" id="nextYear" aria-label="Следующий год">›</button>
+        </div>
+        <div class="month-picker__grid" role="group" aria-label="Месяц">
+            <button type="button" data-month="1">Январь</button>
+            <button type="button" data-month="2">Февраль</button>
+            <button type="button" data-month="3">Март</button>
+            <button type="button" data-month="4">Апрель</button>
+            <button type="button" data-month="5">Май</button>
+            <button type="button" data-month="6">Июнь</button>
+            <button type="button" data-month="7">Июль</button>
+            <button type="button" data-month="8">Август</button>
+            <button type="button" data-month="9">Сентябрь</button>
+            <button type="button" data-month="10">Октябрь</button>
+            <button type="button" data-month="11">Ноябрь</button>
+            <button type="button" data-month="12">Декабрь</button>
+        </div>
+        <p id="pickerSelection" class="toolbar-dialog__hint" aria-live="polite"></p>
+    </form>
+    {% include 'hwyd/toolbar_dialog_footer.html' with form_id='chooseDate' action_label='Перейти' %}
+</dialog>
+
+<dialog id="deleteAllModal" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="deleteAllTitle">
+    {% include 'hwyd/toolbar_dialog_header.html' with title_id='deleteAllTitle' title='Очистить все активности?' %}
+    <form id="deleteAllForm" class="activity-dialog__body" action="{% url 'delete_all' date %}" method="post">
+        {% csrf_token %}
+        <p>Все привычки и группы за {{ month_name|lower }} {{ year }} будут удалены вместе с отметками и комментариями. Данные других месяцев сохранятся.</p>
+        <p class="toolbar-dialog__hint">Это действие нельзя отменить.</p>
+        <p class="toolbar-dialog__error" role="status" hidden></p>
+    </form>
+    {% include 'hwyd/toolbar_dialog_footer.html' with form_id='deleteAllForm' action_label='Очистить' destructive=True initial_cancel=True %}
+</dialog>
+
+{% if request.user.is_authenticated %}
+<dialog id="feedbackModal" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="feedbackTitle">
+    {% include 'hwyd/toolbar_dialog_header.html' with title_id='feedbackTitle' title='Обратная связь' %}
+    <form id="feedbackForm" class="activity-dialog__body" action="{% url 'submit_feedback' %}" method="post">
+        {% csrf_token %}
+        <div class="toolbar-dialog__field">
+            <label for="feedbackCategory">Тип обращения</label>
+            <select id="feedbackCategory" name="category" required>
+                <option value="bug">Ошибка</option>
+                <option value="idea">Предложение</option>
+                <option value="thanks">Благодарность</option>
+                <option value="other">Другое</option>
+            </select>
+        </div>
+        <div class="toolbar-dialog__field">
+            <label for="feedbackMessage">Сообщение</label>
+            <textarea id="feedbackMessage" name="message" class="inputSettings" rows="5" maxlength="3000"
+                      placeholder="Расскажите, что случилось или что можно улучшить" required data-initial-focus></textarea>
+            <p class="toolbar-dialog__hint">До 3000 символов.</p>
+        </div>
+        <p class="toolbar-dialog__error" role="status" hidden></p>
+    </form>
+    {% include 'hwyd/toolbar_dialog_footer.html' with form_id='feedbackForm' action_label='Отправить' %}
+</dialog>
+{% endif %}

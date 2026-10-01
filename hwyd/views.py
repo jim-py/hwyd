@@ -15,15 +15,31 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
 from django.db.models import Value, BooleanField
 from django_user_agents.utils import get_user_agent
 
 # Импорты из локальных модулей приложения
-from .forms import LoginForm, RegisterForm, SettingsForm
+from .forms import LoginForm, RegisterForm, SettingsForm, FeedbackForm
 from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, UserActivityLog
 from general_app.models import Guide, UserGuideProgress
 
 setlocale(category=LC_ALL, locale="Russian")
+
+
+@never_cache
+@require_POST
+def submit_feedback(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Войдите в аккаунт, чтобы отправить сообщение.'}, status=401)
+    form = FeedbackForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({'error': 'Проверьте тип обращения и текст сообщения.',
+                             'errors': form.errors}, status=400)
+    feedback = form.save(commit=False)
+    feedback.user = request.user
+    feedback.save()
+    return JsonResponse({'ok': True, 'id': feedback.pk}, status=201)
 
 
 def get_pending_guides(user):
@@ -397,7 +413,7 @@ def by_date(request, picked_date):
 
         activities = activities.annotate(todayCheck=Value(False, BooleanField()))
         for a in activities:
-            a.todayCheck = a.marks.split(' ')[today - 1]
+            a.todayCheck = a.marks.split()[today - 1] if today > 0 else 'False'
 
         json_activities = json.dumps(list(activities.values()))
 
@@ -637,39 +653,52 @@ def check_cell(request, picked_date):
 
 
 @login_required(login_url='entry')
+@require_POST
 def open_group(request):
     """
     Функция для сохранения открытия группы в базе данных
 
     :param request: request
-    :return: отправляет пустой ответ, чтобы не было ошибки
+    :return: возвращает сохранённое состояние группы
     """
 
-    group = Activities.objects.get(pk=int(request.POST['openedGroup']))
-    group.isOpen = False if group.isOpen else True
+    try:
+        group_id = int(request.POST.get('openedGroup', ''))
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Некорректная группа.'}, status=400)
+    group = get_object_or_404(Activities, pk=group_id, user=request.user, isGroup=True)
+    collapsed = request.POST.get('collapsed')
+    if collapsed not in (None, 'true', 'false'):
+        return JsonResponse({'error': 'Некорректное состояние группы.'}, status=400)
+    # The legacy isOpen field means collapsed in the existing templates.
+    group.isOpen = not group.isOpen if collapsed is None else collapsed == 'true'
     group.save(update_fields=['isOpen'])
-    return HttpResponse()
+    return JsonResponse({'group_id': group.pk, 'collapsed': group.isOpen})
 
 
 @login_required(login_url='entry')
+@require_POST
 def open_all(request, picked_date):
     """
     Функция для сохранения открытия всех групп в базе даннах
 
     :param request: request
     :param picked_date: полученная дата из маршрута формата 'YYYY-MM' '2023-10'
-    :return: отправляет пустой ответ, чтобы не было ошибки
+    :return: возвращает сохранённые состояния групп
     """
 
     groups = Activities.objects.filter(user=request.user, date=picked_date, isGroup=True)
     opened_groups = []
     for group in groups:
         opened_groups.append(group.isOpen)
-    res = not any(opened_groups)
+    collapsed = request.POST.get('collapsed')
+    if collapsed not in (None, 'true', 'false'):
+        return JsonResponse({'error': 'Некорректное состояние группы.'}, status=400)
+    res = not any(opened_groups) if collapsed is None else collapsed == 'true'
     for group in groups:
         group.isOpen = res
     Activities.objects.bulk_update(groups, ['isOpen'])
-    return HttpResponse()
+    return JsonResponse({'groups': [{'id': group.pk, 'collapsed': group.isOpen} for group in groups]})
 
 
 def get_activity_day(cell, user, picked_date):
@@ -688,6 +717,7 @@ def get_activity_day(cell, user, picked_date):
 
 
 @login_required(login_url='entry')
+@require_POST
 def delete_all(request, picked_date):
     """
     Функция удаления всех активностей

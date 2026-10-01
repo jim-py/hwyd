@@ -1,36 +1,7 @@
 {% load static %}
 {% load tags %}
 
-<script>
-let currentModal = null;
 
-// открыть модалку
-function openModal(modalId) {
-    currentModal = document.getElementById(modalId);
-    if (currentModal) {
-        currentModal.style.display = 'flex';
-    }
-}
-
-// закрыть текущую модалку
-function closeModal() {
-    if (currentModal) {
-        currentModal.style.display = 'none';
-        currentModal = null;
-    }
-}
-
-// клик вне окна — закрытие
-function onModalClick(event) {
-    if (!currentModal) return;
-
-    const modalContent = currentModal.querySelector('.modal-content');
-
-    if (modalContent && !modalContent.contains(event.target)) {
-        closeModal();
-    }
-}
-</script>
 
 
 {# Скрипты таблицы  - Костыль#}
@@ -44,27 +15,11 @@ function onModalClick(event) {
 
     el = document.getElementById('myTable');
     el.style.transform = `scale(${scale})`;
-    {% if settings.showCreateActivity %}
-    el = document.getElementById('createActivity');
-    el.style.transform = `scale(${scale})`;
-    {% endif %}
-    {% if settings.showCreateActivityGroup %}
-    el = document.getElementById('createActivityGroup');
-    el.style.transform = `scale(${scale})`;
-    {% endif %}
   }
 
   window.addEventListener('resize', updateScale);
   window.addEventListener('load', updateScale);
-  {% if settings.showCreateActivity %}
-    const baseWidth = 390;
-    const baseScale = 1.27;
-    const viewportWidth = window.innerWidth;
-    const scale = (viewportWidth / baseWidth) * baseScale;
 
-    const tableOffsetHeight = document.getElementById('myTable').offsetHeight;
-    document.getElementById('createActivity').style.marginTop = (tableOffsetHeight * scale - tableOffsetHeight + 10) + 'px';
-    {% endif %}
 </script>
 {% endif %}
 
@@ -142,33 +97,7 @@ function onModalClick(event) {
     for (let elem of document.querySelectorAll('div.divClick')) {
         elem.addEventListener('click', function () {
             const object = $(this);
-            let currentDate = new Date();
-            let currentDay = currentDate.getDate() - 1;
-            let divId = this.id;
-
             object.toggleClass('on');
-
-            {#let counter = '#number' + divId.split('-').pop(), newValue;#}
-            {#const element = document.querySelector(counter);#}
-            {#let amountPercent = 100 / {{ range_activities|length }};#}
-
-            let cellChecked = this.classList.contains('on')
-            if (cellChecked) {
-                {#newValue = Math.floor(parseInt(element.textContent) + amountPercent);#}
-                {% if settings.vanishing != "off" %}
-                    {% if settings.vanishing == "smooth" %}
-                        if (divId.includes('-' + currentDay.toString())) {
-                            setTimeout(function () {
-                                object.parent().parent().fadeOut(1000);
-                            }, 1000);
-                        }
-                    {% elif settings.vanishing == "sharp" %}
-                        if (divId.includes('-' + currentDay.toString())) {
-                            object.parent().parent().fadeOut(700);
-                        }
-                    {% endif %}
-                {% endif %}
-            }
             {# } else {#}
             {#    newValue = Math.floor(parseInt(element.textContent) - amountPercent);#}
             {# }#}
@@ -301,6 +230,9 @@ function onModalClick(event) {
             }
 
             vibrateOrHaptic();
+            window.dispatchEvent(new CustomEvent('habitus:activity-marked', { detail: {
+                row: this.closest('tr'), day: Number(this.id.split('-')[1]), completed: this.classList.contains('on')
+            }}));
 
             $.ajax({
                 type: 'POST',
@@ -395,36 +327,6 @@ function onModalClick(event) {
             }
     })
     {% endif %} 
-</script>
-
-{# ОТКРЫТИЕ/РАСКРЫТИЕ ГРУПП #}
-<script>
-    {% if settings.enableOpenCloseGroups %}
-        for (let stroke of document.querySelectorAll('td[class*="isGroup"]')) {
-            stroke.addEventListener("click", function (e) {
-                let group_id = e.target.getAttribute('data-pk')
-                if ($(this).hasClass('expand')) {
-                    for (let elem of document.querySelectorAll(`tr[class*=group${group_id}]`)) {
-                        elem.style.display = ''
-                    }
-                } else {
-                    for (let elem of document.querySelectorAll(`tr[class*=group${group_id}]`)) {
-                        elem.style.display = 'none'
-                    }
-                }
-                $(this).toggleClass('expand');
-                $.ajax({
-                    type: 'POST',
-                    url: '{% url 'open_group' %}',
-                    data:
-                        {
-                            openedGroup: group_id,
-                            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-                        }
-                })
-            });
-        }
-    {% endif %}
 </script>
 
 {# ОТКРЫВАЕТ МОДАЛЬНОЕ ОКНО ПО НАЖАТИЮ НА МЕСЯЦ #}
@@ -782,11 +684,7 @@ function onModalClick(event) {
 
 {# ОТПРАВКА ФОРМ СОЗДАНИЯ АКТИВНОСТЕЙ И ВЫБОРА МЕСЯЦА В КАЛЕНДАРЕ #}
 <script>
-    {% if settings.showCalendar %}
-        document.getElementById('chooseDate').addEventListener("change", function () {
-            document.getElementById("chooseDate").submit();
-        });
-    {% endif %}  //Отправка формы выбора месяца
+  //Отправка формы выбора месяца
 </script>
 
 {# Динамическое изменение цветов #}
@@ -898,47 +796,11 @@ for (let elem of document.querySelectorAll('.deleteActivityButt')) {
                 }
         }).done(function () {
             $(row).remove()
+            window.dispatchEvent(new Event('habitus:rows-changed'));
             $(document.querySelector(`#activityToGroup${pk}`).parentNode).remove()
         });
     })
 }
-{% if range_activities and settings.showDeleteAllActivities %}
-document.querySelector('#deleteAll').addEventListener('click', function (evt) {
-        $.ajax({
-            type: 'POST',
-            url: '{% url 'delete_all' date %}',
-            data:
-                {
-                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-                }
-        }).done(function () {
-            for (let elem of document.querySelectorAll('tbody tr')) {
-                elem.remove()
-            }
-            $('#deleteAll')[0].style.display = 'none'
-            $('#btnActLastMonth')[0].parentElement.style.display = 'inline'
-            $('#openAll')[0].style.display = 'none'
-        });
-    })
-{% endif %}
-
-function any(iterable) {
-    for (let index = 0; index < iterable.length; index++) {
-        if (iterable[index]) return true;
-    }
-    return false;
-}
-
-document.querySelector('#openAll').addEventListener('click', function (evt) {
-    $.ajax({
-        type: 'POST',
-        url: '{% url 'open_all' date %}',
-        data:
-            {
-                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-            }
-    }).done(openAllGroups);
-})
 </script>
 <script src="{% static 'hwyd/vendor/html2canvas/html2canvas.js' %}"></script>
 <script>
@@ -1064,38 +926,6 @@ document.querySelector('#openAll').addEventListener('click', function (evt) {
             }, 1000);
         }
     } {% endcomment %}
-function openAllGroups() {
-        let groups = document.querySelectorAll('tbody td[class*=isGroup]')
-        let opened = []
-        let activities_clean = []
-        for (let elem of document.querySelectorAll('tbody tr[class*=group]')) {
-            if (!elem.className.includes('None')) {
-                activities_clean.push(elem)
-            }
-        }
-        for (let elem of activities_clean) {
-            opened.push(elem.style.display)
-        }
-        if (any(opened) === true) {
-            for (let elem of activities_clean) {
-                elem.style.display = ''
-            }
-            for (let elem of groups) {
-                if ($(elem).hasClass('expand')) {
-                    $(elem).toggleClass('expand')
-                }
-            }
-        } else {
-            for (let elem of activities_clean) {
-                elem.style.display = 'none'
-            }
-            for (let elem of groups) {
-                if (!$(elem).hasClass('expand')) {
-                    $(elem).toggleClass('expand')
-                }
-            }
-        }
-    }
 </script>
 <script>
     {% comment %} document.querySelector('#hideActivities').addEventListener('click', function () {
@@ -1109,33 +939,6 @@ function openAllGroups() {
             }
         }
     }) {% endcomment %}
-    document.querySelector('#hideCompleteActivities').addEventListener('click', function () {
-        let trElements = document.querySelectorAll('tbody tr'), check = true;
-        let currentDate = new Date();
-        let currentDay = currentDate.getDate() - 1;
-
-        trElements.forEach(function (tr) {
-            let trHide = tr.classList.contains('hide')
-            let displayStyle = window.getComputedStyle(tr).getPropertyValue('display');
-            if (!trHide) {
-                if (displayStyle === 'none') {
-                    tr.style.display = '';
-                    check = false;
-                }
-            }
-        });
-        if (check === true) {
-            let divElements = document.querySelectorAll('div.on');
-            divElements.forEach(function (div) {
-                let divId = div.id;
-                if (divId.includes('-' + currentDay.toString())) {
-                    let grandParent = div.parentElement.parentElement;
-                    grandParent.style.display = 'none';
-                }
-            });
-        }
-    })
-
     document.querySelector('#selectSettings').addEventListener('change', function (evt) {
         $.ajax({
             type: 'POST',

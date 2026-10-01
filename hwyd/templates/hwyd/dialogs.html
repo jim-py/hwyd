@@ -163,30 +163,22 @@
         <i class="fa-solid fa-eye-slash"></i>
     </button> {% endcomment %}
 
-    <button id="hideCompleteActivities" type="button" title="Показать выполненные">
+    <button id="hideCompleteActivities" type="button" title="Показать выполненные" aria-label="Показать выполненные">
         <i class="fa-solid fa-eye"></i>
     </button>
 
-    <button id="deleteAll" class="button-6" role="button" style="display:{% if range_activities and settings.showDeleteAllActivities %}flex;{% else %}none;{% endif %}" title="Очистить все активности">
+    <button id="deleteAll" type="button" class="button-6" data-dialog="deleteAllModal" aria-controls="deleteAllModal" aria-label="Очистить все активности" style="display:{% if range_activities and settings.showDeleteAllActivities %}flex;{% else %}none;{% endif %}" title="Очистить все активности">
         <i class="fa-solid fa-trash"></i>
     </button>
 
-    <button id="openAll" class="button-6" role="button" style="display:{% if range_activities and settings.showOpenAllGroups %}flex;{% else %}none;{% endif %}" title="Раскрыть/свернуть группы">
+    <button id="openAll" type="button" class="button-6" aria-label="Раскрыть все группы" style="display:{% if range_activities and settings.showOpenAllGroups %}flex;{% else %}none;{% endif %}" title="Раскрыть все группы">
         <i class="fa-solid fa-folder-open"></i>
     </button>
 
-    <button id="calendarButton" type="button" class="calendar-button" onclick="openModal('calendarModal')" style="display:{% if settings.showCalendar %}flex;{% else %}none;{% endif %}">
+    <button id="calendarButton" type="button" class="calendar-button" data-dialog="calendarModal" aria-controls="calendarModal" title="Выбрать месяц" aria-label="Выбрать месяц" style="display:{% if settings.showCalendar %}flex;{% else %}none;{% endif %}">
         <i class="fa-solid fa-calendar"></i>
     </button>
 
-    <div id="calendarModal" class="modal" onclick="onModalClick(event)">
-        <div class="modal-content">
-            <form id="chooseDate" action="{% url 'by_date' date %}" method="post">
-                {% csrf_token %}
-                <input type="month" name="chooseDate" min="2020-01" max="2030-12" value="{{ date }}">
-            </form>
-        </div>
-    </div>
 
     <form id="createLastMonthActivitiesForm" action="{% url 'create_last_activities' date %}" method="post" style="display:{% if not range_activities %}inline;{% else %}none;{% endif %}">
         {% csrf_token %}
@@ -200,46 +192,27 @@
             class="calendar-button"
             title="Создать активность"
             style="display:{% if settings.showCreateActivity %}flex;{% else %}none;{% endif %}"
-            onclick="openModal('createActivityModal')">
+            data-dialog="createActivityModal" aria-controls="createActivityModal" aria-label="Создать активность">
         <i class="fa-solid fa-plus"></i>
     </button>
 
-    <div id="createActivityModal" class="modal" onclick="onModalClick(event)">
-        <div class="modal-content">
-            <form action="{% url 'create_activity' date 0 %}" method="post">
-                {% csrf_token %}
-                <input
-                    type="text"
-                    name="createActivityInput"
-                    placeholder="Имя активности"
-                    autofocus
-                    required>
-            </form>
-        </div>
-    </div>
 
     <button type="button"
             id="createGroupButton"
             class="calendar-button"
             title="Создать группу"
             style="display:{% if settings.showCreateActivityGroup %}flex;{% else %}none;{% endif %}"
-            onclick="openModal('createActivityGroupModal')">
+            data-dialog="createActivityGroupModal" aria-controls="createActivityGroupModal" aria-label="Создать группу">
         <i class="fa-solid fa-layer-group"></i>
     </button>
 
-    <div id="createActivityGroupModal" class="modal" onclick="onModalClick(event)">
-        <div class="modal-content">
-            <form action="{% url 'create_activity' date 1 %}" method="post">
-                {% csrf_token %}
-                <input
-                    type="text"
-                    name="createActivityGroupInput"
-                    placeholder="Имя группы"
-                    autofocus
-                    required>
-            </form>
-        </div>
-    </div>
+
+    {% if request.user.is_authenticated %}
+    <button id="buttonFeedback" type="button" title="Обратная связь" aria-label="Обратная связь"
+            data-dialog="feedbackModal" aria-controls="feedbackModal">
+        <i class="fa-solid fa-comment-dots" aria-hidden="true"></i>
+    </button>
+    {% endif %}
 
     <button id="loginStreak"
             title="Стрик: {{ login_streak }} дней подряд">
@@ -248,6 +221,8 @@
         <span class="streak-count">{{ login_streak }}</span>
     </button>
 </div>
+<p id="toolbarStatus" class="toolbar-status" role="status" hidden></p>
+{% include 'hwyd/toolbar_dialogs.html' %}
 
 <script>
 function vibrateOrHaptic() {

@@ -44,6 +44,8 @@ table {
     transform-origin: top left;
 }
 
+#myTable tr[hidden] { display: none; }
+
 p.headParagraph.weekend {
     color: white;
     width: 25px;

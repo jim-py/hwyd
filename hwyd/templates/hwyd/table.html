@@ -4,10 +4,13 @@
 
 <div>
     {% if settings.enableSortTable %}
-        <table id="myTable" class="sortable-table table">
+        <table id="myTable" class="sortable-table table"
     {% else %}
-        <table id="myTable" class="table">
+        <table id="myTable" class="table"
     {% endif %}
+        data-hide-completed="{% if settings.vanishing != 'off' %}true{% else %}false{% endif %}"
+        data-current-day="{{ today|add:-1 }}" data-manual-groups="{{ settings.enableOpenCloseGroups|yesno:'true,false' }}"
+        data-open-group-url="{% url 'open_group' %}" data-open-all-url="{% url 'open_all' date %}">
     <thead>
     <tr>
         {% if settings.showDeleteActivity %}
@@ -32,7 +35,11 @@
     </thead>
     <tbody>
     {% for activity in range_activities %}
-        <tr style="{% if not activity.isGroup and activity|group_is_open:group_open and settings.enableOpenCloseGroups or settings.vanishing != 'off' and activity.todayCheck == 'True' %} display: none; {% endif %}"
+        <tr data-activity-id="{{ activity.pk }}" data-is-group="{{ activity.isGroup|yesno:'true,false' }}"
+            data-group-id="{{ activity|get_group_id:connections|default_if_none:'' }}"
+            data-completed="{% if activity.todayCheck == 'True' %}true{% else %}false{% endif %}"
+            {% if activity.isGroup %}data-group-collapsed="{{ activity.isOpen|yesno:'true,false' }}"{% endif %}
+            {% if not activity.isGroup and activity|group_is_open:group_open or not activity.isGroup and settings.vanishing != 'off' and activity.todayCheck == 'True' %}hidden{% endif %}
             class="{% if activity.isGroup %}isGroup{{ activity.pk }}{% else %}group{{ activity|get_group_id:connections }}-{{ activity.pk }}{% endif %}">
             {% if settings.showDeleteActivity %}
                 <td class="activity-delete-cell">
@@ -57,8 +64,9 @@
                                     <path d="M3 7V5a2 2 0 0 1 2-2h5l3 3h6a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>
                                     <path d="M3 9h18"/>
                                 {% else %}
-                                    <circle cx="12" cy="12" r="9"/>
-                                    <path d="m8 12 3 3 5-6"/>
+                                    <path d="M8 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                                    <rect x="8" y="2" width="8" height="6" rx="2"/>
+                                    <path d="M8 13h8M8 17h5"/>
                                 {% endif %}
                             </svg>
                             {{ activity.name }}

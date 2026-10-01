@@ -1,0 +1,8 @@
+{% load static %}
+<div class="modal__header">
+    <h3 class="dialog__title" id="{{ title_id }}">{{ title }}</h3>
+    <button type="button" class="settings-dialog__close" data-dialog-close aria-label="Закрыть: {{ title }}">
+        <img src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt="">
+    </button>
+</div>
+<hr class="dialog-divider">

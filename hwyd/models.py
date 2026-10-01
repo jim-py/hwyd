@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.forms.models import model_to_dict
+from django.conf import settings
 from datetime import timedelta
 try:
     from zoneinfo import ZoneInfo
@@ -171,3 +172,25 @@ class Settings(models.Model):
 
     def __str__(self):
         return f'Пользователь: {self.user} {self.fontFamily}'
+
+
+class Feedback(models.Model):
+    class Category(models.TextChoices):
+        BUG = 'bug', 'Ошибка'
+        IDEA = 'idea', 'Предложение'
+        THANKS = 'thanks', 'Благодарность'
+        OTHER = 'other', 'Другое'
+
+    category = models.CharField('Тип обращения', max_length=10, choices=Category.choices)
+    message = models.TextField('Сообщение', max_length=3000)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                             null=True, blank=True, verbose_name='Пользователь')
+    created_at = models.DateTimeField('Дата отправки', auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-pk']
+        verbose_name = 'Обратная связь'
+        verbose_name_plural = 'Обратная связь'
+
+    def __str__(self):
+        return f'{self.get_category_display()} — {self.created_at:%d.%m.%Y}'

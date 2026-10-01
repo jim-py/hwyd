@@ -86,22 +86,6 @@
     background-color: #cfe8ff;
     color: #023;
 }
-.modal {
-display: none;
-position: fixed;
-inset: 0;
-background: rgba(0,0,0,.2);
-justify-content: center;
-align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-background: white;
-padding: 20px;
-border-radius: 8px;
-scale: 1.5;
-}
 
 .jsonBtn {
     text-decoration: none;
@@ -229,4 +213,71 @@ dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
     height: 120px;
     padding: 7px 12px;
     resize: vertical;
+}
+
+/* Toolbar dialogs reuse the settings shell, header, body and action styles. */
+.activity-dialog.toolbar-dialog {
+    inset: 0;
+    margin: auto;
+    width: 380px;
+    border-radius: 15px;
+    background: #fff;
+    color: #222;
+    overflow: hidden;
+}
+
+.toolbar-dialog > .modal__header {
+    align-items: center;
+    gap: 12px;
+    cursor: default;
+}
+
+.toolbar-dialog .dialog__title { margin: 0; font-size: 18px; }
+.toolbar-dialog .settings-dialog__close { width: 32px; height: 32px; align-items: center; justify-content: center; }
+.toolbar-dialog .dialog-divider { border: 0; border-top: 1px solid #e0e0e0; }
+.toolbar-dialog__field { display: flex; flex-direction: column; gap: 8px; }
+.toolbar-dialog__field + .toolbar-dialog__field { margin-top: 18px; }
+.toolbar-dialog__field label { font-size: 14px; font-weight: 600; }
+.toolbar-dialog__field .inputSettings,
+.toolbar-dialog__field select {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f5f6f8;
+    color: #222;
+    font-size: 16px;
+}
+.toolbar-dialog__field select { appearance: auto; }
+.toolbar-dialog__field .inputSettings:focus,
+.toolbar-dialog__field select:focus { border-color: #4071f4; outline: 2px solid #dce6ff; }
+.toolbar-dialog__hint { margin: 8px 0 0; font-size: 13px; color: #626262; }
+.toolbar-dialog__error { color: #a00; font-size: 14px; overflow-wrap: anywhere; }
+.toolbar-dialog__footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e0e0e0; }
+.toolbar-dialog .toolbar-dialog__button { width: auto; min-width: 88px; height: 42px; padding: 0 16px; }
+.toolbar-dialog .toolbar-dialog__button--primary { border-color: #4071f4; background: #4071f4; color: #fff; }
+.toolbar-dialog .toolbar-dialog__button--primary:hover { background: #2856bf; }
+.toolbar-dialog .toolbar-dialog__button--danger { background: #ffdfdf; border-color: #dba9a9; color: #a00; }
+.toolbar-dialog .toolbar-dialog__button--danger:hover { background: #fbbcbc; }
+.toolbar-dialog button:disabled { opacity: 0.5; cursor: default; transform: none; }
+.toolbar-dialog button:focus-visible { outline: 2px solid #4071f4; outline-offset: 2px; }
+.toolbar-modal-open { overflow: hidden; }
+.toolbar-status { margin: 0 0 10px; font-size: 14px; text-align: center; }
+
+.month-picker__year { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.month-picker__year .button-6 { width: 42px; height: 42px; font-size: 24px; }
+.month-picker__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.month-picker__grid button { min-height: 42px; padding: 8px 0; border: 1px solid #ccc; border-radius: 4px; background: #f5f6f8; color: #222; font-size: 13px; cursor: pointer; }
+.month-picker__grid button:hover { border-color: #8da9ee; background: #eef2ff; }
+.month-picker__grid button[aria-pressed=true] { border-color: #4071f4; background: #dce6ff; color: #2856bf; font-weight: 600; }
+
+@media (max-width: 1023px) {
+    .toolbar-dialog .activity-dialog__body { padding: 16px; }
+    .toolbar-dialog .settings-dialog__close { width: 40px; height: 40px; }
+    .toolbar-dialog .toolbar-dialog__button,
+    .month-picker__grid button,
+    .month-picker__year .button-6 { min-height: 44px; }
 }
