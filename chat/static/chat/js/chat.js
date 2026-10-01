@@ -1,5 +1,7 @@
 import { getCSRFToken } from '../../site/js/csrf.js';
 import { createChatWindow } from './window.js';
+import { createMessageList } from './messages.js';
+import { createMessageActions } from './actions.js';
 
 const dialog = document.getElementById('chatDialog');
 const button = document.getElementById('buttonChat');
@@ -21,7 +23,10 @@ if (dialog && button) {
     let sending = false;
     let expired = false;
     let pollError = false;
-    let previousMessage = null;
+    const list = createMessageList(history, empty);
+    let refreshOffset = 0;
+    const actions = createMessageActions({ dialog, history, input, send, list, request, showError,
+        resizeInput, onMutation: applyMessage });
 
     function resizeInput() {
         // CSS caps the height; longer drafts scroll inside the textarea.
@@ -39,10 +44,10 @@ if (dialog && button) {
         button.setAttribute('aria-label', value ? 'Чат: есть новые сообщения' : 'Чат');
     }
 
-    async function request(url, payload) {
+    async function request(url, payload, method = 'POST') {
         const options = { credentials: 'same-origin', cache: 'no-store' };
         if (payload !== undefined) {
-            options.method = 'POST';
+            options.method = method;
             options.headers = {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken() || composer.querySelector('[name=csrfmiddlewaretoken]').value
@@ -53,39 +58,27 @@ if (dialog && button) {
         if (response.status === 401) expired = true;
         if (!response.ok) {
             const data = await response.json().catch(() => ({}));
-            throw new Error(data.error || 'Не удалось выполнить запрос. Попробуйте ещё раз.');
+            const failure = new Error(data.error || 'Не удалось выполнить запрос. Попробуйте ещё раз.');
+            failure.status = response.status;
+            throw failure;
         }
         return response.json();
     }
 
-    function append(message) {
-        const item = document.createElement('article');
-        item.className = 'chat-message';
-        if (message.is_own) item.classList.add('chat-message--own');
-        const date = new Date(message.created_at);
-        if (previousMessage) {
-            const previousDate = new Date(previousMessage.created_at);
-            if (previousMessage.sender === message.sender && previousMessage.is_own === message.is_own &&
-                previousDate.toDateString() === date.toDateString() &&
-                date - previousDate >= 0 && date - previousDate < 5 * 60 * 1000) {
-                item.classList.add('chat-message--continued');
-            }
+    function applyMessage(message) {
+        const current = list.get(message.id);
+        // A poll started before a local mutation must not resurrect deleted text
+        // or overwrite a newer edit when its response arrives later.
+        if (!message.is_deleted && (list.isDeleted(message.id) ||
+            (current?.edited_at && (!message.edited_at || current.edited_at > message.edited_at)))) return false;
+        if (message.reply_to && list.isDeleted(message.reply_to.id)) {
+            message = { ...message, reply_to: { ...message.reply_to, text: '', is_deleted: true } };
         }
-        const sender = document.createElement('strong');
-        sender.className = 'chat-message__sender';
-        sender.textContent = message.sender;
-        const text = document.createElement('p');
-        text.className = 'chat-message__text';
-        text.textContent = message.text;
-        const time = document.createElement('time');
-        time.dateTime = message.created_at;
-        time.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        time.title = date.toLocaleString();
-        text.append(time);
-        item.append(sender, text);
-        history.append(item);
-        previousMessage = message;
-        empty.hidden = true;
+        const changed = list.upsert(message);
+        const repliesChanged = list.updateReplies(message);
+        if (changed) actions.onUpdate(message);
+        if (changed || repliesChanged) actions.closeMenu();
+        return changed || repliesChanged;
     }
 
     async function load() {
@@ -93,10 +86,19 @@ if (dialog && button) {
         const nearBottom = history.scrollHeight - history.scrollTop - history.clientHeight < 60;
         const url = new URL(dialog.dataset.messagesUrl, location.origin);
         if (!initial) url.searchParams.set('after_id', cursor);
+        const ids = list.ids();
+        if (ids.length) {
+            refreshOffset %= ids.length;
+            const refresh = ids.slice(refreshOffset, refreshOffset + 50);
+            url.searchParams.set('refresh_ids', refresh.join(','));
+            refreshOffset = (refreshOffset + refresh.length) % ids.length;
+        }
         const data = await request(url);
+        for (const message of data.updated_messages || []) applyMessage(message);
+        for (const id of data.missing_ids || []) applyMessage({ id, text: '', sender: '', is_deleted: true });
         for (const message of data.messages) {
             if (cursor === null || message.id > cursor) {
-                append(message);
+                applyMessage(message);
                 cursor = message.id;
             }
         }
@@ -132,13 +134,14 @@ if (dialog && button) {
         }
     }
 
-    button.addEventListener('click', () => {
+    function openChat() {
         chatWindow.open();
         input.focus();
         resizeInput();
         clearTimeout(timer);
         poll();
-    });
+    }
+    button.addEventListener('click', openChat);
     dialog.addEventListener('close', () => {
         // A responsive mode switch closes and immediately reopens the dialog.
         if (dialog.open) return;
@@ -157,19 +160,27 @@ if (dialog && button) {
         const value = input.value;
         if (!value.trim()) { showError('Введите текст сообщения.'); return; }
         if (value.length > input.maxLength) { showError('Максимум 2000 символов.'); return; }
+        const mode = actions.getMode();
         sending = true;
         send.disabled = true;
         input.readOnly = true;
         showError();
         pollError = false;
         try {
-            await request(dialog.dataset.messagesUrl, { text: value });
+            if (mode?.type === 'edit') {
+                applyMessage((await request(actions.endpoint(mode.message.id), { text: value }, 'PATCH')).message);
+            } else {
+                await request(dialog.dataset.messagesUrl, { text: value,
+                    ...(mode?.type === 'reply' ? { reply_to: mode.message.id } : {}) });
+            }
+            actions.resetMode(false);
             input.value = '';
             resizeInput();
             // Read in ID order; appending the POST response could skip other senders.
             clearTimeout(timer);
             schedule(0);
         } catch (failure) {
+            if (failure.status === 404) actions.resetMode(false);
             showError(failure.message);
         } finally {
             sending = false;
@@ -211,5 +222,6 @@ if (dialog && button) {
         picker.hidden = !picker.hidden;
         emojiToggle.setAttribute('aria-expanded', String(!picker.hidden));
     });
-    poll();
+    if (chatWindow.restoreOpen) openChat();
+    else poll();
 }

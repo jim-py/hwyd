@@ -1,15 +1,40 @@
+export const WINDOW_STORAGE_KEY = 'habitus.chat.window.v1';
+
+export function readWindowState(storage) {
+    try {
+        const value = JSON.parse(storage.getItem(WINDOW_STORAGE_KEY));
+        if (!value || typeof value.open !== 'boolean') return { open: false, bounds: null };
+        const keys = ['left', 'top', 'width', 'height'];
+        const valid = keys.every(key => typeof value[key] === 'number' && Number.isFinite(value[key]));
+        const bounds = valid && value.width > 0 && value.height > 0 ?
+            Object.fromEntries(keys.map(key => [key, value[key]])) : null;
+        return { open: value.open, bounds };
+    } catch {
+        return { open: false, bounds: null };
+    }
+}
+
 // Window behavior is independent of message rendering, polling and API requests.
 export function createChatWindow(dialog, opener) {
     const narrow = window.matchMedia('(max-width: 1023px)');
     const margin = 8;
     const minimum = { width: 320, height: 320 };
     const interactive = 'button, a, input, textarea, select, label, [role="button"], [contenteditable]';
-    let bounds = null;
+    let restored;
+    try { restored = readWindowState(window.localStorage); }
+    catch { restored = { open: false, bounds: null }; }
+    let bounds = restored.bounds;
     let gesture = null;
     let frame = null;
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
     const viewport = () => ({ width: document.documentElement.clientWidth, height: window.innerHeight });
+
+    function persist(open = dialog.open) {
+        // bounds is desktop geometry, even while the mobile dialog is fullscreen.
+        try { window.localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ open, ...bounds })); }
+        catch { /* Storage failure must not disable chat. */ }
+    }
 
     function constrain(rect) {
         const size = viewport();
@@ -38,6 +63,7 @@ export function createChatWindow(dialog, opener) {
         gesture = null;
         dialog.classList.remove('chat-window--dragging', 'chat-window--adjusting');
         if (dialog.hasPointerCapture(pointerId)) dialog.releasePointerCapture(pointerId);
+        persist();
     }
 
     function applyMode() {
@@ -118,6 +144,10 @@ export function createChatWindow(dialog, opener) {
             if (gesture?.pointerId === event.pointerId) stopGesture();
         });
     }
+    // Native close events are queued. Record explicit closes synchronously so
+    // an immediate navigation/reload cannot retain the previous open state.
+    dialog.querySelector('.modal__header form').addEventListener('submit', () => persist(false));
+    dialog.addEventListener('cancel', () => persist(false));
     dialog.addEventListener('keydown', event => {
         // Native modal Escape remains unchanged. Non-modal Escape belongs only
         // to the focused chat, so other page controls and dialogs keep their keys.
@@ -125,6 +155,7 @@ export function createChatWindow(dialog, opener) {
             event.preventDefault();
             event.stopPropagation();
             dialog.close();
+            persist(false);
         }
     });
     dialog.addEventListener('close', () => {
@@ -134,10 +165,12 @@ export function createChatWindow(dialog, opener) {
         frame = null;
         window.removeEventListener('resize', onResize);
         document.body.classList.remove('chat-fullscreen-open');
+        persist();
         if (dialog.contains(document.activeElement)) opener.focus({ preventScroll: true });
     });
 
     return {
+        restoreOpen: restored.open,
         open() {
             if (dialog.open) return;
             applyMode();
@@ -145,6 +178,7 @@ export function createChatWindow(dialog, opener) {
             else dialog.show();
             applyMode();
             window.addEventListener('resize', onResize);
+            persist();
         }
     };
 }

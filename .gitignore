@@ -26,5 +26,6 @@ media/
 # Технические файлы
 AGENTS.md
 CODEBASE_MAP.md
+MIGRATIONS.md
 
 migrations/

@@ -16,12 +16,17 @@
     <form id="chatComposer" class="chat-composer">
         {% csrf_token %}
         <p id="chatError" class="chat-error" role="status" hidden></p>
+        <div id="chatMode" class="chat-mode" hidden>
+            <div><strong id="chatModeTitle"></strong><p id="chatModeText"></p></div>
+            <button id="chatModeCancel" type="button" aria-label="Отменить ответ или редактирование">×</button>
+        </div>
         <div class="chat-input-row">
             <textarea id="chatText" maxlength="2000" rows="1" placeholder="Сообщение..."
                       aria-label="Текст сообщения" required></textarea>
             <button id="chatEmojiToggle" class="button-6" type="button" aria-label="Выбрать emoji"
                     aria-expanded="false" aria-controls="chatEmojiPicker">😀</button>
             <button id="chatSend" class="button-save" type="submit" aria-label="Отправить сообщение" title="Отправить">
+                <span id="chatSendLabel" hidden>Сохранить</span>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
                     <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -29,6 +34,18 @@
         </div>
         <div id="chatEmojiPicker" class="chat-emoji-picker" role="group" aria-label="Emoji" hidden></div>
     </form>
+    <div id="chatActionMenu" class="chat-action-menu" role="menu" aria-label="Действия с сообщением" hidden>
+        <div id="chatActionChoices">
+            <button type="button" role="menuitem" data-action="reply">Ответить</button>
+            <button type="button" role="menuitem" data-action="edit">Изменить</button>
+            <button type="button" role="menuitem" data-action="delete" class="chat-action--danger">Удалить</button>
+        </div>
+        <div id="chatDeleteConfirm" hidden>
+            <p>Удалить сообщение?</p>
+            <button type="button" role="menuitem" data-action="cancel-delete">Отмена</button>
+            <button type="button" role="menuitem" data-action="confirm-delete" class="chat-action--danger">Удалить</button>
+        </div>
+    </div>
     <div class="chat-resize-handle" data-chat-resize="n" aria-hidden="true"></div>
     <div class="chat-resize-handle" data-chat-resize="e" aria-hidden="true"></div>
     <div class="chat-resize-handle" data-chat-resize="s" aria-hidden="true"></div>
