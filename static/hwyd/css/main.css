@@ -28,7 +28,15 @@ p.paragraph {
     margin: 0 5px 0 0;
     font-weight: 600;
     display: flex;
+    align-items: center;
     justify-content: start;
+}
+
+.activity-name-icon {
+    flex: 0 0 14px;
+    margin-right: 6px;
+    opacity: 0.75;
+    pointer-events: none;
 }
 
 table {
@@ -342,15 +350,45 @@ input.colorTextForm {
 
 button.deleteActivity {
     padding: 0;
-    width: 16px;
-    height: 16px;
-    margin-right: 10px;
+    width: 26px;
+    height: 26px;
+    box-sizing: border-box;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #c7c7c7;
+    border-radius: 4px;
+    background: transparent;
+    color: #707782;
+    cursor: pointer;
+    vertical-align: middle;
+    transition: background-color 150ms, border-color 150ms, color 150ms;
 }
 
-img.cross {
-    cursor: pointer;
-    width: 12px;
-    height: 12px;
+button.deleteActivity:hover {
+    background: #fff0f0;
+    border-color: #dba9a9;
+    color: #b43d3d;
+}
+
+button.deleteActivity:focus-visible {
+    outline: 2px solid #4071f4;
+    outline-offset: 2px;
+}
+
+#myTable .activity-delete-cell {
+    width: 26px;
+    min-width: 26px;
+    padding: 0 6px 0 0;
+    text-align: center;
+    vertical-align: middle;
+}
+
+button.deleteActivity .cross {
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
 }
 
 div.grid-container {
