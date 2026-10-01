@@ -234,6 +234,13 @@ dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
     cursor: default;
 }
 
+#feedbackModal { position: fixed; }
+#feedbackModal > .modal__header {
+    cursor: move;
+    touch-action: none;
+    user-select: none;
+}
+
 .toolbar-dialog .dialog__title { margin: 0; font-size: 18px; }
 .toolbar-dialog .settings-dialog__close { width: 32px; height: 32px; align-items: center; justify-content: center; }
 .toolbar-dialog .dialog-divider { border: 0; border-top: 1px solid #e0e0e0; }
@@ -267,7 +274,37 @@ dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
 .toolbar-dialog button:disabled { opacity: 0.5; cursor: default; transform: none; }
 .toolbar-dialog button:focus-visible { outline: 2px solid #4071f4; outline-offset: 2px; }
 .toolbar-modal-open { overflow: hidden; }
-.toolbar-status { margin: 0 0 10px; font-size: 14px; text-align: center; }
+.habitus-toast {
+    --toast-accent: #248463;
+    position: fixed;
+    inset: auto 16px max(20px, env(safe-area-inset-bottom)) 16px;
+    z-index: 1100;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+    max-width: min(460px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 13px 16px;
+    border: 1px solid #e3e6eb;
+    border-radius: 12px;
+    background: #fff;
+    color: #303640;
+    box-shadow: 0 8px 28px rgba(34, 44, 60, 0.14);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    pointer-events: none;
+}
+
+.habitus-toast[hidden] { display: none; }
+.habitus-toast[data-tone=error] { --toast-accent: #c05252; }
+.habitus-toast__icon { flex-shrink: 0; color: var(--toast-accent); }
+.habitus-toast__text { min-width: 0; overflow-wrap: anywhere; }
+.habitus-toast__error,
+.habitus-toast[data-tone=error] .habitus-toast__success { display: none; }
+.habitus-toast[data-tone=error] .habitus-toast__error { display: initial; }
 
 .month-picker__year { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .month-picker__year .button-6 { width: 42px; height: 42px; font-size: 24px; }

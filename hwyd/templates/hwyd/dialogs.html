@@ -177,7 +177,15 @@
         <span class="streak-count">{{ login_streak }}</span>
     </button>
 </div>
-<p id="toolbarStatus" class="toolbar-status" role="status" hidden></p>
+<div id="habitusToast" class="habitus-toast" popover="manual" role="status" aria-live="polite" aria-atomic="true" hidden>
+    <svg class="habitus-toast__icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/>
+        <path class="habitus-toast__success" d="m8 12 3 3 5-6"/>
+        <path class="habitus-toast__error" d="M12 7v6m0 4h.01"/>
+    </svg>
+    <span class="habitus-toast__text"></span>
+</div>
 {% include 'hwyd/toolbar_dialogs.html' %}
 
 <script>

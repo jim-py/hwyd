@@ -757,7 +757,7 @@
 {#    swapRows();#}
 {# }); #}
 
-$(".activity-dialog").draggable({
+$(".activity-dialog:not(#feedbackModal)").draggable({
     handle: '.modal__header',
     cursor: 'move'
 });

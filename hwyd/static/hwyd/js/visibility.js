@@ -1,5 +1,5 @@
 // Group collapse and completed visibility are independent states.
-export function createVisibilityControls(table, post, showStatus) {
+export function createVisibilityControls(table, post, showToast) {
     const eye = document.getElementById('hideCompleteActivities');
     const openAll = document.getElementById('openAll');
     let hideCompleted = table.dataset.hideCompleted === 'true';
@@ -45,7 +45,7 @@ export function createVisibilityControls(table, post, showStatus) {
             const response = await post(url, data);
             update(response);
         } catch (error) {
-            showStatus(error.message);
+            showToast(error.message, 'error');
         } finally {
             pending = false;
             render();
