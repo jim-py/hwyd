@@ -82,7 +82,7 @@
                 </div>
             </div>
         </section>
-        <input type="hidden" name="uiVisibilityVersion" value="1">
+        <input type="hidden" name="uiVisibilityVersion" value="2">
 
         <input id="data" name="data">
     </form>
@@ -177,10 +177,10 @@
         <i class="fa-solid {{ streak_icon }}"></i>
         <span class="streak-count">{{ login_streak }}</span>
     </button>
-    <button id="topStreak" type="button" data-dialog="topModal" aria-controls="topModal"
+    <button id="topStreak" type="button"{% if not settings.showTop %} hidden{% endif %} data-dialog="topModal" aria-controls="topModal"
             title="Ваше место по текущему стрику" aria-label="Top: место {{ top_rank|default:'—' }}">
         <i class="fa-solid fa-trophy" aria-hidden="true"></i>
-        <span>Top <span id="topRank">{% if top_rank %}#{{ top_rank }}{% else %}—{% endif %}</span></span>
+        <span>Топ-<span id="topRank">{% if top_rank %}{{ top_rank }}{% else %}—{% endif %}</span></span>
     </button>
 </div>
 <div id="habitusToast" class="habitus-toast" popover="manual" role="status" aria-live="polite" aria-atomic="true" hidden>

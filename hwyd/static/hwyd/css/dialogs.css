@@ -204,7 +204,7 @@ dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
 .activity-dialog__body {
     min-height: 0;
     margin: 0;
-    padding: 15px 20px;
+    padding: 0 20px 15px 20px;
     overflow-y: auto;
     font-weight: 400;
 }

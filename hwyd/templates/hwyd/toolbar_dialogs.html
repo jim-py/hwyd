@@ -71,7 +71,7 @@
     {% include 'hwyd/toolbar_dialog_header.html' with title_id='topTitle' title='Топ по стрику' %}
     <div class="activity-dialog__body">
         <p id="topStatus" class="toolbar-dialog__hint" role="status">Загрузка…</p>
-        <ol id="topLeaders" class="streak-top" aria-label="Top-10 по текущему стрику"></ol>
+        <div id="topLeaders" class="streak-top" role="list" aria-label="Top-10 по текущему стрику"></div>
         <p id="topCurrent" class="streak-top__current" hidden></p>
     </div>
 </dialog>

@@ -42,7 +42,7 @@ class StreakTopTests(TestCase):
         response = self.client.get(reverse('top_streak'))
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual([row['rank'] for row in data['leaders']], [1, 1, 3])
+        self.assertEqual([row['rank'] for row in data['leaders']], [1, 2, 3])
         self.assertEqual([row['name'] for row in data['leaders']], ['a', 'Мария', 'current'])
         self.assertEqual(data['current'], {'rank': 3, 'streak': 8})
         self.assertTrue(data['leaders'][2]['is_own'])
@@ -60,6 +60,32 @@ class StreakTopTests(TestCase):
         self.assertEqual(data['current'], {'rank': 13, 'streak': 2})
         self.assertFalse(any(row['is_own'] for row in data['leaders']))
 
+    def test_unique_places_and_current_rank_with_tied_streaks(self):
+        self.user.username = 'eliasleonheart'
+        self.user.first_name = '  Элиас  '
+        self.user.save(update_fields=['username', 'first_name'])
+        self.visits(self.user, 4)
+        for username, days in [('Overcringer', 23), ('Fairfarren', 15),
+                               ('knopka_enter', 13), ('ddkk333q', 6), ('аня', 4),
+                               ('dmitry', 3), ('Константин', 3), ('mcgregor', 2), ('Дмитрий', 2)]:
+            self.contender(username, days, first_name=' \t ')
+        with self.assertNumQueries(1):
+            data = streak_top(self.user)
+        self.assertEqual([row['rank'] for row in data['leaders']], list(range(1, 11)))
+        self.assertEqual([row['name'] for row in data['leaders']],
+                         ['Overcringer', 'Fairfarren', 'knopka_enter', 'ddkk333q',
+                          'Элиас', 'аня', 'dmitry', 'Константин', 'mcgregor', 'Дмитрий'])
+        self.assertEqual(data['current'], {'rank': 5, 'streak': 4})
+        self.assertTrue(data['leaders'][4]['is_own'])
+        for leader in get_user_model().objects.all():
+            with self.subTest(username=leader.username):
+                own_data = streak_top(leader)
+                own_row = next(row for row in own_data['leaders'] if row['is_own'])
+                self.assertEqual(own_data['current']['rank'], own_row['rank'])
+        create_setting(self.user, 'Test')
+        response = self.client.get(reverse('by_date', args=['2026-10']), HTTP_HOST='testserver')
+        self.assertContains(response, 'id="topLeaders" class="streak-top" role="list"')
+
     def test_latest_chain_keeps_original_metric_and_ignores_old_record(self):
         self.visits(self.user, 40, end=date(2026, 8, 1))
         self.visits(self.user, 3, end=date(2026, 9, 20))
@@ -69,6 +95,11 @@ class StreakTopTests(TestCase):
         # As before, the latest chain remains until a new visit after a gap.
         self.visits(self.user, 1)
         self.assertEqual(latest.get_login_streak(), 1)
+
+    def test_hidden_top_does_not_calculate_global_rank(self):
+        self.visits(self.user, 5)
+        with self.assertNumQueries(1):
+            self.assertEqual(streak_position(self.user, include_rank=False), (5, None))
 
     def test_sql_chain_matches_original_date_algorithm_across_months_and_gaps(self):
         import random
@@ -268,7 +299,7 @@ class SettingsInterfaceTests(TestCase):
     def settings_payload(self):
         return {'data': ','.join(['true'] * 10), 'nameSetting': 'Interface',
                 'radioSettings': 'group', 'selectFont': 'Georgia', 'selectFade': 'off',
-                'uiVisibilityVersion': '1'}
+                'uiVisibilityVersion': '2'}
 
     def test_new_visibility_defaults_preserve_existing_interface(self):
         preset = Settings.objects.get(user=self.user)
@@ -306,6 +337,28 @@ class SettingsInterfaceTests(TestCase):
         preset = Settings.objects.get(user=self.user)
         self.assertTrue(all(not getattr(preset, name) for name in UI_VISIBILITY_FIELDS))
 
+    def test_version_one_clients_preserve_top_visibility(self):
+        for enabled in (False, True):
+            Settings.objects.filter(user=self.user).update(showTop=enabled)
+            payload = self.settings_payload()
+            payload['uiVisibilityVersion'] = '1'
+            self.client.post(self.url, payload)
+            self.assertEqual(Settings.objects.get(user=self.user).showTop, enabled)
+
+    def test_top_button_visibility_is_independent_and_survives_reload(self):
+        payload = self.settings_payload()
+        payload.update({name: 'on' for name in UI_VISIBILITY_FIELDS if name != 'showTop'})
+        self.client.post(self.url, payload)
+        response = self.client.get(self.url)
+        self.assertContains(response, 'id="topStreak" type="button" hidden')
+        self.assertNotContains(response, 'id="loginStreak" type="button" hidden')
+        self.assertContains(response, 'Показывать кнопку топа')
+        self.assertEqual(self.client.get(reverse('top_streak')).status_code, 200)
+        payload['showTop'] = 'on'
+        self.client.post(self.url, payload)
+        response = self.client.get(self.url)
+        self.assertNotContains(response, 'id="topStreak" type="button" hidden')
+
     def test_hidden_controls_keep_chat_feedback_and_completed_state(self):
         Settings.objects.filter(user=self.user).update(
             **{name: False for name in UI_VISIBILITY_FIELDS}, vanishing='off')
@@ -315,7 +368,7 @@ class SettingsInterfaceTests(TestCase):
             number=0, isGroup=False, isOpen=False, beginDay=0, endDay=30,
             cellsComments='*|' * 31, onOffCells='True ' * 31, hide=False)
         response = self.client.get(self.url)
-        for name in ('buttonChat', 'buttonFeedback', 'hideCompleteActivities', 'loginStreak'):
+        for name in ('buttonChat', 'buttonFeedback', 'hideCompleteActivities', 'loginStreak', 'topStreak'):
             self.assertContains(response, f'id="{name}" type="button" hidden')
         self.assertNotContains(response, 'class="activity-name-icon"')
         self.assertContains(response, 'data-hide-completed="false"')

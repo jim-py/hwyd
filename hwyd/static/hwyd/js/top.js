@@ -16,11 +16,15 @@ export async function loadTop() {
         const data = await response.json();
         if (request !== generation) return;
         for (const leader of data.leaders) {
-            const row = document.createElement('li');
+            // Rank comes from the API. Native ordered-list numbering can add a
+            // second, contradictory place when styles are stale or text is copied.
+            const row = document.createElement('div');
+            row.setAttribute('role', 'listitem');
             row.className = leader.is_own ? 'streak-top__row streak-top__row--own' : 'streak-top__row';
             const rank = document.createElement('span');
             rank.className = 'streak-top__rank';
-            rank.textContent = leader.rank;
+            rank.textContent = `${leader.rank}.`;
+            rank.setAttribute('aria-label', `Место ${leader.rank}`);
             const name = document.createElement('span');
             name.className = 'streak-top__name';
             name.textContent = leader.name;
@@ -31,7 +35,7 @@ export async function loadTop() {
             icon.setAttribute('aria-hidden', 'true');
             streak.append(icon, ` ${leader.streak}`);
             streak.setAttribute('aria-label', `Стрик: ${leader.streak} дней подряд`);
-            row.append(rank, name, streak);
+            row.append(rank, document.createTextNode(' '), name, document.createTextNode(' '), streak);
             list.append(row);
         }
         status.hidden = data.leaders.length > 0;
@@ -39,7 +43,7 @@ export async function loadTop() {
         const rank = data.current.rank;
         current.textContent = rank ? `Ваше место: ${rank} · Стрик: ${data.current.streak} дней подряд` : 'У вас пока нет стрика. Заходите каждый день, чтобы попасть в Top.';
         current.hidden = false;
-        document.getElementById('topRank').textContent = rank ? `#${rank}` : '—';
+        document.getElementById('topRank').textContent = rank ? String(rank) : '—';
         document.getElementById('topStreak').setAttribute('aria-label', `Top: место ${rank || '—'}`);
     } catch {
         if (request !== generation) return;

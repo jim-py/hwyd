@@ -144,6 +144,7 @@ class Settings(models.Model):
     showOpenAllGroups = models.BooleanField(verbose_name='Открыть/закрыть группы')
     showTabs = models.BooleanField(verbose_name='Проценты')
     showStreak = models.BooleanField(default=True, verbose_name='Показывать стрик')
+    showTop = models.BooleanField(default=True, verbose_name='Показывать кнопку топа')
     showFeedback = models.BooleanField(default=True, verbose_name='Показывать кнопку обратной связи')
     showCompletedButton = models.BooleanField(default=True, verbose_name='Показывать кнопку выполненных активностей')
     showChat = models.BooleanField(default=True, verbose_name='Показывать кнопку чата')

@@ -154,8 +154,11 @@ def by_date(request, picked_date):
         settings.showOpenAllGroups = lst[8]
         settings.showTabs = lst[9]
         # A version marker distinguishes unchecked toggles from older clients.
-        if request.POST.get('uiVisibilityVersion') == '1':
+        visibility_version = request.POST.get('uiVisibilityVersion')
+        if visibility_version in ('1', '2'):
             for field in UI_VISIBILITY_FIELDS:
+                if field == 'showTop' and visibility_version != '2':
+                    continue
                 setattr(settings, field, request.POST.get(field) == 'on')
         settings.name = request.POST['nameSetting']
 
@@ -432,7 +435,7 @@ def by_date(request, picked_date):
         json_activities = json.dumps(list(activities.values()))
 
         # ===== LOGIN STREAK =====
-        login_streak, top_rank = streak_position(request.user)
+        login_streak, top_rank = streak_position(request.user, include_rank=setting.showTop)
         streak_icon = get_streak_icon(login_streak)
         # ========================
 
