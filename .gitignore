@@ -27,5 +27,6 @@ media/
 AGENTS.md
 CODEBASE_MAP.md
 MIGRATIONS.md
+SCHEMA_UPGRADE.md
 
 migrations/

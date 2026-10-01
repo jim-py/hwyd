@@ -22,6 +22,7 @@ from django_user_agents.utils import get_user_agent
 # Импорты из локальных модулей приложения
 from .forms import LoginForm, RegisterForm, SettingsForm, FeedbackForm
 from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, UserActivityLog
+from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS
 from general_app.models import Guide, UserGuideProgress
 
 setlocale(category=LC_ALL, locale="Russian")
@@ -144,6 +145,10 @@ def by_date(request, picked_date):
         settings.showActivityDayLight = lst[7]
         settings.showOpenAllGroups = lst[8]
         settings.showTabs = lst[9]
+        # A version marker distinguishes unchecked toggles from older clients.
+        if request.POST.get('uiVisibilityVersion') == '1':
+            for field in UI_VISIBILITY_FIELDS:
+                setattr(settings, field, request.POST.get(field) == 'on')
         settings.name = request.POST['nameSetting']
 
         if request.POST['radioSettings'] == 'sort':
@@ -153,7 +158,8 @@ def by_date(request, picked_date):
             settings.enableSortTable = False
             settings.enableOpenCloseGroups = True
 
-        settings.fontFamily = request.POST['selectFont']
+        if request.POST.get('selectFont') in FONT_FAMILIES:
+            settings.fontFamily = request.POST['selectFont']
         settings.vanishing = request.POST['selectFade']
         settings.save()
         return redirect(redirect_url, picked_date)
@@ -446,6 +452,15 @@ def by_date(request, picked_date):
                    'jsonActivities': json_activities, 'login_streak': login_streak, 'streak_icon': streak_icon,
                    'pending_guides': guides, 'guides': len(guides) > 0}
 
+        context['is_habitus_page'] = True
+        settings_form = SettingsForm(instance=setting, auto_id='%s')
+        context['interface_settings'] = [settings_form[name] for name in (
+            'showCalendar', 'showCreateActivity', 'showCreateActivityGroup',
+            'showDeleteActivity', 'showDeleteAllActivities', 'showOpenAllGroups',
+            *UI_VISIBILITY_FIELDS,
+        )]
+        context['font_families'] = FONT_FAMILIES
+        request.habitus_settings = setting
         return render(request, 'hwyd/base.html', context=context)
 
 

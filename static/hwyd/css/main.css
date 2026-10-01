@@ -184,7 +184,7 @@ h3.dialog__title {
     margin: 0 5px;
 }
 
-form[id=settingsGlobal] > div > div > input[type=checkbox] {
+#settingsGlobal input[type=checkbox] {
     display: inline-block;
     margin: auto 0 auto 10px;
     width: 16px;
@@ -247,12 +247,28 @@ form[id=settingsGlobal] > div > div {
     gap: 7px;
 }
 
-#settingsGlobal > .settings-dialog__options {
+#settingsGlobal .settings-dialog__options {
     display: grid;
     justify-content: stretch;
     gap: 7px;
     padding-top: 7px;
 }
+
+.settings-section {
+    margin: 16px 0;
+    padding-top: 12px;
+    border-top: 1px solid #d8d8d8;
+}
+
+.settings-section h4 { margin: 0 0 8px; font-size: 15px; font-weight: 600; }
+.settings-section .settings-dialog__options > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.settings-section input[type=checkbox] { width: 16px; height: 16px; margin: 0; }
+.settings-section .settings-section__stacked { align-items: stretch; flex-direction: column; }
 
 #settingsGlobal label {
     min-width: 0;

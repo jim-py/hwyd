@@ -163,6 +163,11 @@ class Settings(models.Model):
     fontFamily = models.TextField(verbose_name='Шрифт')
     showOpenAllGroups = models.BooleanField(verbose_name='Открыть/закрыть группы')
     showTabs = models.BooleanField(verbose_name='Проценты')
+    showStreak = models.BooleanField(default=True, verbose_name='Показывать стрик')
+    showFeedback = models.BooleanField(default=True, verbose_name='Показывать кнопку обратной связи')
+    showCompletedButton = models.BooleanField(default=True, verbose_name='Показывать кнопку выполненных активностей')
+    showChat = models.BooleanField(default=True, verbose_name='Показывать кнопку чата')
+    showActivityIcons = models.BooleanField(default=True, verbose_name='Показывать иконки привычек и групп')
     selected = models.BooleanField(verbose_name='Выбрана настройка')
     vanishing = models.CharField(max_length=50, verbose_name='Тип исчезновения')
 

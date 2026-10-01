@@ -1,0 +1,8 @@
+/* Text inherits the selected preset; icon fonts and code keep their own families. */
+body {
+    font-family: var(--app-font-family, 'Montserrat', sans-serif);
+}
+
+button, input, textarea, select {
+    font-family: inherit;
+}

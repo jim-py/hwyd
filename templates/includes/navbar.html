@@ -36,6 +36,14 @@
                 <i class="fa-solid fa-circle-info"></i>
             </a>
         </li>
+        {% if is_habitus_page %}
+        <li class="nav-menu__item">
+            <button id="buttonSettings" type="button" class="nav-menu__link" title="Настройки" aria-label="Настройки"
+                    aria-controls="some-modal-id" onclick="document.getElementById('some-modal-id').showModal();">
+                <i class="fa-solid fa-gear" aria-hidden="true"></i>
+            </button>
+        </li>
+        {% endif %}
     </ul>
 </nav>
 

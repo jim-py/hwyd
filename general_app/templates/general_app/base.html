@@ -9,7 +9,6 @@
 
     <!-- Общие стили -->
     <link rel="shortcut icon" type="image/png" href="{% static 'site/images/favicon.png' %}" />
-    <link href="{% static 'general_app/css/font.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'general_app/css/scroll.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
@@ -18,6 +17,7 @@
     {% block extra_css %}{% endblock %}
 
     <link rel="stylesheet" href="{% static 'general_app/css/base.css' %}">
+    {% include 'includes/typography.html' %}
 </head>
 
 <body>

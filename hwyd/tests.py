@@ -4,6 +4,8 @@ from django.urls import reverse
 
 from .models import Activities, ActivitiesConnection, Feedback, Settings
 from .views import create_setting
+from .forms import SettingsForm
+from .preferences import UI_VISIBILITY_FIELDS
 
 
 class ToolbarTests(TestCase):
@@ -149,3 +151,126 @@ class ToolbarTests(TestCase):
         for month in ('2020-01', '2030-12'):
             response = self.client.post(reverse('by_date', args=['2026-10']), {'chooseDate': month}, HTTP_HOST='testserver')
             self.assertRedirects(response, reverse('by_date', args=[month]), fetch_redirect_response=False)
+
+
+class SettingsInterfaceTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user(username='interface-user')
+        cls.other = get_user_model().objects.create_user(username='interface-other')
+        create_setting(cls.user, 'Interface')
+        create_setting(cls.other, 'Other')
+
+    def setUp(self):
+        self.client.force_login(self.user)
+        self.url = reverse('by_date', args=['2026-10'])
+        self.client.defaults['HTTP_HOST'] = 'testserver'
+
+    def settings_payload(self):
+        return {'data': ','.join(['true'] * 10), 'nameSetting': 'Interface',
+                'radioSettings': 'group', 'selectFont': 'Georgia', 'selectFade': 'off',
+                'uiVisibilityVersion': '1'}
+
+    def test_new_visibility_defaults_preserve_existing_interface(self):
+        preset = Settings.objects.get(user=self.user)
+        for name in UI_VISIBILITY_FIELDS:
+            with self.subTest(field=name):
+                self.assertTrue(getattr(preset, name))
+                self.assertTrue(Settings._meta.get_field(name).default)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="buttonSettings"', count=1)
+        self.assertContains(response, 'Элементы интерфейса')
+        self.assertContains(response, 'Поведение и отображение')
+
+    def test_visibility_persists_off_and_on_through_existing_save(self):
+        for enabled in (False, True):
+            payload = self.settings_payload()
+            if enabled:
+                payload.update({name: 'on' for name in UI_VISIBILITY_FIELDS})
+            self.assertEqual(self.client.post(self.url, payload).status_code, 302)
+            preset = Settings.objects.get(user=self.user)
+            for name in UI_VISIBILITY_FIELDS:
+                self.assertEqual(getattr(preset, name), enabled)
+            self.assertEqual(preset.fontFamily, 'Georgia')
+            self.assertEqual(preset.vanishing, 'off')
+            self.assertEqual(self.client.get(self.url).status_code, 200)
+        foreign = Settings.objects.get(user=self.other)
+        self.assertTrue(all(getattr(foreign, name) for name in UI_VISIBILITY_FIELDS))
+        self.assertEqual(foreign.fontFamily, 'Inter')
+
+    def test_legacy_save_does_not_reset_new_preferences(self):
+        Settings.objects.filter(user=self.user).update(**{name: False for name in UI_VISIBILITY_FIELDS})
+        payload = self.settings_payload()
+        del payload['uiVisibilityVersion']
+        self.client.post(self.url, payload)
+        preset = Settings.objects.get(user=self.user)
+        self.assertTrue(all(not getattr(preset, name) for name in UI_VISIBILITY_FIELDS))
+
+    def test_hidden_controls_keep_chat_feedback_and_completed_state(self):
+        Settings.objects.filter(user=self.user).update(
+            **{name: False for name in UI_VISIBILITY_FIELDS}, vanishing='off')
+        activity = Activities.objects.create(
+            user=self.user, name='Visible completed habit', date='2026-10',
+            color='#000000', backgroundColor='#ffffff', marks='True ' * 31,
+            number=0, isGroup=False, isOpen=False, beginDay=0, endDay=30,
+            cellsComments='*|' * 31, onOffCells='True ' * 31, hide=False)
+        response = self.client.get(self.url)
+        for name in ('buttonChat', 'buttonFeedback', 'hideCompleteActivities', 'loginStreak'):
+            self.assertContains(response, f'id="{name}" type="button" hidden')
+        self.assertNotContains(response, 'class="activity-name-icon"')
+        self.assertContains(response, 'data-hide-completed="false"')
+        self.assertContains(response, 'id="chatDialog"')
+        self.assertEqual(self.client.get(reverse('chat:messages')).status_code, 200)
+        self.assertEqual(self.client.post(reverse('submit_feedback'), {
+            'category': 'idea', 'message': 'Available with hidden button'}).status_code, 201)
+        activity.refresh_from_db()
+        self.assertEqual(activity.marks, 'True ' * 31)
+
+    def test_navbar_settings_only_on_tracker_and_fonts_on_shared_pages(self):
+        Settings.objects.filter(user=self.user).update(fontFamily='Courier New')
+        response = self.client.get(self.url)
+        navbar = response.content.decode().split('<nav class="nav-menu">')[1].split('</nav>')[0]
+        self.assertIn('id="buttonSettings"', navbar)
+        for name in ('home', 'about', 'profile', 'edit_settings'):
+            with self.subTest(page=name):
+                response = self.client.get(reverse(name))
+                self.assertEqual(response.status_code, 200)
+                self.assertNotContains(response, 'id="buttonSettings"')
+                self.assertContains(response, "--app-font-family: 'Courier New', sans-serif")
+        self.client.logout()
+        self.assertContains(self.client.get(reverse('entry')), "--app-font-family: 'Montserrat', sans-serif")
+
+    def test_invalid_saved_font_cannot_become_css(self):
+        Settings.objects.filter(user=self.user).update(fontFamily="'; color: red; /*")
+        self.assertContains(self.client.get(reverse('profile')), "--app-font-family: 'Inter', sans-serif")
+        payload = self.settings_payload()
+        payload['selectFont'] = "'; color: red; /*"
+        Settings.objects.filter(user=self.user).update(fontFamily='Arial')
+        self.client.post(self.url, payload)
+        self.assertEqual(Settings.objects.get(user=self.user).fontFamily, 'Arial')
+
+    def test_settings_form_updates_all_new_preferences(self):
+        from django.forms.models import model_to_dict
+
+        preset = Settings.objects.get(user=self.user)
+        data = model_to_dict(preset)
+        data['vanishing'] = 'none'
+        for name in UI_VISIBILITY_FIELDS:
+            data.pop(name)
+        form = SettingsForm(data, instance=preset)
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+        preset.refresh_from_db()
+        self.assertTrue(all(not getattr(preset, name) for name in UI_VISIBILITY_FIELDS))
+
+    def test_redundant_closes_removed_and_header_closes_retained(self):
+        html = self.client.get(self.url).content.decode()
+        for dialog_id, label in (
+            ('some-modal-id', 'Закрыть настройки'), ('dialogHead', 'Закрыть настройки цвета'),
+            ('dialogCell', 'Закрыть текст клетки'),
+        ):
+            dialog = html.split(f'id="{dialog_id}"')[1].split('</dialog>')[0]
+            self.assertIn(f'aria-label="{label}"', dialog)
+            self.assertNotIn('>Закрыть</button>', dialog)
+            self.assertIn('Сохранить', dialog)

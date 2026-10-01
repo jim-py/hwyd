@@ -1,5 +1,6 @@
 from django import forms
 from .models import Settings, Feedback
+from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
@@ -54,6 +55,7 @@ class SettingsForm(forms.ModelForm):
             "showOpenAllGroups",
             "showTabs",
             "vanishing",
+            *UI_VISIBILITY_FIELDS,
         ]
         widgets = {
             "backgroundColor": forms.TextInput(
@@ -72,22 +74,7 @@ class SettingsForm(forms.ModelForm):
                 attrs={"type": "color", "class": "form-control form-control-color"}
             ),
             "fontFamily": forms.Select(
-                choices=[
-                    ("Consolas", "Consolas"),
-                    ("Montserrat", "Montserrat"),
-                    ("Montserrat Alternates", "Montserrat Alternates"),
-                    ("Georgia", "Georgia"),
-                    ("JetBrains Mono", "JetBrains Mono"),
-                    ("Arial", "Arial"),
-                    ("Courier New", "Courier New"),
-                    ("Lucida Console", "Lucida Console"),
-                    ("Trebuchet MS", "Trebuchet MS"),
-                    ("Istok Web", "Istok Web"),
-                    ("Roboto Mono", "Roboto Mono"),
-                    ("Inter", "Inter"),
-                    ("Ubuntu", "Ubuntu"),
-                    ("Comic Sans MS", "Comic Sans MS"),
-                ],
+                choices=[(font, font) for font in FONT_FAMILIES],
                 attrs={"class": "form-select", "style": "font-family: inherit;"},
             ),
             "vanishing": forms.Select(

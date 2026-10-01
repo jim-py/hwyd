@@ -30,7 +30,7 @@
     backdrop-filter: blur(10px);
     border-radius: 10px;
     box-shadow: 0px 1px 2px 1px rgba(34, 60, 80, 0.1);
-    font-family: "Montserrat", sans-serif;
+    font-family: inherit;
     z-index: 1000;
 }
 
@@ -61,10 +61,28 @@
     text-decoration: none;
     font-size: 18px;
     transition: transform 0.25s ease, color 0.25s ease;
+    border: 0;
+    border-radius: inherit;
+    background: transparent;
+    cursor: pointer;
+}
+
+.nav-menu__link:focus-visible {
+    outline: 2px solid #0a84ff;
+    outline-offset: -2px;
+}
+
+@media (max-width: 430px) {
+    .nav-menu { padding: 6px; max-width: calc(100% - 16px); }
+    .nav-menu__item { margin: 0 2px; }
+    .nav-menu__link { min-width: 44px; min-height: 44px; padding: 0; box-sizing: border-box; }
 }
 
 .nav-menu__item--active .nav-menu__link {
     color: #0a84ff; /* iOS blue accent */
+}
+
+.nav-menu__item--active .nav-menu__link i {
     transform: scale(1.3);
 }
 
