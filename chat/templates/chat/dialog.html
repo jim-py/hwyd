@@ -3,7 +3,7 @@
         data-messages-url="{% url 'chat:messages' %}" data-status-url="{% url 'chat:status' %}"
         data-read-url="{% url 'chat:read' %}">
     <div class="modal__header">
-        <h3 id="chatTitle" class="dialog__title">Чат</h3>
+        <h3 id="chatTitle" class="dialog__title">Общий чат</h3>
         <form method="dialog">
             <button type="submit" class="chat-close" aria-label="Закрыть чат">
                 <img src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt="">
@@ -17,12 +17,24 @@
         {% csrf_token %}
         <p id="chatError" class="chat-error" role="status" hidden></p>
         <div class="chat-input-row">
-            <textarea id="chatText" maxlength="2000" rows="2" placeholder="Написать сообщение..."
+            <textarea id="chatText" maxlength="2000" rows="1" placeholder="Сообщение..."
                       aria-label="Текст сообщения" required></textarea>
             <button id="chatEmojiToggle" class="button-6" type="button" aria-label="Выбрать emoji"
                     aria-expanded="false" aria-controls="chatEmojiPicker">😀</button>
+            <button id="chatSend" class="button-save" type="submit" aria-label="Отправить сообщение" title="Отправить">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                    <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
         </div>
         <div id="chatEmojiPicker" class="chat-emoji-picker" role="group" aria-label="Emoji" hidden></div>
-        <button id="chatSend" class="button-save" type="submit">Отправить</button>
     </form>
+    <div class="chat-resize-handle" data-chat-resize="n" aria-hidden="true"></div>
+    <div class="chat-resize-handle" data-chat-resize="e" aria-hidden="true"></div>
+    <div class="chat-resize-handle" data-chat-resize="s" aria-hidden="true"></div>
+    <div class="chat-resize-handle" data-chat-resize="w" aria-hidden="true"></div>
+    <div class="chat-resize-handle" data-chat-resize="nw" aria-hidden="true"></div>
+    <div class="chat-resize-handle" data-chat-resize="ne" aria-hidden="true"></div>
+    <div class="chat-resize-handle" data-chat-resize="sw" aria-hidden="true"></div>
+    <div class="chat-resize-handle" data-chat-resize="se" aria-hidden="true"></div>
 </dialog>

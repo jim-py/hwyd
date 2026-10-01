@@ -1,9 +1,11 @@
 import { getCSRFToken } from '../../site/js/csrf.js';
+import { createChatWindow } from './window.js';
 
 const dialog = document.getElementById('chatDialog');
 const button = document.getElementById('buttonChat');
 
 if (dialog && button) {
+    const chatWindow = createChatWindow(dialog, button);
     const history = document.getElementById('chatMessages');
     const empty = document.getElementById('chatEmpty');
     const composer = document.getElementById('chatComposer');
@@ -19,6 +21,13 @@ if (dialog && button) {
     let sending = false;
     let expired = false;
     let pollError = false;
+    let previousMessage = null;
+
+    function resizeInput() {
+        // CSS caps the height; longer drafts scroll inside the textarea.
+        input.style.height = 'auto';
+        input.style.height = `${input.scrollHeight}px`;
+    }
 
     function showError(message = '') {
         error.textContent = message;
@@ -53,17 +62,29 @@ if (dialog && button) {
         const item = document.createElement('article');
         item.className = 'chat-message';
         if (message.is_own) item.classList.add('chat-message--own');
+        const date = new Date(message.created_at);
+        if (previousMessage) {
+            const previousDate = new Date(previousMessage.created_at);
+            if (previousMessage.sender === message.sender && previousMessage.is_own === message.is_own &&
+                previousDate.toDateString() === date.toDateString() &&
+                date - previousDate >= 0 && date - previousDate < 5 * 60 * 1000) {
+                item.classList.add('chat-message--continued');
+            }
+        }
         const sender = document.createElement('strong');
+        sender.className = 'chat-message__sender';
         sender.textContent = message.sender;
         const text = document.createElement('p');
+        text.className = 'chat-message__text';
         text.textContent = message.text;
         const time = document.createElement('time');
-        const date = new Date(message.created_at);
         time.dateTime = message.created_at;
         time.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         time.title = date.toLocaleString();
-        item.append(sender, text, time);
+        text.append(time);
+        item.append(sender, text);
         history.append(item);
+        previousMessage = message;
         empty.hidden = true;
     }
 
@@ -112,12 +133,15 @@ if (dialog && button) {
     }
 
     button.addEventListener('click', () => {
-        dialog.showModal();
+        chatWindow.open();
         input.focus();
+        resizeInput();
         clearTimeout(timer);
         poll();
     });
     dialog.addEventListener('close', () => {
+        // A responsive mode switch closes and immediately reopens the dialog.
+        if (dialog.open) return;
         picker.hidden = true;
         emojiToggle.setAttribute('aria-expanded', 'false');
         schedule();
@@ -141,6 +165,7 @@ if (dialog && button) {
         try {
             await request(dialog.dataset.messagesUrl, { text: value });
             input.value = '';
+            resizeInput();
             // Read in ID order; appending the POST response could skip other senders.
             clearTimeout(timer);
             schedule(0);
@@ -159,6 +184,7 @@ if (dialog && button) {
             composer.requestSubmit();
         }
     });
+    input.addEventListener('input', resizeInput);
 
     const emojis = ['😀', '😃', '😂', '😊', '🙂', '😉', '😍', '😎', '🤔', '😢', '😭', '😡', '👍', '👎', '❤️', '🔥', '🎉', '✅', '🚀'];
     for (const emoji of emojis) {
@@ -173,6 +199,7 @@ if (dialog && button) {
             const end = input.selectionEnd;
             if (input.value.length - (end - start) + emoji.length <= input.maxLength) {
                 input.setRangeText(emoji, start, end, 'end');
+                resizeInput();
             }
             picker.hidden = true;
             emojiToggle.setAttribute('aria-expanded', 'false');
