@@ -33,7 +33,7 @@
     flex-shrink: 0;
     align-items: center;
     gap: 8px;
-    cursor: grab;
+    cursor: move;
     touch-action: none;
     user-select: none;
     border-bottom: 1px solid var(--chat-border);
