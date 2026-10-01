@@ -16,7 +16,7 @@ export function forceShowHiddenButtons(selectors) {
 
             el.hidden = false;
 
-            if (computed.display === "none") {
+            if (getComputedStyle(el).display === "none") {
                 el.style.display = el.tagName === 'BUTTON' ? 'flex' : 'inline';
             }
         }

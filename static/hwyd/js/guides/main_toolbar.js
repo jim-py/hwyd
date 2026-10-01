@@ -1,5 +1,6 @@
 import { markViewed } from '../api.js';
 import { forceShowHiddenButtons } from '../utils.js';
+import { showToast } from '../toast.js';
 
 let active = null;
 const controls = [
@@ -16,7 +17,33 @@ const controls = [
     ['#buttonFeedback', 'Обратная связь', 'Сообщите об ошибке, предложите улучшение или оставьте отзыв.'],
     ['#btnActLastMonth', 'Привычки прошлого месяца', 'Копирует привычки и группы прошлого месяца без отметок. Обычно кнопка доступна, когда таблица выбранного месяца пуста.'],
     ['#deleteAll', 'Очистить месяц', 'Открывает подтверждение удаления всех привычек, групп, отметок и комментариев выбранного месяца. До подтверждения ничего не удаляется.'],
+    ['#trackerViewSwitch', 'Вид привычек: Таблица / Год', '«Таблица» — привычная таблица месяца, в которой можно отмечать выполнение. «Год» заменяет её календарём за весь год: заполненность кружка показывает процент выполненных привычек среди доступных в этот день. Выберите день, чтобы увидеть результат и перейти к его месяцу. Переключатель можно скрыть в настройках.'],
 ];
+
+function controlsInVisualOrder() {
+    const positioned = controls.flatMap(control => {
+        const element = document.querySelector(control[0]);
+        if (!element || !element.getClientRects().length) return [];
+        const rect = element.getBoundingClientRect();
+        if (!rect.width || !rect.height || getComputedStyle(element).visibility === 'hidden') return [];
+        return [{ control, rect }];
+    }).sort((a, b) => a.rect.top - b.rect.top || a.rect.left - b.rect.left);
+
+    // Flex rows can wrap on mobile, and buttons in one row can differ in height.
+    // Group overlapping vertical bounds before ordering each row left to right.
+    const rows = [];
+    for (const item of positioned) {
+        const row = rows[rows.length - 1];
+        if (row && item.rect.top < row.bottom && item.rect.bottom > row.top) {
+            row.items.push(item);
+            row.top = Math.max(row.top, item.rect.top);
+            row.bottom = Math.min(row.bottom, item.rect.bottom);
+        } else {
+            rows.push({ top: item.rect.top, bottom: item.rect.bottom, items: [item] });
+        }
+    }
+    return rows.flatMap(row => row.items.sort((a, b) => a.rect.left - b.rect.left).map(item => item.control));
+}
 
 export function start() {
     if (active) return active;
@@ -31,10 +58,11 @@ export function start() {
     let restore = () => {};
     let cleaned = false;
     let completed = false;
+    let started = false;
     let tour = null;
     const eventTypes = ['click', 'submit', 'pointerdown', 'contextmenu', 'keydown'];
     function blockActions(event) {
-        if (!event.target.closest('#divButtons, .nav-menu, #myTable')) return;
+        if (!event.target.closest('#divButtons, .nav-menu, #myTable, #trackerViewSwitch')) return;
         if (event.type === 'keydown' && !['Enter', ' ', 'ContextMenu'].includes(event.key)) return;
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -49,6 +77,9 @@ export function start() {
         focus?.focus({ preventScroll: true });
         active = null;
         resolve();
+        if (started && !completed) {
+            showToast('Повторить гайд можно через «Настройки → Обучение».');
+        }
         if (completed && window.PENDING_GUIDES?.includes('main_toolbar')) {
             markViewed('main_toolbar').catch(error => console.error('Guide progress:', error));
         }
@@ -60,8 +91,8 @@ export function start() {
         document.body.classList.add('onboarding-lock');
         for (const type of eventTypes) document.addEventListener(type, blockActions, true);
         const steps = [
-            { popover: { title: 'Добро пожаловать в Habitus', description: 'Отмечайте привычки в таблице и объединяйте их в группы. Сейчас познакомимся с кнопками. Скрытые кнопки временно показаны; ваши настройки сохранятся.' } },
-            ...controls.filter(([selector]) => document.querySelector(selector)).map(([element, title, description]) => ({
+            { popover: { title: 'Добро пожаловать в Habitus', description: 'Отмечайте привычки в таблице и объединяйте их в группы. Пройдём по кнопкам сверху вниз, в каждом ряду — слева направо. Скрытые кнопки временно показаны; ваши настройки сохранятся.' } },
+            ...controlsInVisualOrder().map(([element, title, description]) => ({
                 element, popover: { title, description, side: 'bottom', align: 'center' },
             })),
             { popover: { title: 'Можно начинать', description: 'Создайте привычку и отмечайте её выполнение. Повторить этот обзор можно через «Настройки → Обучение».' } },
@@ -87,6 +118,7 @@ export function start() {
             onDestroyed: cleanup,
         });
         tour.drive();
+        started = true;
     } catch (error) {
         try { tour?.destroy(); } catch { /* cleanup also covers partial initialization */ }
         cleanup();

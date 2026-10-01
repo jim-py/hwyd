@@ -1,3 +1,4 @@
+.tracker-view-switch[hidden] { display: none !important; }
 .tracker-view-switch {
     display: flex;
     width: fit-content;

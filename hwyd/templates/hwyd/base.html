@@ -13,9 +13,7 @@
     <link rel="stylesheet" href="{% static 'hwyd/css/main.css' %}">
     <link rel="stylesheet" href="{% static 'hwyd/css/tableCells.css' %}">
     <link rel="stylesheet" href="{% static 'hwyd/css/buttons.css' %}">
-    {% if settings.showViewSwitch %}
     <link rel="stylesheet" href="{% static 'hwyd/css/year-calendar.css' %}">
-    {% endif %}
     {% if request.user.is_authenticated %}
     <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}">
     {% endif %}
@@ -40,6 +38,7 @@
 {% include 'chat/dialog.html' %}
 {% endif %}
 
+{% include 'hwyd/view_switch.html' %}
 {% if settings.showViewSwitch %}
     {% include 'hwyd/year_calendar.html' %}
 {% endif %}

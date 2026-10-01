@@ -361,8 +361,9 @@ class SettingsInterfaceTests(TestCase):
         self.client.post(self.url, payload)
         response = self.client.get(self.url, {'view': 'year', 'year': '2024'})
         self.assertFalse(Settings.objects.get(user=self.user).showViewSwitch)
-        for fragment in ('id="trackerViewSwitch"', 'id="trackerYearView"', 'hwyd/js/year-calendar.js'):
+        for fragment in ('id="trackerYearView"', 'hwyd/js/year-calendar.js'):
             self.assertNotContains(response, fragment)
+        self.assertContains(response, '<div id="trackerViewSwitch" class="tracker-view-switch" role="group" aria-label="Вид привычек"\n     hidden', html=False)
         self.assertContains(response, 'id="trackerTableView"')
         self.assertContains(response, 'id="myTable"')
         self.assertContains(response, 'Показывать переключатель «Таблица / Год»')

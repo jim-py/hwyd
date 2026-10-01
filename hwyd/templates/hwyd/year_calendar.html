@@ -1,14 +1,3 @@
-<div id="trackerViewSwitch" class="tracker-view-switch" role="group" aria-label="Вид привычек"
-     data-year="{{ year }}" data-user="{{ request.user.pk }}" data-month="{{ date }}"
-     data-summary-url="{% url 'year_summary' 2020 %}" data-month-url="{% url 'by_date' '2020-01' %}">
-    <button type="button" data-tracker-view="table" aria-controls="trackerTableView" aria-pressed="true">
-        <i class="fa-solid fa-table-cells" aria-hidden="true"></i> Таблица
-    </button>
-    <button type="button" data-tracker-view="year" aria-controls="trackerYearView" aria-pressed="false">
-        <i class="fa-regular fa-calendar" aria-hidden="true"></i> Год
-    </button>
-</div>
-
 <section id="trackerYearView" class="year-calendar" aria-labelledby="yearCalendarTitle" hidden>
     <header class="year-calendar__header">
         <div>
