@@ -1,11 +1,7 @@
 import { getCSRFToken } from '../../site/js/csrf.js';
 import { createVisibilityControls } from './visibility.js';
-
-const status = document.getElementById('toolbarStatus');
-function showStatus(message) {
-    status.textContent = message;
-    status.hidden = !message;
-}
+import { showToast } from './toast.js';
+import { enableDialogDrag } from './dialog-drag.js';
 
 async function post(url, data) {
     const body = data instanceof FormData ? data : new URLSearchParams(data);
@@ -27,8 +23,9 @@ async function post(url, data) {
     return result;
 }
 
-const visibility = createVisibilityControls(document.getElementById('myTable'), post, showStatus);
+const visibility = createVisibilityControls(document.getElementById('myTable'), post, showToast);
 const openers = new WeakMap();
+enableDialogDrag(document.getElementById('feedbackModal'));
 for (const button of document.querySelectorAll('[data-dialog]')) {
     button.addEventListener('click', () => {
         const dialog = document.getElementById(button.dataset.dialog);
@@ -147,7 +144,7 @@ function bindAsyncForm(form, success) {
 const feedbackForm = document.getElementById('feedbackForm');
 bindAsyncForm(feedbackForm, () => {
     feedbackForm.reset();
-    showStatus('Спасибо, сообщение отправлено.');
+    showToast('Спасибо, сообщение отправлено.');
 });
 bindAsyncForm(document.getElementById('deleteAllForm'), () => {
     document.querySelectorAll('#myTable tbody tr').forEach(row => row.remove());
@@ -155,5 +152,5 @@ bindAsyncForm(document.getElementById('deleteAllForm'), () => {
     document.getElementById('openAll').style.display = 'none';
     document.getElementById('createLastMonthActivitiesForm').style.display = 'inline';
     visibility.refresh();
-    showStatus('Все привычки и группы за выбранный месяц удалены.');
+    showToast('Все привычки и группы за выбранный месяц удалены.');
 });
