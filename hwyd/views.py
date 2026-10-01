@@ -14,7 +14,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.cache import never_cache
 from django.db.models import Value, BooleanField
 from django_user_agents.utils import get_user_agent
@@ -23,6 +23,7 @@ from django_user_agents.utils import get_user_agent
 from .forms import LoginForm, RegisterForm, SettingsForm, FeedbackForm
 from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, UserActivityLog
 from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS
+from .streaks import streak_position, streak_top
 from general_app.models import Guide, UserGuideProgress
 
 setlocale(category=LC_ALL, locale="Russian")
@@ -41,6 +42,13 @@ def submit_feedback(request):
     feedback.user = request.user
     feedback.save()
     return JsonResponse({'ok': True, 'id': feedback.pk}, status=201)
+
+
+@never_cache
+@login_required(login_url='entry')
+@require_GET
+def top_streak(request):
+    return JsonResponse(streak_top(request.user))
 
 
 def get_pending_guides(user):
@@ -424,19 +432,8 @@ def by_date(request, picked_date):
         json_activities = json.dumps(list(activities.values()))
 
         # ===== LOGIN STREAK =====
-        login_streak = 0
-        streak_icon = "fa-circle"
-
-        last_log = (
-            UserActivityLog.objects
-            .filter(user=request.user)
-            .order_by('-date')
-            .first()
-        )
-
-        if last_log:
-            login_streak = last_log.get_login_streak()
-            streak_icon = get_streak_icon(login_streak)
+        login_streak, top_rank = streak_position(request.user)
+        streak_icon = get_streak_icon(login_streak)
         # ========================
 
         guides = get_pending_guides(request.user)
@@ -450,6 +447,7 @@ def by_date(request, picked_date):
                    'weekdays': weekdays, 'hide_activities': hide_activities, 'all_settings': settings,
                    'calendar': Calendar().monthdatescalendar(year, month), 'month': month,
                    'jsonActivities': json_activities, 'login_streak': login_streak, 'streak_icon': streak_icon,
+                   'top_rank': top_rank,
                    'pending_guides': guides, 'guides': len(guides) > 0}
 
         context['is_habitus_page'] = True

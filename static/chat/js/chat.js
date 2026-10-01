@@ -2,6 +2,7 @@ import { getCSRFToken } from '../../site/js/csrf.js';
 import { createChatWindow } from './window.js';
 import { createMessageList } from './messages.js';
 import { createMessageActions } from './actions.js';
+import { renderEmojiText } from './emoji.js';
 
 const dialog = document.getElementById('chatDialog');
 const button = document.getElementById('buttonChat');
@@ -202,7 +203,7 @@ if (dialog && button) {
         const choice = document.createElement('button');
         choice.type = 'button';
         choice.className = 'button-6';
-        choice.textContent = emoji;
+        renderEmojiText(choice, emoji);
         choice.setAttribute('aria-label', `Вставить ${emoji}`);
         choice.addEventListener('click', () => {
             if (input.readOnly) return;

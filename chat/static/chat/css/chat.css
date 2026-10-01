@@ -1,4 +1,13 @@
 /* The existing dialog shell floats on desktop and fills narrow viewports. */
+.chat-dialog img.chat-emoji {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin: 0 0.04em;
+    vertical-align: -0.12em;
+    object-fit: contain;
+}
+
 .chat-dialog {
     --chat-surface: #fff;
     --chat-history: #e5e9f0;

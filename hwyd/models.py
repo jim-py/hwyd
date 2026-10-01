@@ -2,7 +2,6 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.forms.models import model_to_dict
 from django.conf import settings
-from datetime import timedelta
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -46,27 +45,8 @@ class UserActivityLog(models.Model):
         Возвращает текущий стрик пользователя на основе date.
         """
 
-        dates = (
-            UserActivityLog.objects
-            .filter(user=self.user)
-            .order_by('-date')
-            .values_list('date', flat=True)
-        )
-
-        if not dates:
-            return 0
-
-        streak = 1
-        previous_date = dates[0]
-
-        for current_date in dates[1:]:
-            if previous_date - current_date == timedelta(days=1):
-                streak += 1
-                previous_date = current_date
-            else:
-                break
-
-        return streak
+        from .streaks import users_with_login_streak
+        return users_with_login_streak().filter(pk=self.user_id).values_list('login_streak', flat=True).get()
 
     @property
     def first_visit_local(self):

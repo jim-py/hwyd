@@ -1,4 +1,4 @@
-{% include 'hwyd/toolbar_create_dialog.html' with modal_id='createActivityModal' title_id='createActivityTitle' title='Создать активность' form_id='createActivityForm' input_name='createActivityInput' group_type=0 label='Название активности' placeholder='Например, прогулка' %}
+{% include 'hwyd/toolbar_create_dialog.html' with modal_id='createActivityModal' title_id='createActivityTitle' title='Создать привычку' form_id='createActivityForm' input_name='createActivityInput' group_type=0 label='Название привычки' placeholder='Например, прогулка' %}
 {% include 'hwyd/toolbar_create_dialog.html' with modal_id='createActivityGroupModal' title_id='createGroupTitle' title='Создать группу' form_id='createGroupForm' input_name='createActivityGroupInput' group_type=1 label='Название группы' placeholder='Например, здоровье' %}
 
 <dialog id="calendarModal" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="calendarTitle">
@@ -31,7 +31,7 @@
 </dialog>
 
 <dialog id="deleteAllModal" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="deleteAllTitle">
-    {% include 'hwyd/toolbar_dialog_header.html' with title_id='deleteAllTitle' title='Очистить все активности?' %}
+    {% include 'hwyd/toolbar_dialog_header.html' with title_id='deleteAllTitle' title='Очистить все привычки?' %}
     <form id="deleteAllForm" class="activity-dialog__body" action="{% url 'delete_all' date %}" method="post">
         {% csrf_token %}
         <p>Все привычки и группы за {{ month_name|lower }} {{ year }} будут удалены вместе с отметками и комментариями. Данные других месяцев сохранятся.</p>
@@ -66,3 +66,12 @@
     {% include 'hwyd/toolbar_dialog_footer.html' with form_id='feedbackForm' action_label='Отправить' %}
 </dialog>
 {% endif %}
+
+<dialog id="topModal" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="topTitle" data-top-url="{% url 'top_streak' %}">
+    {% include 'hwyd/toolbar_dialog_header.html' with title_id='topTitle' title='Топ по стрику' %}
+    <div class="activity-dialog__body">
+        <p id="topStatus" class="toolbar-dialog__hint" role="status">Загрузка…</p>
+        <ol id="topLeaders" class="streak-top" aria-label="Top-10 по текущему стрику"></ol>
+        <p id="topCurrent" class="streak-top__current" hidden></p>
+    </div>
+</dialog>

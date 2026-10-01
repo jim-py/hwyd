@@ -193,6 +193,7 @@ class ChatTests(TestCase):
         data = self.client.get(self.messages_url).json()['messages'][-1]
         self.assertEqual(data['reply_to']['sender'], 'Борис')
         self.assertEqual(data['reply_to']['text'], 'x' * 160)
+        self.assertEqual(data['reply_to']['preview_text'], 'x' * 224)
         self.client.force_login(self.bob)
         self.assertEqual(self.client.delete(self.detail_url(target)).status_code, 200)
         reply.refresh_from_db()
@@ -200,11 +201,23 @@ class ChatTests(TestCase):
         data = self.client.get(self.messages_url).json()['messages'][0]
         self.assertTrue(data['reply_to']['is_deleted'])
         self.assertEqual(data['reply_to']['text'], '')
+        self.assertEqual(data['reply_to']['preview_text'], '')
         self.assertEqual(self.post(self.messages_url, {'text': 'late', 'reply_to': target.pk}).status_code, 404)
         # Actual row removal, e.g. account removal, also safely nulls the relation.
         target.delete()
         reply.refresh_from_db()
         self.assertIsNone(reply.reply_to_id)
+
+    def test_reply_preview_has_bounded_lookahead_for_composed_emoji(self):
+        for emoji in ['👨‍👩‍👧‍👦', '🏃🏽‍♀️', '🇳🇱', '1️⃣', '👍🏿']:
+            with self.subTest(emoji=emoji):
+                target = ChatMessage.objects.create(sender=self.bob, text='a' * 159 + emoji + 'x' * 500)
+                reply = ChatMessage.objects.create(sender=self.alice, text='Ответ', reply_to=target)
+                from .views import serialize
+                preview = serialize(reply, self.alice)['reply_to']
+                self.assertEqual(len(preview['text']), 160)
+                self.assertEqual(len(preview['preview_text']), 224)
+                self.assertIn(emoji, preview['preview_text'])
 
     def test_reply_id_validation_and_missing_target(self):
         for value in [True, False, 0, -1, '1', [], {}, 2 ** 63]:

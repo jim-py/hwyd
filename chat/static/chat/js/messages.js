@@ -1,4 +1,6 @@
-// Server IDs are the only message identity. All user content stays text-only.
+import { renderEmojiText, emojiPreview } from './emoji.js';
+
+// Server IDs are the only message identity. User markup stays literal text.
 export function createMessageList(history, empty) {
     const items = new Map();
     const deleted = new Set();
@@ -16,13 +18,13 @@ export function createMessageList(history, empty) {
             const author = document.createElement('strong');
             author.textContent = message.reply_to.is_deleted ? 'Сообщение удалено' : message.reply_to.sender;
             const preview = document.createElement('span');
-            preview.textContent = message.reply_to.is_deleted ? '' : message.reply_to.text;
+            renderEmojiText(preview, message.reply_to.is_deleted ? '' : emojiPreview(message.reply_to.preview_text ?? message.reply_to.text));
             quote.append(author, preview);
             node.append(quote);
         }
         const text = document.createElement('p');
         text.className = 'chat-message__text';
-        text.textContent = message.text;
+        renderEmojiText(text, message.text);
         const date = new Date(message.created_at);
         const time = document.createElement('time');
         time.dateTime = message.created_at;
@@ -80,7 +82,9 @@ export function createMessageList(history, empty) {
         for (const { data } of [...items.values()]) {
             if (data.reply_to?.id !== target.id) continue;
             changed = upsert({ ...data, reply_to: { id: target.id, sender: target.sender,
-                text: target.is_deleted ? '' : Array.from(target.text).slice(0, 160).join(''), is_deleted: target.is_deleted } }) || changed;
+                text: target.is_deleted ? '' : Array.from(target.text).slice(0, 160).join(''),
+                preview_text: target.is_deleted ? '' : Array.from(target.text).slice(0, 224).join(''),
+                is_deleted: target.is_deleted } }) || changed;
         }
         return changed;
     }

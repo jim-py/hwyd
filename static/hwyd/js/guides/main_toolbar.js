@@ -1,257 +1,96 @@
-import { markViewed } from "../api.js";
-import { forceShowHiddenButtons } from "../utils.js";
+import { markViewed } from '../api.js';
+import { forceShowHiddenButtons } from '../utils.js';
 
-const GUIDE_SLUG = "main_toolbar";
-
-const I18N = {
-    next: "Далее",
-    prev: "Назад",
-    done: "Понятно",
-    confirmClose: "Вы точно хотите прервать обучение?"
-};
-
-let onboardingStarted = false;
-let onboardingLockActive = false;
-
-const ONBOARDING_STEPS = [
-    {
-        popover: {
-            title: '<i class="fa-solid fa-hand-sparkles onboarding-icon"></i> Добро пожаловать!',
-            description: `
-                Сейчас мы коротко покажем основные кнопки управления трекером привычек.
-
-                <br><br>
-
-                <i class="fa-solid fa-gear onboarding-icon"></i> Некоторые кнопки могут быть отключены в настройках.
-                Во время обучения они временно отображаются, чтобы вы могли
-                увидеть все возможности интерфейса.
-
-                <br><br>
-
-                Вы всегда можете включить или скрыть их позже в настройках.
-            `,
-            side: "center",
-            align: "center"
-        }
-    },
-    {
-        element: "#loginStreak",
-        popover: {
-            title: '<i class="fa-solid fa-fire onboarding-icon"></i> Стрик посещений',
-            description:
-                "Показывает, сколько дней подряд вы заходите в приложение. Не прерывайте цепочку!",
-            side: "bottom",
-            align: "end"
-        }
-    },
-    {
-        element: '.calendar-button[title="Создать группу"]',
-        popover: {
-            title: '<i class="fa-solid fa-layer-group onboarding-icon"></i> Группа привычек',
-            description:
-                "Позволяет объединять привычки в группы для удобной организации.",
-            side: "bottom",
-            align: "center"
-        }
-    },
-    {
-        element: '.calendar-button[title="Создать активность"]',
-        popover: {
-            title: '<i class="fa-solid fa-plus onboarding-icon"></i> Новая привычка',
-            description:
-                "Создаёт новую привычку или задачу, которую вы хотите отслеживать.",
-            side: "bottom",
-            align: "center"
-        }
-    },
-    {
-        element: "#btnActLastMonth",
-        popover: {
-            title: '<i class="fa-solid fa-clock-rotate-left onboarding-icon"></i> Повтор прошлого месяца',
-            description:
-                "Автоматически создаёт привычки на основе прошлого месяца. Кнопка появляется только когда привычек ещё нет.",
-            side: "bottom",
-            align: "center"
-        }
-    },
-    {
-        element: '.calendar-button[onclick*="calendarModal"]',
-        popover: {
-            title: '<i class="fa-solid fa-calendar onboarding-icon"></i> Календарь',
-            description:
-                "Быстрый переход к любому месяцу. Можно просматривать прошлые периоды.",
-            side: "bottom",
-            align: "center"
-        }
-    },
-    {
-        element: "#openAll",
-        popover: {
-            title: '<i class="fa-solid fa-folder-open onboarding-icon"></i> Управление группами',
-            description:
-                "Позволяет раскрыть или свернуть сразу все группы привычек.",
-            side: "bottom",
-            align: "center"
-        }
-    },
-    {
-        element: "#deleteAll",
-        popover: {
-            title: '<i class="fa-solid fa-trash onboarding-icon"></i> Очистить привычки',
-            description:
-                "Удаляет все привычки выбранного периода. Кнопка появляется только когда очистка доступна.",
-            side: "bottom",
-            align: "center"
-        }
-    },
-    {
-        element: "#hideCompleteActivities",
-        popover: {
-            title: '<i class="fa-solid fa-eye onboarding-icon"></i> Выполненные привычки',
-            description:
-                "Позволяет скрыть выполненные привычки, чтобы сфокусироваться только на текущих.",
-            side: "bottom",
-            align: "center"
-        }
-    },
-    {
-        element: "#buttonSettings",
-        popover: {
-            title: '<i class="fa-solid fa-gear onboarding-icon"></i> Настройки',
-            description:
-                "Здесь находятся настройки отображения, поведения и внешний вид трекера привычек.",
-            side: "bottom",
-            align: "start"
-        }
-    },
-    {
-        popover: {
-            title: 'Готово!',
-            description: `
-                <i class="fa-solid fa-heart onboarding-icon"></i>
-                Спасибо, что прошли короткое обучение!
-
-                <br><br>
-
-                Теперь вы знаете основные элементы управления
-                трекером привычек и можете начать пользоваться
-                приложением максимально эффективно.
-
-                <br><br>
-
-                <i class="fa-solid fa-gear onboarding-icon"></i>
-                Помните — большинство кнопок можно включать
-                или отключать в настройках под себя.
-
-                <br><br>
-
-                Желаем стабильных привычек,
-                длинных стриков
-                <i class="fa-solid fa-fire onboarding-icon"></i>
-                и отличных результатов!
-            `,
-            side: "center",
-            align: "center"
-        }
-    }
+let active = null;
+const controls = [
+    ['#buttonSettings', 'Настройки Habitus', 'Выберите видимые кнопки, шрифт, звуки и поведение таблицы. Здесь же можно повторно открыть обучение.'],
+    ['#buttonTheme', 'Тема', 'Переключает тему интерфейса.'],
+    ['#createActivityButton', 'Новая привычка', 'Создайте привычку для отслеживания в выбранном месяце.'],
+    ['#createGroupButton', 'Группа привычек', 'Создайте группу, затем добавьте в неё привычки через настройки группы.'],
+    ['#calendarButton', 'Выбор месяца', 'Откройте календарь, выберите месяц и перейдите к его таблице.'],
+    ['#hideCompleteActivities', 'Выполненные привычки', 'Показывает или скрывает привычки, выполненные сегодня. Свёрнутые группы сохраняют своё состояние.'],
+    ['#openAll', 'Управление группами', 'Раскрывает все свёрнутые группы или сворачивает все раскрытые.'],
+    ['#loginStreak', 'Стрик посещений', 'Число последовательных дней посещения приложения в последней цепочке. Посещение после пропущенного дня начинает новую цепочку.'],
+    ['#topStreak', 'Top по стрику', 'Число рядом с Top — ваше место по текущему стрику посещений. Нажмите, чтобы увидеть Top-10. Одинаковый стрик даёт одинаковое место.'],
+    ['#buttonChat', 'Общий чат', 'Общайтесь, отвечайте на сообщения и редактируйте свои. На компьютере окно можно перемещать и менять его размер, на телефоне оно занимает весь экран.'],
+    ['#buttonFeedback', 'Обратная связь', 'Сообщите об ошибке, предложите улучшение или оставьте отзыв.'],
+    ['#btnActLastMonth', 'Привычки прошлого месяца', 'Копирует привычки и группы прошлого месяца без отметок. Обычно кнопка доступна, когда таблица выбранного месяца пуста.'],
+    ['#deleteAll', 'Очистить месяц', 'Открывает подтверждение удаления всех привычек, групп, отметок и комментариев выбранного месяца. До подтверждения ничего не удаляется.'],
 ];
 
-// --- Вспомогательные функции ---
-function validateSteps(steps) {
-    return steps.filter(step => !step.element || document.querySelector(step.element));
-}
-
-function enableOnboardingLock() {
-    document.body.classList.add("onboarding-lock");
-    onboardingLockActive = true;
-}
-
-function disableOnboardingLock() {
-    document.body.classList.remove("onboarding-lock");
-    onboardingLockActive = false;
-}
-
-function blockToolbarEvents(e) {
-    if (!onboardingLockActive) return;
-    const toolbar = e.target.closest("#divButtons");
-    if (!toolbar) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    return false;
-}
-
-// глобальный перехват событий toolbar
-document.addEventListener("click", blockToolbarEvents, true);
-document.addEventListener("submit", blockToolbarEvents, true);
-document.addEventListener("mousedown", blockToolbarEvents, true);
-document.addEventListener("touchstart", blockToolbarEvents, true);
-
-// --- Основная функция запуска ---
-export async function start() {
-    if (onboardingStarted) return;
-    onboardingStarted = true;
-
+export function start() {
+    if (active) return active;
     const driver = window.driver?.js?.driver;
-    if (!driver) {
-        console.error("Driver.js не найден");
-        return;
+    if (!driver) return Promise.reject(new Error('Driver.js не загружен'));
+    let resolve;
+    active = new Promise(done => { resolve = done; });
+    const result = active;
+    const focus = document.activeElement;
+    const scroll = { left: window.scrollX, top: window.scrollY };
+    const wasLocked = document.body.classList.contains('onboarding-lock');
+    let restore = () => {};
+    let cleaned = false;
+    let completed = false;
+    let tour = null;
+    const eventTypes = ['click', 'submit', 'pointerdown', 'contextmenu', 'keydown'];
+    function blockActions(event) {
+        if (!event.target.closest('#divButtons, .nav-menu, #myTable')) return;
+        if (event.type === 'keydown' && !['Enter', ' ', 'ContextMenu'].includes(event.key)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
     }
-
-    // временно показываем скрытые кнопки
-    const restoreButtons = forceShowHiddenButtons([
-        "#deleteAll",
-        "#openAll",
-        "#createLastMonthActivitiesForm",
-        "#createActivityButton",
-        "#createGroupButton",
-        "#calendarButton"
-    ]);
-
-    const tour = driver({
-        showProgress: false,
-        allowClose: false,
-        nextBtnText: I18N.next,
-        prevBtnText: I18N.prev,
-        doneBtnText: I18N.done,
-        overlayOpacity: 0.65,
-        stagePadding: 8,
-        stageRadius: 10,
-        popoverClass: "onboarding-popover",
-        popoverOffset: window.innerWidth < 640 ? 20 : 12,
-        onHighlightStarted: () => {
-            if (!onboardingLockActive) enableOnboardingLock();
-        },
-        onDestroyed: async () => {
-            restoreButtons();
-            try {
-                await markViewed(GUIDE_SLUG);
-            } catch (e) {
-                console.error("Ошибка сохранения просмотра:", e);
-            }
-            disableOnboardingLock();
-        },
-        onCloseClick: () => {
-            if (confirm(I18N.confirmClose)) {
-                tour.destroy();
-            }
+    function cleanup() {
+        if (cleaned) return;
+        cleaned = true;
+        restore();
+        if (!wasLocked) document.body.classList.remove('onboarding-lock');
+        for (const type of eventTypes) document.removeEventListener(type, blockActions, true);
+        window.scrollTo(scroll);
+        focus?.focus({ preventScroll: true });
+        active = null;
+        resolve();
+        if (completed && window.PENDING_GUIDES?.includes('main_toolbar')) {
+            markViewed('main_toolbar').catch(error => console.error('Guide progress:', error));
         }
-    });
-
-    const validSteps = validateSteps([...ONBOARDING_STEPS]);
-    if (!validSteps.length) {
-        console.warn("Нет доступных шагов onboarding");
-        return;
     }
-
-    tour.setSteps(validSteps);
-    tour.drive();
+    try {
+        // The navbar is already expanded on mobile. Reveal existing controls
+        // and containers only; no fake buttons and no settings requests.
+        restore = forceShowHiddenButtons([...controls.map(([selector]) => selector), '#createLastMonthActivitiesForm']);
+        document.body.classList.add('onboarding-lock');
+        for (const type of eventTypes) document.addEventListener(type, blockActions, true);
+        const steps = [
+            { popover: { title: 'Добро пожаловать в Habitus', description: 'Отмечайте привычки в таблице и объединяйте их в группы. Сейчас познакомимся с кнопками. Скрытые кнопки временно показаны; ваши настройки сохранятся.' } },
+            ...controls.filter(([selector]) => document.querySelector(selector)).map(([element, title, description]) => ({
+                element, popover: { title, description, side: 'bottom', align: 'center' },
+            })),
+            { popover: { title: 'Можно начинать', description: 'Создайте привычку и отмечайте её выполнение. Повторить этот обзор можно через «Настройки → Обучение».' } },
+        ];
+        const finish = () => {
+            // Driver can omit onDestroyed when closed mid-transition, before
+            // its first active element is committed. Always restore explicitly.
+            try { tour.destroy(); } finally { cleanup(); }
+        };
+        tour = driver({
+            steps, showProgress: true, progressText: '{{current}} из {{total}}',
+            nextBtnText: 'Далее', prevBtnText: 'Назад', doneBtnText: 'Готово',
+            allowClose: true, disableActiveInteraction: true,
+            animate: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+            overlayOpacity: 0.65, stagePadding: 6, stageRadius: 10,
+            popoverClass: 'onboarding-popover', popoverOffset: 12,
+            onNextClick: () => {
+                if (tour.hasNextStep()) tour.moveNext();
+                else { completed = true; finish(); }
+            },
+            onCloseClick: finish,
+            onDestroyStarted: finish,
+            onDestroyed: cleanup,
+        });
+        tour.drive();
+    } catch (error) {
+        try { tour?.destroy(); } catch { /* cleanup also covers partial initialization */ }
+        cleanup();
+        return Promise.reject(error);
+    }
+    return result;
 }
-
-// --- Автостарт при наличии window.PENDING_GUIDES ---
-document.addEventListener("DOMContentLoaded", () => {
-    if (window.PENDING_GUIDES?.includes(GUIDE_SLUG)) {
-        requestAnimationFrame(() => requestAnimationFrame(start));
-    }
-});

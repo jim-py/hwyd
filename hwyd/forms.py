@@ -35,6 +35,7 @@ class FeedbackForm(forms.ModelForm):
 class SettingsForm(forms.ModelForm):
     class Meta:
         model = Settings
+        labels = {'showCompletedButton': 'Показывать кнопку выполненных привычек'}
         fields = [
             "backgroundColor",
             "tableHeadColorWeekend",

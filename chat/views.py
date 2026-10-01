@@ -64,6 +64,9 @@ def serialize(message, user):
         'reply_to': {
             'id': target.pk, 'sender': display_name(target.sender),
             'text': target.text[:160] if target.deleted_at is None else '',
+            # Bounded lookahead lets the client avoid cutting a composed emoji
+            # at the 160-codepoint preview boundary. Keep the original API text.
+            'preview_text': target.text[:224] if target.deleted_at is None else '',
             'is_deleted': target.deleted_at is not None,
         } if target else None,
     }

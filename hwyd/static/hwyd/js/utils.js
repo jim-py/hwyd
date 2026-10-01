@@ -10,22 +10,24 @@ export function forceShowHiddenButtons(selectors) {
         if (computed.display === "none" || el.hidden) {
             modified.push({
                 el,
-                originalDisplay: el.style.display,
-                wasHidden: el.hidden
+                originalStyle: el.getAttribute('style'),
+                originalHidden: el.getAttribute('hidden')
             });
 
             el.hidden = false;
 
             if (computed.display === "none") {
-                el.style.display = "block";
+                el.style.display = el.tagName === 'BUTTON' ? 'flex' : 'inline';
             }
         }
     });
 
     return () => {
         modified.forEach(item => {
-            item.el.hidden = item.wasHidden;
-            item.el.style.display = item.originalDisplay;
+            if (item.originalHidden === null) item.el.removeAttribute('hidden');
+            else item.el.setAttribute('hidden', item.originalHidden);
+            if (item.originalStyle === null) item.el.removeAttribute('style');
+            else item.el.setAttribute('style', item.originalStyle);
         });
     };
 }

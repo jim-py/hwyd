@@ -121,6 +121,24 @@
     transform: scale(1.15);
 }
 
+#topStreak {
+    width: auto;
+    padding: 0 10px;
+    gap: 6px;
+    background: #fff4e5;
+    color: #b45309;
+    font-size: 14px;
+    font-weight: 600;
+}
+#topStreak:hover { background: #ffe7cc; color: #7c2d12; }
+.streak-top { list-style: none; margin: 12px 0; padding: 0; }
+.streak-top__row { display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-radius: 8px; }
+.streak-top__row--own { background: #eef2ff; color: #2856bf; }
+.streak-top__rank { flex: 0 0 24px; color: #737780; font-size: 13px; }
+.streak-top__name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.streak-top__value { flex-shrink: 0; color: #b45309; font-size: 14px; font-weight: 600; }
+.streak-top__current { border-top: 1px solid #e0e0e0; margin: 12px 0 0; padding-top: 14px; font-size: 14px; line-height: 1.5; }
+
 /* Static presentation formerly inline; selectors preserve local overrides. */
 hr.dialog-divider { margin: 0; }
 #addSetting.preset-button { width: auto;height: auto;background-color:#dfffdf; }

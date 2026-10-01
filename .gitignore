@@ -30,3 +30,6 @@ MIGRATIONS.md
 SCHEMA_UPGRADE.md
 
 migrations/
+
+chat/static/chat/emoji
+static/chat/emoji

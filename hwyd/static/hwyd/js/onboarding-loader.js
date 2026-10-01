@@ -1,4 +1,5 @@
 import { loadDriver } from "./driver-loader.js";
+import { showToast } from './toast.js';
 
 async function loadGuide(slug) {
     return import(`./guides/${slug}.js`);
@@ -10,7 +11,13 @@ async function startOnboarding() {
     if (!guides.length) return;
 
     // грузим driver.js только если нужен
-    await loadDriver();
+    try {
+        await loadDriver();
+    } catch (error) {
+        console.error('Guide load error:', error);
+        showToast('Не удалось открыть обучение. Попробуйте ещё раз.', 'error');
+        return;
+    }
 
     for (const slug of guides) {
         try {
@@ -26,3 +33,14 @@ async function startOnboarding() {
 }
 
 document.addEventListener("DOMContentLoaded", startOnboarding);
+
+document.getElementById('restartGuide')?.addEventListener('click', async () => {
+    document.getElementById('some-modal-id').close();
+    try {
+        await loadDriver();
+        await (await loadGuide('main_toolbar')).start();
+    } catch (error) {
+        console.error('Guide load error:', error);
+        showToast('Не удалось открыть обучение. Попробуйте ещё раз.', 'error');
+    }
+});

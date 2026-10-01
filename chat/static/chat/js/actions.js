@@ -1,3 +1,5 @@
+import { renderEmojiText, emojiPreview } from './emoji.js';
+
 export function createMessageActions({ dialog, history, input, send, list, request, showError, resizeInput, onMutation }) {
     const narrow = window.matchMedia('(max-width: 1023px)');
     const menu = dialog.querySelector('#chatActionMenu');
@@ -55,7 +57,7 @@ export function createMessageActions({ dialog, history, input, send, list, reque
         mode = { type, message };
         if (type === 'edit') { draft = input.value; input.value = message.text; }
         modeTitle.textContent = type === 'edit' ? 'Редактирование сообщения' : `Ответ: ${message.sender}`;
-        modeText.textContent = Array.from(message.text).slice(0, 160).join('');
+        renderEmojiText(modeText, emojiPreview(message.text));
         modeBox.hidden = false;
         send.classList.toggle('chat-send--editing', type === 'edit');
         sendLabel.hidden = type !== 'edit';
@@ -136,7 +138,8 @@ export function createMessageActions({ dialog, history, input, send, list, reque
             if (message.is_deleted) {
                 resetMode(); showError('Выбранное сообщение удалено.');
             } else if (mode.type === 'reply') {
-                mode.message = message; modeText.textContent = Array.from(message.text).slice(0, 160).join('');
+                mode.message = message;
+                renderEmojiText(modeText, emojiPreview(message.text));
             }
         }
     };

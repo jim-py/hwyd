@@ -433,7 +433,7 @@
 
     function fillForm(activity, targetEl, type) {
 
-        UI.title.innerText = `Настройка ${type}`;
+        UI.title.innerText = type === 'активности' ? 'Настройки привычки' : 'Настройки группы';
 
         UI.activityPk.value = activity.id;
         UI.activityName.value = activity.name;
@@ -482,7 +482,7 @@
         show(UI.sections.activateDays, true);
 
         setMargins("10px");
-        UI.labels.name.innerText = "Название активности:";
+        UI.labels.name.innerText = "Название привычки:";
     }
 
 

@@ -65,7 +65,7 @@
                     <input name="showTabs" id="showTabs" type="checkbox"{% if settings.showTabs %} checked{% endif %}>
                 </div>
                 <div>
-                    <label for="showActivityDayLight">Выделение активности и дня</label>
+                    <label for="showActivityDayLight">Выделение привычки и дня</label>
                     <input name="showActivityDayLight" id="showActivityDayLight" type="checkbox"{% if settings.showActivityDayLight %} checked{% endif %}>
                 </div>
                 <div>
@@ -90,6 +90,7 @@
     <div class="settings-dialog__footer">
         <button type="button" class="button-save" role="button" onclick="btnSaveSettings();">Сохранить</button>
         <div class="settings-dialog__actions">
+            <button type="button" class="button-6" id="restartGuide">Обучение</button>
             <a href="#" class="button-6 jsonBtn" id="downloadJson">
                 <img src="https://cdn-icons-png.flaticon.com/512/4239/4239049.png" height=16px width=16px alt="Download" class="icon"> JSON
             </a>
@@ -123,7 +124,7 @@
         <i class="fa-solid fa-eye"></i>
     </button>
 
-    <button id="deleteAll" type="button" class="button-6" data-dialog="deleteAllModal" aria-controls="deleteAllModal" aria-label="Очистить все активности" style="display:{% if range_activities and settings.showDeleteAllActivities %}flex;{% else %}none;{% endif %}" title="Очистить все активности">
+    <button id="deleteAll" type="button" class="button-6" data-dialog="deleteAllModal" aria-controls="deleteAllModal" aria-label="Очистить все привычки" style="display:{% if range_activities and settings.showDeleteAllActivities %}flex;{% else %}none;{% endif %}" title="Очистить все привычки">
         <i class="fa-solid fa-trash"></i>
     </button>
 
@@ -138,7 +139,7 @@
 
     <form id="createLastMonthActivitiesForm" action="{% url 'create_last_activities' date %}" method="post" style="display:{% if not range_activities %}inline;{% else %}none;{% endif %}">
         {% csrf_token %}
-        <button id="btnActLastMonth" type="submit" class="calendar-button" title="Создать активности прошлого месяца">
+        <button id="btnActLastMonth" type="submit" class="calendar-button" title="Копировать привычки прошлого месяца">
             <i class="fa-solid fa-clock-rotate-left"></i>
         </button>
     </form>
@@ -146,9 +147,9 @@
     <button type="button"
             id="createActivityButton"
             class="calendar-button"
-            title="Создать активность"
+            title="Создать привычку"
             style="display:{% if settings.showCreateActivity %}flex;{% else %}none;{% endif %}"
-            data-dialog="createActivityModal" aria-controls="createActivityModal" aria-label="Создать активность">
+            data-dialog="createActivityModal" aria-controls="createActivityModal" aria-label="Создать привычку">
         <i class="fa-solid fa-plus"></i>
     </button>
 
@@ -175,6 +176,11 @@
 
         <i class="fa-solid {{ streak_icon }}"></i>
         <span class="streak-count">{{ login_streak }}</span>
+    </button>
+    <button id="topStreak" type="button" data-dialog="topModal" aria-controls="topModal"
+            title="Ваше место по текущему стрику" aria-label="Top: место {{ top_rank|default:'—' }}">
+        <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+        <span>Top <span id="topRank">{% if top_rank %}#{{ top_rank }}{% else %}—{% endif %}</span></span>
     </button>
 </div>
 <div id="habitusToast" class="habitus-toast" popover="manual" role="status" aria-live="polite" aria-atomic="true" hidden>
@@ -243,7 +249,7 @@ function vibrateOrHaptic() {
             <div  class="dialog-spacer"></div>
             <select id="choiceColor" name="saveWithColor" class="selectColor selectPicker">
                 <option value="false">Только цвет группы</option>
-                <option value="true">Цвет группы и цвет её активностей</option>
+                <option value="true">Цвет группы и цвет её привычек</option>
             </select>
         </div>
         <hr id="downHr" color="#ffffff"  class="activity-divider">
@@ -255,7 +261,7 @@ function vibrateOrHaptic() {
             <label for="endDay">День конца:</label>
             <input name="endDay" id="endDay" type="number" min="1" max="{{ days }}" class="elementActivitySettings inputSettingsColor">
         </div>
-        <div class="addActivityToGroup">Привязать активности к группе:</div>
+        <div class="addActivityToGroup">Привязать привычки к группе:</div>
         <div class="grid-container">
             {% for activity in range_activities %}
                 {% if not activity.isGroup %}
@@ -267,7 +273,7 @@ function vibrateOrHaptic() {
             {% endfor %}
         </div>
         <input type="hidden" id="inputCells" name="onOffCells">
-        <div class="activateDayOfActivity">Выбрать дни активности:</div>
+        <div class="activateDayOfActivity">Выбрать дни привычки:</div>
         <div class="onOffWeekdays">
             {% for day in weekdays.keys %}
                 <p class="calendarWeek" id="weekday{{ forloop.counter }}" data-day="{{ day }}">{{ day }}</p>

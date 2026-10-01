@@ -6,6 +6,105 @@ from .models import Activities, ActivitiesConnection, Feedback, Settings
 from .views import create_setting
 from .forms import SettingsForm
 from .preferences import UI_VISIBILITY_FIELDS
+from .models import UserActivityLog
+from .streaks import streak_position, streak_top, users_with_login_streak
+from datetime import date, timedelta
+from django.utils import timezone
+from django.test import override_settings
+
+
+@override_settings(MIDDLEWARE=[
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_user_agents.middleware.UserAgentMiddleware',
+])
+class StreakTopTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username='current', email='private@example.com')
+        self.client.force_login(self.user)
+
+    def visits(self, user, days, end=date(2026, 10, 1)):
+        now = timezone.now()
+        UserActivityLog.objects.bulk_create([
+            UserActivityLog(user=user, date=end - timedelta(days=i), first_visit=now, last_visit=now)
+            for i in range(days)])
+
+    def contender(self, username, days, **kwargs):
+        user = get_user_model().objects.create_user(username=username, **kwargs)
+        self.visits(user, days)
+        return user
+
+    def test_current_streak_sorting_ties_names_and_private_fields(self):
+        self.visits(self.user, 8)
+        self.contender('b', 10, first_name='  Мария  ')
+        self.contender('a', 10)
+        self.contender('disabled', 50, is_active=False)
+        response = self.client.get(reverse('top_streak'))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual([row['rank'] for row in data['leaders']], [1, 1, 3])
+        self.assertEqual([row['name'] for row in data['leaders']], ['a', 'Мария', 'current'])
+        self.assertEqual(data['current'], {'rank': 3, 'streak': 8})
+        self.assertTrue(data['leaders'][2]['is_own'])
+        for row in data['leaders']:
+            self.assertEqual(set(row), {'rank', 'name', 'streak', 'is_own'})
+        self.assertNotContains(response, 'private@example.com')
+
+    def test_top_ten_and_current_user_outside_top(self):
+        for i in range(12):
+            self.contender(f'leader-{i:02}', 20 - i)
+        self.visits(self.user, 2)
+        with self.assertNumQueries(3):
+            data = streak_top(self.user)
+        self.assertEqual(len(data['leaders']), 10)
+        self.assertEqual(data['current'], {'rank': 13, 'streak': 2})
+        self.assertFalse(any(row['is_own'] for row in data['leaders']))
+
+    def test_latest_chain_keeps_original_metric_and_ignores_old_record(self):
+        self.visits(self.user, 40, end=date(2026, 8, 1))
+        self.visits(self.user, 3, end=date(2026, 9, 20))
+        latest = UserActivityLog.objects.filter(user=self.user).latest('date')
+        self.assertEqual(latest.get_login_streak(), 3)
+        self.assertEqual(streak_position(self.user), (3, 1))
+        # As before, the latest chain remains until a new visit after a gap.
+        self.visits(self.user, 1)
+        self.assertEqual(latest.get_login_streak(), 1)
+
+    def test_sql_chain_matches_original_date_algorithm_across_months_and_gaps(self):
+        import random
+        generator = random.Random(42)
+        expected = {}
+        for i in range(20):
+            user = get_user_model().objects.create_user(username=f'sample-{i}')
+            offsets = sorted(generator.sample(range(90), 40))
+            now = timezone.now()
+            dates = [date(2026, 3, 10) - timedelta(days=offset) for offset in offsets]
+            UserActivityLog.objects.bulk_create([UserActivityLog(user=user, date=day, first_visit=now, last_visit=now) for day in dates])
+            streak = 1
+            for previous, current in zip(dates, dates[1:]):
+                if previous - current != timedelta(days=1):
+                    break
+                streak += 1
+            expected[user.pk] = streak
+        with self.assertNumQueries(1):
+            actual = dict(users_with_login_streak().filter(pk__in=expected).values_list('pk', 'login_streak'))
+        self.assertEqual(actual, expected)
+
+    def test_empty_streak_and_authentication(self):
+        self.assertEqual(streak_top(self.user), {'leaders': [], 'current': {'rank': None, 'streak': 0}})
+        self.assertEqual(self.client.post(reverse('top_streak')).status_code, 405)
+        self.client.logout()
+        self.assertEqual(self.client.get(reverse('top_streak')).status_code, 302)
+
+    def test_toolbar_uses_same_streak_and_replay_is_always_available(self):
+        create_setting(self.user, 'Test')
+        self.visits(self.user, 6)
+        response = self.client.get(reverse('by_date', args=['2026-10']), HTTP_HOST='testserver')
+        self.assertEqual(response.context['login_streak'], 6)
+        self.assertEqual(response.context['top_rank'], 1)
+        self.assertContains(response, 'fa-trophy')
+        self.assertContains(response, 'id="restartGuide"')
+        self.assertContains(response, 'hwyd/js/onboarding-loader.js')
 
 
 class ToolbarTests(TestCase):

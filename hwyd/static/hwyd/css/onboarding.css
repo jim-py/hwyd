@@ -7,13 +7,17 @@
   display: flex !important;
   align-items: center;
   width: 100%;
+  gap: 12px;
 }
 
 /* группа кнопок */
 .onboarding-popover .driver-popover-navigation-btns {
   display: flex;
-  width: 100%;
+  flex: 1;
+  width: auto;
 }
+
+.onboarding-popover .driver-popover-progress-text { flex-shrink: 0; white-space: nowrap; font-size: 12px; }
 
 /* КНОПКА НАЗАД — слева */
 .onboarding-popover .driver-popover-prev-btn {
@@ -36,6 +40,9 @@
     ===================================================== */
 
 .onboarding-popover {
+  box-sizing: border-box;
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
   max-width: 420px; /* больше стандартного */
   width: min(92vw, 420px);
 

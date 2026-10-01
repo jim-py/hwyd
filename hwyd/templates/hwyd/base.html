@@ -7,10 +7,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    {% if pending_guides %}
     <link rel="stylesheet" href="{% static 'hwyd/vendor/driver/driver.css' %}"/>
     <link rel="stylesheet" href="{% static 'hwyd/css/onboarding.css' %}">
-    {% endif %}
 
     <link rel="stylesheet" href="{% static 'hwyd/css/main.css' %}">
     <link rel="stylesheet" href="{% static 'hwyd/css/tableCells.css' %}">
@@ -190,10 +188,10 @@ window.IS_AUTHENTICATED = {{ request.user.is_authenticated|yesno:"true,false" }}
 <script>
 window.PENDING_GUIDES = {{ pending_guides|safe }};
 </script>
+{% endif %}
 <script type="module"
         src="{% static 'hwyd/js/onboarding-loader.js' %}">
 </script>
-{% endif %}
 
 {% include 'hwyd/scripts.html' %}
 <script type="module" src="{% static 'hwyd/js/toolbar.js' %}"></script>

@@ -2,6 +2,7 @@ import { getCSRFToken } from '../../site/js/csrf.js';
 import { createVisibilityControls } from './visibility.js';
 import { showToast } from './toast.js';
 import { enableDialogDrag } from './dialog-drag.js';
+import { loadTop } from './top.js';
 
 async function post(url, data) {
     const body = data instanceof FormData ? data : new URLSearchParams(data);
@@ -34,6 +35,7 @@ for (const button of document.querySelectorAll('[data-dialog]')) {
         dialog.showModal();
         document.body.classList.add('toolbar-modal-open');
         if (dialog.id === 'calendarModal') resetPicker();
+        if (dialog.id === 'topModal') loadTop();
         const focus = dialog.querySelector('[data-initial-focus]') || dialog.querySelector('[data-month][aria-pressed="true"]');
         focus?.focus({ preventScroll: true });
     });
