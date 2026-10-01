@@ -58,6 +58,7 @@ export function start() {
     let restore = () => {};
     let cleaned = false;
     let completed = false;
+    let dismissed = false;
     let started = false;
     let tour = null;
     const eventTypes = ['click', 'submit', 'pointerdown', 'contextmenu', 'keydown'];
@@ -80,8 +81,11 @@ export function start() {
         if (started && !completed) {
             showToast('Повторить гайд можно через «Настройки → Обучение».');
         }
-        if (completed && window.PENDING_GUIDES?.includes('main_toolbar')) {
-            markViewed('main_toolbar').catch(error => console.error('Guide progress:', error));
+        if (completed || dismissed) {
+            markViewed('main_toolbar').catch(error => {
+                console.error('Guide progress:', error);
+                showToast('Не удалось сохранить просмотр гайда. После обновления обучение может открыться снова.', 'error');
+            });
         }
     }
     try {
@@ -106,6 +110,7 @@ export function start() {
             steps, showProgress: true, progressText: '{{current}} из {{total}}',
             nextBtnText: 'Далее', prevBtnText: 'Назад', doneBtnText: 'Готово',
             allowClose: true, disableActiveInteraction: true,
+            overlayClickBehavior: () => {},
             animate: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
             overlayOpacity: 0.65, stagePadding: 6, stageRadius: 10,
             popoverClass: 'onboarding-popover', popoverOffset: 12,
@@ -113,8 +118,9 @@ export function start() {
                 if (tour.hasNextStep()) tour.moveNext();
                 else { completed = true; finish(); }
             },
-            onCloseClick: finish,
-            onDestroyStarted: finish,
+            onCloseClick: () => { dismissed = true; finish(); },
+            // Ignore implicit dismissal (Escape); the cross calls finish directly.
+            onDestroyStarted: () => {},
             onDestroyed: cleanup,
         });
         tour.drive();
