@@ -112,6 +112,8 @@ def activity_users(request):
     logs = (
         UserActivityLog.objects
         .select_related('user')
+        .exclude(user__username='unbroken0886')
+        .exclude(user__username='work')
         .order_by('-date', '-last_visit')
     )
 
