@@ -138,6 +138,82 @@ class StreakTopTests(TestCase):
         self.assertContains(response, 'hwyd/js/onboarding-loader.js')
 
 
+class CopyPreviousMonthTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user(username='copy-month-user')
+        cls.other = get_user_model().objects.create_user(username='copy-month-other')
+
+    def setUp(self):
+        self.client.force_login(self.user)
+
+    def activity(self, month, name='Habit', disabled_weekdays=(), disabled_dates=(), user=None, group=False):
+        year, month_number = map(int, month.split('-'))
+        current = date(year, month_number, 1)
+        flags = []
+        while current.month == month_number:
+            disabled = current.weekday() in disabled_weekdays or current.day in disabled_dates
+            flags.append('False' if disabled else 'True')
+            current += timedelta(days=1)
+        return Activities.objects.create(
+            user=user or self.user, name=name, date=month, color='#123456', backgroundColor='#abcdef',
+            marks='True ' * len(flags), number=7, isGroup=group, isOpen=True,
+            beginDay=3, endDay=len(flags) - 3, cellsComments='✓*Old comment|' * len(flags),
+            onOffCells=' '.join(flags) + ' ', hide=True)
+
+    def copy(self, month):
+        response = self.client.post(reverse('create_last_activities', args=[month]))
+        self.assertRedirects(response, reverse('by_date', args=[month]), fetch_redirect_response=False)
+
+    def test_disabled_weekdays_follow_destination_calendar_across_month_lengths_and_years(self):
+        cases = (
+            ('2026-09', '2026-10', 31, {3, 4, 10, 11, 17, 18, 24, 25, 31}),
+            ('2026-01', '2026-02', 28, {1, 7, 8, 14, 15, 21, 22, 28}),
+            ('2024-01', '2024-02', 29, {3, 4, 10, 11, 17, 18, 24, 25}),
+            ('2026-12', '2027-01', 31, {2, 3, 9, 10, 16, 17, 23, 24, 30, 31}),
+        )
+        for previous_month, new_month, days, expected_disabled in cases:
+            with self.subTest(month=new_month):
+                source = self.activity(previous_month, disabled_weekdays=(5, 6))
+                self.copy(new_month)
+                copied = Activities.objects.get(user=self.user, date=new_month)
+                flags = copied.onOffCells.split()
+                self.assertEqual(len(flags), days)
+                self.assertEqual({index + 1 for index, flag in enumerate(flags) if flag == 'False'}, expected_disabled)
+                self.assertEqual(copied.marks.split(), ['False'] * days)
+                self.assertEqual(copied.cellsComments, '*|' * days)
+                self.assertEqual((copied.beginDay, copied.endDay), (0, days - 1))
+                source.refresh_from_db()
+                self.assertEqual(source.marks.split(), ['True'] * len(source.onOffCells.split()))
+
+    def test_separate_days_are_not_treated_as_disabled_weekdays(self):
+        self.activity('2026-09', disabled_dates=(1, 2, 3))
+        self.copy('2026-10')
+        self.assertEqual(Activities.objects.get(date='2026-10').onOffCells.split(), ['True'] * 31)
+
+    def test_all_disabled_days_and_partial_weekday_schedule_are_preserved(self):
+        self.activity('2026-09', name='All off', disabled_weekdays=range(7))
+        self.activity('2026-09', name='Tuesday only', disabled_weekdays=(0, 2, 3, 4, 5, 6))
+        self.copy('2026-10')
+        self.assertEqual(Activities.objects.get(date='2026-10', name='All off').onOffCells.split(), ['False'] * 31)
+        flags = Activities.objects.get(date='2026-10', name='Tuesday only').onOffCells.split()
+        self.assertEqual({index + 1 for index, flag in enumerate(flags) if flag == 'True'}, {6, 13, 20, 27})
+
+    def test_groups_connections_owner_and_display_fields_are_preserved(self):
+        source_group = self.activity('2026-09', name='Group', group=True)
+        source_habit = self.activity('2026-09', disabled_weekdays=(5, 6))
+        ActivitiesConnection.objects.create(user=self.user, group=source_group, activity=source_habit)
+        foreign = self.activity('2026-09', name='Foreign', user=self.other)
+        self.copy('2026-10')
+        group = Activities.objects.get(user=self.user, date='2026-10', isGroup=True)
+        habit = Activities.objects.get(user=self.user, date='2026-10', isGroup=False)
+        self.assertTrue(ActivitiesConnection.objects.filter(user=self.user, group=group, activity=habit).exists())
+        self.assertFalse(Activities.objects.filter(date='2026-10', name=foreign.name).exists())
+        self.assertEqual((habit.color, habit.backgroundColor, habit.number, habit.hide, habit.isOpen),
+                         (source_habit.color, source_habit.backgroundColor, source_habit.number,
+                          source_habit.hide, source_habit.isOpen))
+
+
 class ToolbarTests(TestCase):
     @classmethod
     def setUpTestData(cls):

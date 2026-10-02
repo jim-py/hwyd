@@ -543,18 +543,33 @@ def create_last_activities(request, picked_date):
 
     # Корректно выбирает прошлый месяц
     if month == 1:
-        activities = Activities.objects.filter(user=request.user, date=f'{year - 1}-12')
+        previous_year, previous_month = year - 1, 12
     else:
-        activities = Activities.objects.filter(user=request.user,
-                                               date=f'{year}-{month - 1:0>2}')
+        previous_year, previous_month = year, month - 1
+    activities = Activities.objects.filter(user=request.user, date=f'{previous_year}-{previous_month:0>2}')
+    previous_days = monthrange(previous_year, previous_month)[1]
+    previous_first_weekday = weekday(previous_year, previous_month, 1)
+    first_weekday = weekday(year, month, 1)
 
     # Создаёт активности прошлого месяца и заносит их в списки
     all_activities = []
     for activity in activities:
+        # Weekday buttons persist as daily flags. Transfer only weekdays whose
+        # every occurrence was disabled, using the destination month's calendar.
+        previous_cells = activity.onOffCells.split()
+        disabled_weekdays = {
+            day_of_week for day_of_week in range(7)
+            if all(day < len(previous_cells) and previous_cells[day] == 'False'
+                   for day in range((day_of_week - previous_first_weekday) % 7, previous_days, 7))
+        }
+        on_off_cells = ''.join(
+            'False ' if (first_weekday + day) % 7 in disabled_weekdays else 'True '
+            for day in range(days)
+        )
         new_activity = Activities(user=request.user, name=activity.name, date=picked_date, marks='False ' * days,
                        backgroundColor=activity.backgroundColor, number=activity.number, color=activity.color,
                        isGroup=activity.isGroup, isOpen=activity.isOpen, beginDay=0,
-                       endDay=days - 1, cellsComments='*|' * days, onOffCells='True ' * days, hide=activity.hide)
+                       endDay=days - 1, cellsComments='*|' * days, onOffCells=on_off_cells, hide=activity.hide)
         all_activities.append(new_activity)
     Activities.objects.bulk_create(all_activities)
 
