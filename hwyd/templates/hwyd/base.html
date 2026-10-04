@@ -7,29 +7,30 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="{% static 'hwyd/vendor/driver/driver.css' %}"/>
-    <link rel="stylesheet" href="{% static 'hwyd/css/onboarding.css' %}">
-
     <link rel="stylesheet" href="{% static 'hwyd/css/main.css' %}?v=20261004-5">
     <link rel="stylesheet" href="{% static 'hwyd/css/tableCells.css' %}">
     <link rel="stylesheet" href="{% static 'hwyd/css/buttons.css' %}">
+    {% if settings.showViewSwitch %}
     <link rel="stylesheet" href="{% static 'hwyd/css/year-calendar.css' %}">
+    {% endif %}
+    {% include 'includes/navigation_styles.html' %}
+    <link rel="stylesheet" href="{% static 'hwyd/css/dropdown.css' %}">
+    <link rel="stylesheet" href="{% static 'hwyd/css/dialogs.css' %}?v=20261004-4">
+    <link rel="stylesheet" href="{% static 'hwyd/css/footer.css' %}">
+    <link rel="stylesheet" href="{% static 'hwyd/vendor/driver/driver.css' %}"/>
+    <link rel="stylesheet" href="{% static 'hwyd/css/onboarding.css' %}">
     {% if request.user.is_authenticated %}
     <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}">
     {% endif %}
 
-    <script src="{% static 'hwyd/vendor/jquery/jquery.js' %}"></script>
 
     <link rel="shortcut icon" type="image/png" href="{% static 'site/images/favicon.png' %}"/>
     
     {% include 'hwyd/styles.html' %}
-    <link rel="stylesheet" href="{% static 'hwyd/vendor/font-awesome/css/font-awesome.min.css' %}">
     <link rel="manifest" href="{% static 'hwyd/manifest_habitus.json' %}">
     {% include 'includes/typography.html' %}
 </head>
 <body>
-
-{% include 'notifications/modal_snippet.html' %}
 
 {% include 'includes/navbar.html' %}
 
@@ -46,8 +47,7 @@
     {% include 'hwyd/table.html' %}
 </section>
 
-<script src="{% static 'hwyd/vendor/jquery/jquery.min.js' %}"></script>
-<script src="{% static 'hwyd/vendor/jquery-ui/jquery-ui.min.js' %}"></script>
+{% include 'notifications/modal_snippet.html' %}
 
 <script>
 window.IS_AUTHENTICATED = {{ request.user.is_authenticated|yesno:"true,false" }};
@@ -205,10 +205,15 @@ window.PENDING_GUIDES = {{ pending_guides|safe }};
 {% if settings.showViewSwitch %}
 <script type="module" src="{% static 'hwyd/js/year-calendar.js' %}"></script>
 {% endif %}
+{% if settings.showStreak %}
 <script type="module" src="{% static 'hwyd/js/streak-firework.js' %}"></script>
+{% endif %}
 {% if request.user.is_authenticated %}
 <script type="module" src="{% static 'chat/js/chat.js' %}"></script>
 {% endif %}
+{# DOMContentLoaded consumers run after these ordered libraries; independent modules need neither. #}
+<script src="{% static 'hwyd/vendor/jquery/jquery.min.js' %}" defer></script>
+<script src="{% static 'hwyd/vendor/jquery-ui/jquery-ui.min.js' %}" defer></script>
 
 </body>
 </html>

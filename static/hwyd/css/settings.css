@@ -3,3 +3,10 @@
         --input-color: #2c6e49;
     }
 }
+
+/* Reserve the same space as the Pickr button before its deferred initialization. */
+.settings-color-picker {
+    width: 2em;
+    height: 2em;
+    flex: none;
+}

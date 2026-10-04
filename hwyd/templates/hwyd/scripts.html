@@ -8,6 +8,10 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // The table can paint before deferred jQuery/UI; enable its handlers only when ready.
+        const table = document.getElementById('myTable');
+        table.removeAttribute('inert');
+        table.setAttribute('aria-busy', 'false');
         const numberElements = document.querySelectorAll('.number');
         numberElements.forEach(function (element) {
             element.addEventListener('click', function () {
@@ -282,7 +286,7 @@
 
     {% if settings.showActivityDayLight %}
     // Выделение дня при наведении на клетку
-    $(document).ready(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         const selector = '.table th p';
         $('.table td').hover(function () {
             let columnIndex = $(this).index();
@@ -530,13 +534,12 @@
 
     function animateOverflowNames() {
 
-        document.querySelectorAll(".spanActivityName").forEach(span => {
-
-            const parent = span.parentElement;
-
-            const divSize = parent.offsetWidth - 10;
-            const spanSize = span.offsetWidth + 10;
-
+        const sizes = [...document.querySelectorAll(".spanActivityName")].map(span => ({
+            span, parent: span.parentElement,
+            divSize: span.parentElement.offsetWidth - 10,
+            spanSize: span.offsetWidth + 10
+        }));
+        sizes.forEach(({ span, parent, divSize, spanSize }) => {
             if (divSize - spanSize < 0) {
                 span.animate(
                     [
@@ -592,9 +595,9 @@
 {# Перетаскивание строк #}
 <script>
     let fixHelper = function (e, ui) {
-        ui.children().each(function () {
-            $(this).width($(this).width());
-        });
+        const cells = ui.children().toArray();
+        const widths = cells.map(cell => $(cell).width());
+        cells.forEach((cell, index) => $(cell).width(widths[index]));
         return ui;
     };  // Корректирует отображение при перетаскивании
 
@@ -658,13 +661,17 @@
         }
     };  // Отправляет порядок активностей после окончания перетаскивания
 
-    $('.sortable-table tbody').sortable({
-        handle: '.paragraph',
-        helper: fixHelper,
-        stop: stop,
-        scroll: false,
-        revert: 200
-    });  // Настройка перетаскивания
+    {% if settings.enableSortTable %}
+    document.addEventListener('DOMContentLoaded', function () {
+        $('.sortable-table tbody').sortable({
+            handle: '.paragraph',
+            helper: fixHelper,
+            stop: stop,
+            scroll: false,
+            revert: 200
+        });
+    });
+    {% endif %}  // Настройка перетаскивания
 </script>
 
 {# ОТПРАВКА ФОРМ СОЗДАНИЯ АКТИВНОСТЕЙ И ВЫБОРА МЕСЯЦА В КАЛЕНДАРЕ #}
@@ -724,9 +731,11 @@
 {#    swapRows();#}
 {# }); #}
 
+document.addEventListener('DOMContentLoaded', function () {
 $(".activity-dialog:not(#feedbackModal):not(#topModal):not([data-desktop-drag])").draggable({
     handle: '.modal__header',
     cursor: 'move'
+});
 });
 
 for (let elem of document.querySelectorAll('.deleteActivityButt')) {
@@ -750,7 +759,7 @@ for (let elem of document.querySelectorAll('.deleteActivityButt')) {
     })
 }
 </script>
-<script src="{% static 'hwyd/vendor/html2canvas/html2canvas.js' %}"></script>
+<!-- <script src="{% static 'hwyd/vendor/html2canvas/html2canvas.js' %}"></script> -->
 <script>
     {% comment %} window.takeScreenShot = function () {
         openAllGroups();

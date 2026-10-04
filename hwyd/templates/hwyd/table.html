@@ -1,6 +1,5 @@
 {% load static %}
 {% load tags %}
-<link rel="stylesheet" href="{% static 'hwyd/css/footer.css' %}">
 
 <div class="table-viewport">
     {% if settings.enableSortTable %}
@@ -8,6 +7,7 @@
     {% else %}
         <table id="myTable" class="table"
     {% endif %}
+        inert aria-busy="true"
         data-hide-completed="{% if settings.vanishing != 'off' %}true{% else %}false{% endif %}"
         data-current-day="{{ today|add:-1 }}" data-manual-groups="{{ settings.enableOpenCloseGroups|yesno:'true,false' }}"
         data-open-group-url="{% url 'open_group' %}" data-open-all-url="{% url 'open_all' date %}">

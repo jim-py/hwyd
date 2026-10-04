@@ -1,0 +1,7 @@
+{% load static %}
+<link rel="preload" href="{% static 'hwyd/vendor/font-awesome/7.3.1/webfonts/fa-solid-900.woff2' %}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{% static 'site/css/navbar.css' %}">
+<link rel="stylesheet" href="{% static 'hwyd/vendor/font-awesome/7.3.1/css/all.min.css' %}">
+{% if user.is_authenticated and unread_notification %}
+<link rel="stylesheet" href="{% static 'notifications/css/modal.css' %}">
+{% endif %}

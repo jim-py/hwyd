@@ -1,5 +1,8 @@
 Local frontend assets
 
+This inventory records the localization versions. Retained vendor files are
+not all runtime dependencies; the current entry points are listed below.
+
 The CDN URLs in the page templates have been replaced with Django static URLs.
 Existing Font Awesome 4.7.0 CSS is reused, with its missing font files added.
 Bootstrap 5.3.8 and unminified jQuery 3.7.1 match the general-page CDN files;
@@ -26,3 +29,17 @@ into a disposable STATIC_ROOT; tracked root static/ was not edited manually.
 Browser QA used a temporary database and a test-only Content-Security-Policy
 blocking non-local CSS, JS, fonts, images and connections. The site settings
 and production CSP were not changed.
+
+Current entry points after initial-load optimization:
+- Habitus uses its existing jQuery 2.1.1 minified copy, then jQuery UI 1.12.1.
+  Both are deferred; inline jQuery consumers initialize at DOMContentLoaded.
+  jQuery UI is retained for legacy dialog dragging as well as table sorting.
+- General pages need neither jQuery nor Bootstrap JavaScript. Settings uses
+  deferred Pickr; Bootstrap/DaisyUI CSS covers the form without Tailwind Browser.
+- Both shells use only Font Awesome 7.3.1 all.min.css in head. Its included
+  compatibility faces make the separate face shims redundant. The single old
+  settings icon now uses fa-regular fa-square-check, so v4 class shims are unused.
+  Only the above-the-fold solid icon font is preloaded, with matching CORS mode.
+- Shared typography links directly to site/vendor/google-fonts/fonts.css.
+  Home no longer imports the overlapping Montserrat face declarations.
+  All downloaded vendor/font bytes and licenses remain unchanged on disk.

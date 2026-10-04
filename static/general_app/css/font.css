@@ -1,4 +1,4 @@
-@import url("../../site/vendor/google-fonts/montserrat.css");
+/* Font faces are declared once by the shared head typography include. */
 
 * {
     font-family: "Montserrat", sans-serif;

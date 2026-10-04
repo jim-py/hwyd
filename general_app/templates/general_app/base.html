@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{% static 'general_app/css/scroll.css' %}">
     <link href="{% static 'hwyd/vendor/bootstrap/5.3.8/bootstrap.min.css' %}" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'hwyd/vendor/font-awesome/css/font-awesome.min.css' %}">
+    {% include 'includes/navigation_styles.html' %}
 
     {% block extra_css %}{% endblock %}
 
@@ -26,13 +26,6 @@
     {% endblock %}
 
     {% block content %}{% endblock %}
-
-    <!-- Общие скрипты -->
-    <script src="{% static 'hwyd/vendor/jquery/jquery-3.7.1.js' %}"
-        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
-    <script src="{% static 'hwyd/vendor/bootstrap/5.3.8/bootstrap.bundle.min.js' %}"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
 
     {% block extra_js %}{% endblock %}
     {% if user.is_authenticated %}

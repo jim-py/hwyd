@@ -1,5 +1,5 @@
-{# Run immediately after the table, before later scripts can delay the first fit. #}
-<script>
+{# Modules run after parsing/CSS, independently of the later jQuery UI download. #}
+<script type="module">
 (() => {
     const table = document.getElementById('myTable');
     const viewport = table.parentElement;
@@ -37,7 +37,7 @@
         });
     }
 
-    fitTable();
+    scheduleFit();
     const observer = new ResizeObserver(scheduleFit);
     observer.observe(viewport);
     observer.observe(table);
