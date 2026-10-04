@@ -1,0 +1,14 @@
+{% if is_view_as %}
+<script>
+// A preview can inspect forms, but cannot submit them or initialize mutations.
+for (const form of document.querySelectorAll('form')) {
+    if (['viewAsForm', 'chooseDate'].includes(form.id)) continue;
+    for (const control of form.elements) control.disabled = true;
+    form.addEventListener('submit', event => { event.preventDefault(); event.stopImmediatePropagation(); }, true);
+}
+for (const button of document.querySelectorAll('.button-save, #saveWithColor, .deleteActivityButt, #createActivityButton, #createGroupButton, #deleteAll, #btnActLastMonth, #buttonChat, #buttonFeedback, #saveCurrentTheme, #confirmThemeDelete')) {
+    button.disabled = true;
+    button.title = 'В режиме просмотра изменения недоступны';
+}
+</script>
+{% endif %}

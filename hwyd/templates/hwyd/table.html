@@ -43,7 +43,7 @@
             class="{% if activity.isGroup %}isGroup{{ activity.pk }}{% else %}group{{ activity|get_group_id:connections }}-{{ activity.pk }}{% endif %}">
             {% if settings.showDeleteActivity %}
                 <td class="activity-delete-cell">
-                    <button class="deleteActivity deleteActivityButt" type="button" data-pk="{{ activity.pk }}"
+                    <button class="deleteActivity deleteActivityButt" type="button" data-pk="{{ activity.pk }}"{% if is_view_as %} disabled{% endif %}
                             aria-label="Удалить {{ activity.name }}" title="Удалить {{ activity.name }}">
                         <svg class="cross" width="18" height="18" viewBox="0 0 24 24" fill="none"
                              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">

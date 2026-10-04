@@ -29,6 +29,7 @@ from .timezones import browser_timezone
 from .year_stats import MAX_YEAR, MIN_YEAR, year_completion
 from .theme_schedule import (schedule_state, remember_manual_theme, display_theme,
                              ensure_default_themes, lock_theme_owner)
+from .view_as import get_viewed_user, is_view_as, preview_requested, preview_read_only, view_as_context
 from general_app.models import Guide, UserGuideProgress
 
 setlocale(category=LC_ALL, locale="Russian")
@@ -36,6 +37,7 @@ setlocale(category=LC_ALL, locale="Russian")
 
 @never_cache
 @require_POST
+@preview_read_only
 def submit_feedback(request):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Войдите в аккаунт, чтобы отправить сообщение.'}, status=401)
@@ -53,7 +55,7 @@ def submit_feedback(request):
 @login_required(login_url='entry')
 @require_GET
 def top_streak(request):
-    return JsonResponse(streak_top(request.user))
+    return JsonResponse(streak_top(get_viewed_user(request)))
 
 
 @never_cache
@@ -62,10 +64,10 @@ def top_streak(request):
 def year_summary(request, year):
     if not MIN_YEAR <= year <= MAX_YEAR:
         return JsonResponse({'error': 'Год вне доступного диапазона.'}, status=400)
-    return JsonResponse(year_completion(request.user, year))
+    return JsonResponse(year_completion(get_viewed_user(request), year))
 
 
-def get_pending_guides(user):
+def get_pending_guides(user, read_only=False):
     """
     Возвращает список slug гайдов,
     которые нужно показать пользователю.
@@ -79,13 +81,13 @@ def get_pending_guides(user):
     pending = []
 
     for guide in guides:
-        progress, _ = UserGuideProgress.objects.get_or_create(
-            user=user,
-            guide=guide,
-        )
+        if read_only:
+            progress = UserGuideProgress.objects.filter(user=user, guide=guide).first()
+        else:
+            progress, _ = UserGuideProgress.objects.get_or_create(user=user, guide=guide)
 
         # новый гайд или новая версия
-        if not progress.viewed or progress.version_seen < guide.version:
+        if progress is None or not progress.viewed or progress.version_seen < guide.version:
             pending.append(guide.slug)
             return pending
     
@@ -137,6 +139,7 @@ def activity_users(request):
     )
 
 
+@never_cache
 @login_required(login_url='entry')
 def by_date(request, picked_date):
     """
@@ -147,6 +150,11 @@ def by_date(request, picked_date):
     :param picked_date: полученная дата из маршрута формата 'YYYY-MM' '2023-10'
     :return: отправка контекста в html шаблон
     """
+
+    if request.method != 'GET' and preview_requested(request):
+        return JsonResponse({'error': 'Просмотр пользователя доступен только для чтения.'}, status=403)
+    viewed_user = get_viewed_user(request)
+    preview = is_view_as(request)
 
     # Просмотр данных поста
     if request.META['HTTP_HOST'] == '127.0.0.1:8000':
@@ -212,16 +220,16 @@ def by_date(request, picked_date):
     if (year not in range(2020, 2031)) or (month not in range(1, 13)):
         return redirect('index')
     else:
-        activities = Activities.objects.filter(user=request.user, date=picked_date)
+        activities = Activities.objects.filter(user=viewed_user, date=picked_date)
         hide_activities = [obj.pk for obj in activities if obj.hide]
         groups = [obj for obj in activities if obj.isGroup]
         groups_ids = [obj.pk for obj in groups]
         activated_groups = [obj for obj in activities if obj.isGroup and obj.isOpen]
-        settings = Settings.objects.filter(user=request.user)
-        if len(settings) == 0:
+        settings = Settings.objects.filter(user=viewed_user)
+        if not settings.exists() and not preview:
             create_setting(request.user, 'default')
-        settings = Settings.objects.filter(user=request.user)
-        setting = ''
+            settings = Settings.objects.filter(user=viewed_user)
+        setting = default_setting(viewed_user, 'default') if preview else ''
         for s in settings:
             if s.selected:
                 setting = s
@@ -233,7 +241,8 @@ def by_date(request, picked_date):
         today = date_now.day if year == date_now.year and month == date_now.month else -1
 
         act_connections = ActivitiesConnection.objects.select_related('group').select_related('activity').filter(
-            user=request.user, activity__date=picked_date)
+            user=viewed_user, activity__user=viewed_user, group__user=viewed_user,
+            activity__date=picked_date, group__date=picked_date)
 
         # Соединяет id активности с id её группы
         connections = {}
@@ -453,14 +462,14 @@ def by_date(request, picked_date):
         for a in activities:
             a.todayCheck = a.marks.split()[today - 1] if today > 0 else 'False'
 
-        json_activities = json.dumps(list(activities.values()))
+        json_activities = list(activities.values())
 
         # ===== LOGIN STREAK =====
-        login_streak, top_rank = streak_position(request.user, include_rank=setting.showTop)
+        login_streak, top_rank = streak_position(viewed_user, include_rank=setting.showTop)
         streak_icon = get_streak_icon(login_streak)
         # ========================
 
-        guides = get_pending_guides(request.user)
+        guides = get_pending_guides(viewed_user, read_only=preview)
 
         context = {'range_activities': activities, 'range_days': range_days, 'weekends': weekends,
                    'cellsToClick': activated_cells, 'date': picked_date, 'onOffDays': [i for i in range(-1, days)][:-1],
@@ -475,6 +484,7 @@ def by_date(request, picked_date):
                    'pending_guides': guides, 'guides': len(guides) > 0}
 
         context['is_habitus_page'] = True
+        context.update(view_as_context(request))
         settings_form = SettingsForm(instance=setting, auto_id='%s')
         context['interface_settings'] = [settings_form[name] for name in (
             'showCalendar', 'showCreateActivity', 'showCreateActivityGroup',
@@ -483,8 +493,9 @@ def by_date(request, picked_date):
         )]
         context['font_families'] = FONT_FAMILIES
         request.habitus_settings = setting
-        ensure_default_themes(request.user)
-        context['theme_schedule_state'] = schedule_state(request, apply=True)
+        if not preview:
+            ensure_default_themes(request.user)
+        context['theme_schedule_state'] = schedule_state(request, apply=not preview, user=viewed_user)
         context['theme_palette'] = context['theme_schedule_state']['colors']
         return render(request, 'hwyd/base.html', context=context)
 
@@ -534,10 +545,14 @@ def start(request):
     """
 
     current_date = datetime.today()
-    return redirect('by_date', f'{current_date.year}-{current_date.month:0>2}')
+    url = reverse('by_date', args=[f'{current_date.year}-{current_date.month:0>2}'])
+    if is_view_as(request):
+        url += f'?view_as={get_viewed_user(request).pk}'
+    return redirect(url)
 
 
 @login_required(login_url='entry')
+@preview_read_only
 def create_last_activities(request, picked_date):
     """
     Функция для создания активностей прошлого месяца
@@ -611,6 +626,7 @@ def create_last_activities(request, picked_date):
 
 
 @login_required(login_url='entry')
+@preview_read_only
 def delete_activity(request):
     """
     Функция удаления активности
@@ -619,12 +635,13 @@ def delete_activity(request):
     :return: отправляет пустой ответ, чтобы не было ошибки
     """
 
-    get_object_or_404(Activities, pk=int(request.POST['pk'])).delete()
+    get_object_or_404(Activities, pk=int(request.POST['pk']), user=request.user).delete()
     return HttpResponse()
 
 
 @login_required(login_url='entry')
 @require_POST
+@preview_read_only
 def global_colors(request, picked_date):
     """
     Функция для сохранения настроек цветов
@@ -648,6 +665,7 @@ def global_colors(request, picked_date):
 
 
 @login_required(login_url='entry')
+@preview_read_only
 def create_activity(request, picked_date, is_group):
     """
     Функция для создания активности
@@ -678,6 +696,7 @@ def create_activity(request, picked_date, is_group):
     return redirect('by_date', picked_date)
 
 
+@never_cache
 @login_required(login_url='entry')
 def get_comments(request, picked_date):
     """
@@ -688,11 +707,12 @@ def get_comments(request, picked_date):
     :return: отправляет комментарии активности
     """
 
-    activity, day = get_activity_day(request.POST['cell'], request.user, picked_date)
+    activity, day = get_activity_day(request.POST['cell'], get_viewed_user(request), picked_date)
     return HttpResponse(activity.cellsComments)
 
 
 @login_required(login_url='entry')
+@preview_read_only
 def check_cell(request, picked_date):
     """
     Функция для отметки в базе данных нажатой клетки
@@ -712,6 +732,7 @@ def check_cell(request, picked_date):
 
 @login_required(login_url='entry')
 @require_POST
+@preview_read_only
 def open_group(request):
     """
     Функция для сохранения открытия группы в базе данных
@@ -736,6 +757,7 @@ def open_group(request):
 
 @login_required(login_url='entry')
 @require_POST
+@preview_read_only
 def open_all(request, picked_date):
     """
     Функция для сохранения открытия всех групп в базе даннах
@@ -776,6 +798,7 @@ def get_activity_day(cell, user, picked_date):
 
 @login_required(login_url='entry')
 @require_POST
+@preview_read_only
 def delete_all(request, picked_date):
     """
     Функция удаления всех активностей
@@ -789,6 +812,7 @@ def delete_all(request, picked_date):
     return HttpResponse()
 
 
+@preview_read_only
 def change_setting(request):
     settings = Settings.objects.filter(user=request.user)
     pk_sett = int(request.POST['setting'])
@@ -805,6 +829,7 @@ def change_setting(request):
     return HttpResponse()
 
 
+@preview_read_only
 def add_setting(request):
     if request.method == 'POST':
         # Снимаем выделение с текущей выбранной настройки
@@ -817,7 +842,12 @@ def add_setting(request):
 
 
 def create_setting(user, name):
-    Settings.objects.create(
+    default_setting(user, name).save()
+
+
+def default_setting(user, name):
+    """Display the normal first-visit preset without writing a preview owner's data."""
+    return Settings(
         user=user,
         backgroundColor='#f0f0f0',
         tableHeadColorWeekend='#eeb3b3',
@@ -842,6 +872,7 @@ def create_setting(user, name):
     )
 
 
+@preview_read_only
 def delete_setting(request, setting_id):
     if request.method == 'POST':
         setting = Settings.objects.filter(id=setting_id, user=request.user).first()
@@ -868,9 +899,10 @@ def user_logout(request):
     return redirect('entry')
 
 
+@never_cache
 @login_required(login_url='entry')
 def export_data_as_json(request):
-    user = request.user
+    user = get_viewed_user(request)
 
     # Фильтруем привычки (isGroup=False) и сортируем по дате, затем по имени
     habits = Activities.objects.filter(user=user, isGroup=False).values(
@@ -883,7 +915,8 @@ def export_data_as_json(request):
     ).order_by('date', 'name')
 
     # Фильтруем связи между группами и привычками
-    connections = ActivitiesConnection.objects.filter(user=user).values('group_id', 'activity_id')
+    connections = ActivitiesConnection.objects.filter(
+        user=user, group__user=user, activity__user=user).values('group_id', 'activity_id')
 
     result = []  # Список для привычек
     groups = []  # Список для групп
@@ -905,7 +938,7 @@ def export_data_as_json(request):
         related_groups = [conn['group_id'] for conn in connections if conn['activity_id'] == activity['id']]
         if related_groups:
             # Получить название первой группы (если активность принадлежит нескольким группам, можно изменить логику)
-            group_name = Activities.objects.filter(id=related_groups[0]).values_list('name', flat=True).first()
+            group_name = Activities.objects.filter(id=related_groups[0], user=user).values_list('name', flat=True).first()
 
         # Ограничиваем обработку только количеством дней в месяце
         for index, mark in enumerate(marks[:days_in_month]):  # Отсекаем лишние дни
@@ -966,6 +999,7 @@ def export_data_as_json(request):
 
 
 @login_required(login_url='entry')
+@preview_read_only
 def edit_settings(request):
     settings_list = Settings.objects.filter(user=request.user).order_by('name')
     current_setting = settings_list.filter(selected=True).first()
@@ -1013,6 +1047,7 @@ def edit_settings(request):
 
 
 @login_required(login_url='entry')
+@preview_read_only
 def select_setting(request, pk):
     """Смена активной настройки (только среди своих)"""
     

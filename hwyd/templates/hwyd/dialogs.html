@@ -9,7 +9,7 @@
     </div>
     <hr color="#c7c7c7"  class="dialog-divider">
 
-    <form id="settingsGlobal" action="{% url 'by_date' date %}" method="post">
+    <form id="settingsGlobal" action="{% url 'by_date' date %}{{ view_as_query }}" method="post">
         {% csrf_token %}
         <!-- <div class="settings-dialog__preset">
             <label for="selectSettings">Настройка</label>
@@ -99,7 +99,7 @@
     </form>
 
     <div class="settings-dialog__footer">
-        <button type="button" class="button-save" role="button" onclick="btnSaveSettings();">Сохранить</button>
+        <button type="button" class="button-save"{% if is_view_as %} disabled{% endif %} role="button" onclick="btnSaveSettings();">Сохранить</button>
         <div class="settings-dialog__actions">
             <button type="button" class="button-6" id="restartGuide">Обучение</button>
             <a href="#" class="button-6 jsonBtn" id="downloadJson">
@@ -120,7 +120,7 @@
     </button>
 
     {% if request.user.is_authenticated %}
-    <button id="buttonChat" type="button"{% if not settings.showChat %} hidden{% endif %} title="Чат" aria-label="Чат" aria-controls="chatDialog">
+    <button id="buttonChat"{% if is_view_as %} disabled{% endif %} type="button"{% if not settings.showChat %} hidden{% endif %} title="Чат" aria-label="Чат" aria-controls="chatDialog">
         <i class="fa-solid fa-comments" aria-hidden="true"></i>
         <span id="chatUnreadDot" class="chat-unread-dot" hidden aria-hidden="true"></span>
     </button>
@@ -138,7 +138,7 @@
         <i class="fa-solid fa-eye"></i>
     </button>
 
-    <button id="deleteAll" type="button" class="button-6" data-dialog="deleteAllModal" aria-controls="deleteAllModal" aria-label="Очистить все привычки" style="display:{% if range_activities and settings.showDeleteAllActivities %}flex;{% else %}none;{% endif %}" title="Очистить все привычки">
+    <button id="deleteAll"{% if is_view_as %} disabled{% endif %} type="button" class="button-6" data-dialog="deleteAllModal" aria-controls="deleteAllModal" aria-label="Очистить все привычки" style="display:{% if range_activities and settings.showDeleteAllActivities %}flex;{% else %}none;{% endif %}" title="Очистить все привычки">
         <i class="fa-solid fa-trash"></i>
     </button>
 
@@ -151,15 +151,15 @@
     </button>
 
 
-    <form id="createLastMonthActivitiesForm" action="{% url 'create_last_activities' date %}" method="post" style="display:{% if not range_activities %}inline;{% else %}none;{% endif %}">
+    <form id="createLastMonthActivitiesForm" action="{% url 'create_last_activities' date %}{{ view_as_query }}" method="post" style="display:{% if not range_activities %}inline;{% else %}none;{% endif %}">
         {% csrf_token %}
-        <button id="btnActLastMonth" type="submit" class="calendar-button" title="Копировать привычки прошлого месяца">
+        <button id="btnActLastMonth"{% if is_view_as %} disabled{% endif %} type="submit" class="calendar-button" title="Копировать привычки прошлого месяца">
             <i class="fa-solid fa-clock-rotate-left"></i>
         </button>
     </form>
 
     <button type="button"
-            id="createActivityButton"
+            id="createActivityButton"{% if is_view_as %} disabled{% endif %}
             class="calendar-button"
             title="Создать привычку"
             style="display:{% if settings.showCreateActivity %}flex;{% else %}none;{% endif %}"
@@ -169,7 +169,7 @@
 
 
     <button type="button"
-            id="createGroupButton"
+            id="createGroupButton"{% if is_view_as %} disabled{% endif %}
             class="calendar-button"
             title="Создать группу"
             style="display:{% if settings.showCreateActivityGroup %}flex;{% else %}none;{% endif %}"
@@ -179,7 +179,7 @@
 
 
     {% if request.user.is_authenticated %}
-    <button id="buttonFeedback" type="button"{% if not settings.showFeedback %} hidden{% endif %} title="Обратная связь" aria-label="Обратная связь"
+    <button id="buttonFeedback"{% if is_view_as %} disabled{% endif %} type="button"{% if not settings.showFeedback %} hidden{% endif %} title="Обратная связь" aria-label="Обратная связь"
             data-dialog="feedbackModal" aria-controls="feedbackModal">
         <i class="fa-solid fa-comment-dots" aria-hidden="true"></i>
     </button>
@@ -234,7 +234,7 @@ function vibrateOrHaptic() {
         <img onclick="$('#closeSettingsActivity').click();" src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt=""  class="dialog-close-image">
     </div>
     <hr color="#c7c7c7"  class="dialog-divider">
-    <form id="formActivitySettings" class="activity-dialog__body" action="{% url 'by_date' date %}" method="post">
+    <form id="formActivitySettings" class="activity-dialog__body" action="{% url 'by_date' date %}{{ view_as_query }}" method="post">
         {% csrf_token %}
         <input class="elementActivitySettings" type="hidden" name="activityPk"/>
         <div>
@@ -310,7 +310,7 @@ function vibrateOrHaptic() {
     </form>
     <hr color="#ffffff"  class="dialog-divider">
     <div  class="activity-dialog-footer">
-    <button class="button-save" onclick="submitActivitySettings();" role="button">Сохранить изменения</button>
+    <button class="button-save"{% if is_view_as %} disabled{% endif %} onclick="submitActivitySettings();" role="button">Сохранить изменения</button>
     </div>
     <button class="button-6 dialog-button--save" onclick="submitActivitySettings('default');" role="button" style="display:none;">Сохранить</button>
     <button id="saveWithColor" onclick="submitActivitySettings('saveWithColor');" class="button-6 dialog-button--repaint" role="button" style="display:none;">Сохранить с переносом цвета</button>
@@ -327,7 +327,7 @@ function vibrateOrHaptic() {
         </button>
     </div>
     <hr color="#c7c7c7" class="dialog-divider">
-    <form id="formColorSettings" class="activity-dialog__body" action="{% url 'global_colors' date %}" method="post">
+    <form id="formColorSettings" class="activity-dialog__body" action="{% url 'global_colors' date %}{{ view_as_query }}" method="post">
         {% csrf_token %}
         <div class="activity-color-row">
             <label for="tableHeadColor*changeParagraph">Цвет фона заголовка</label>
@@ -358,7 +358,7 @@ function vibrateOrHaptic() {
     </form>
     <hr color="#ffffff" class="dialog-divider">
     <div id="buttonsFooter" class="activity-dialog-footer">
-        <button type="button" class="button-save" onclick="document.querySelector('form[id=formColorSettings]').submit();">Сохранить</button>
+        <button type="button" class="button-save"{% if is_view_as %} disabled{% endif %} onclick="document.querySelector('form[id=formColorSettings]').submit();">Сохранить</button>
     </div>
 </dialog>  <!-- Диалоговое окно глобальных настроек цвета -->
 
@@ -370,7 +370,7 @@ function vibrateOrHaptic() {
         </button>
     </div>
     <hr color="#c7c7c7" class="dialog-divider">
-    <form id="formCellCommentSettings" class="activity-dialog__body" action="{% url 'by_date' date %}" method="post">
+    <form id="formCellCommentSettings" class="activity-dialog__body" action="{% url 'by_date' date %}{{ view_as_query }}" method="post">
         {% csrf_token %}
         <div>
             <label for="symbolsOnCell">Надпись в клетке</label>
@@ -386,6 +386,6 @@ function vibrateOrHaptic() {
     </form>
     <hr color="#ffffff" class="dialog-divider">
     <div class="activity-dialog-footer">
-        <button type="button" class="button-save" onclick="document.querySelector('form[id=formCellCommentSettings]').submit();">Сохранить</button>
+        <button type="button" class="button-save"{% if is_view_as %} disabled{% endif %} onclick="document.querySelector('form[id=formCellCommentSettings]').submit();">Сохранить</button>
     </div>
 </dialog>  <!-- Диалоговое окно текста клетки -->

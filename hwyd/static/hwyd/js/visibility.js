@@ -1,3 +1,5 @@
+import {isViewAs} from './view-as.js';
+
 // Group collapse and completed visibility are independent states.
 export function createVisibilityControls(table, post, showToast) {
     const eye = document.getElementById('hideCompleteActivities');
@@ -39,6 +41,13 @@ export function createVisibilityControls(table, post, showToast) {
 
     async function saveGroups(url, data, update) {
         if (pending) return;
+        if (isViewAs) {
+            // Inspect collapsed groups locally; never persist another user's state.
+            update({collapsed: data.collapsed,
+                groups: groups().map(row => ({id: row.dataset.activityId, collapsed: data.collapsed}))});
+            render();
+            return;
+        }
         pending = true;
         render();
         try {

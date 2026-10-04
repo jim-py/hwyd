@@ -1,6 +1,6 @@
 {% load static %}
 <script type="module" src="{% static 'hwyd/js/theme-colors.js' %}"></script>
-<script type="module" src="{% static 'hwyd/js/theme-schedule.js' %}?v=20261004-4"></script>
+<script type="module" src="{% static 'hwyd/js/theme-schedule.js' %}?v=20261004-6"></script>
 {% load tags %}
 
 
@@ -83,6 +83,7 @@
 
     for (let elem of document.querySelectorAll('div.divClick')) {
         elem.addEventListener('click', function () {
+            if (document.body.dataset.viewAs) return;
             const object = $(this);
             object.toggleClass('on');
             {# } else {#}
@@ -223,7 +224,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: '{% url 'check_cell' date %}',
+                url: '{% url 'check_cell' date %}{{ view_as_query }}',
                 data:
                     {
                         checkboxToCheck: elem.id,
@@ -239,7 +240,7 @@
             document.querySelector('input#cellNum').value = e.target.id
             $.ajax({
                 type: 'POST',
-                url: '{% url 'get_comments' date %}',
+                url: '{% url 'get_comments' date %}{{ view_as_query }}',
                 data:
                     {
                         cell: e.target.id,
@@ -354,6 +355,7 @@
 
 {# ПРАВЫЙ КЛИК НА АКТИВНОСТЬ, ЗАПОЛНЕНИЕ ПОЛЕЙ МОДАЛЬНОГО ОКНА #}
 {% comment %} Отформатировал {% endcomment %}
+{{ jsonActivities|json_script:'activitiesInitial' }}
 <script>
     /* ===============================
     ПОДКЛЮЧЕНИЕ ПРАВОЙ КНОПКИ КЛАВИШИ НА АКТИВНОСТИ
@@ -415,7 +417,7 @@
     DATA CACHE
     ================================ */
 
-    const ACTIVITIES = {{ jsonActivities|safe }};
+    const ACTIVITIES = JSON.parse(document.getElementById('activitiesInitial').textContent);
     const activityMap = new Map(
         ACTIVITIES.map(a => [a.name, a])
     );
@@ -661,7 +663,7 @@
         }
     };  // Отправляет порядок активностей после окончания перетаскивания
 
-    {% if settings.enableSortTable %}
+    {% if settings.enableSortTable and not is_view_as %}
     document.addEventListener('DOMContentLoaded', function () {
         $('.sortable-table tbody').sortable({
             handle: '.paragraph',
@@ -745,7 +747,7 @@ for (let elem of document.querySelectorAll('.deleteActivityButt')) {
         const row = button.closest('tr');
         $.ajax({
             type: 'POST',
-            url: '{% url 'delete_activity' %}',
+            url: '{% url 'delete_activity' %}{{ view_as_query }}',
             data:
                 {
                     pk: pk,
@@ -966,7 +968,7 @@ for (let elem of document.querySelectorAll('.deleteActivityButt')) {
 
 <script>
     document.getElementById('downloadJson').addEventListener('click', function () {
-        fetch('/habitus/export-json/')
+        fetch('{% url 'export_json' %}{{ view_as_query }}')
             .then(response => response.json())
             .then(data => {
                 // Создаем файл JSON для скачивания

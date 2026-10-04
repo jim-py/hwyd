@@ -1,6 +1,8 @@
 import { getCSRFToken } from "../../site/js/csrf.js";
+import {isViewAs} from './view-as.js';
 
 export async function requestJSON(url, {method = 'POST', data = {}, json = false} = {}) {
+    if (isViewAs && method !== 'GET') throw new Error('Просмотр пользователя доступен только для чтения.');
     const headers = {'Accept': 'application/json'};
     if (method !== 'GET') headers['X-CSRFToken'] = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || getCSRFToken();
     if (json) headers['Content-Type'] = 'application/json';
@@ -24,6 +26,7 @@ export function post(url, data) {
 }
 
 export async function markViewed(slug) {
+    if (isViewAs) return;
     const response = await fetch(`/home/guides/${slug}/viewed/`, {
         method: "POST",
         keepalive: true,

@@ -1,3 +1,5 @@
+import {isViewAs, viewAsURL} from './view-as.js';
+
 const switcher = document.getElementById('trackerViewSwitch');
 const tableView = document.getElementById('trackerTableView');
 const calendarView = document.getElementById('trackerYearView');
@@ -15,7 +17,7 @@ const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель'
 const weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const minYear = 2020;
 const maxYear = 2030;
-const viewKey = `habitus.tracker.view.${switcher.dataset.user}`;
+const viewKey = `habitus.tracker.view.${isViewAs ? 'preview.' : ''}${switcher.dataset.user}`;
 const cache = new Map(); // Only this page's summaries; never store habit data in localStorage.
 let year = Number(switcher.dataset.year);
 let mode = 'table';
@@ -38,7 +40,7 @@ function updateUrl() {
 }
 function monthUrl(month) {
     const key = `${year}-${String(month).padStart(2, '0')}`;
-    return `${switcher.dataset.monthUrl.replace('2020-01', key)}?view=table`;
+    return viewAsURL(`${switcher.dataset.monthUrl.replace('2020-01', key)}?view=table`);
 }
 function resetDetail() {
     selectedDate = '';
@@ -137,7 +139,7 @@ async function loadYear(force = false) {
     status.textContent = 'Загрузка календаря…';
     try {
         const url = switcher.dataset.summaryUrl.replace('/2020/', `/${requestedYear}/`);
-        const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', signal: controller.signal});
+        const response = await fetch(viewAsURL(url), {credentials: 'same-origin', cache: 'no-store', signal: controller.signal});
         if (!response.ok || response.redirected) throw new Error();
         const data = await response.json();
         if (request !== generation) return;

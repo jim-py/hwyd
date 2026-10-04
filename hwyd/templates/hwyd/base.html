@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="{% static 'hwyd/css/main.css' %}?v=20261004-5">
     <link rel="stylesheet" href="{% static 'hwyd/css/tableCells.css' %}">
     <link rel="stylesheet" href="{% static 'hwyd/css/buttons.css' %}">
+    {% if request.user.is_superuser %}
+    <link rel="stylesheet" href="{% static 'hwyd/css/view-as.css' %}">
+    {% endif %}
     {% if settings.showViewSwitch %}
     <link rel="stylesheet" href="{% static 'hwyd/css/year-calendar.css' %}">
     {% endif %}
@@ -30,9 +33,10 @@
     <link rel="manifest" href="{% static 'hwyd/manifest_habitus.json' %}">
     {% include 'includes/typography.html' %}
 </head>
-<body>
+<body data-view-as="{% if is_view_as %}{{ viewed_user.pk }}{% endif %}">
 
 {% include 'includes/navbar.html' %}
+{% include 'hwyd/view_as_selector.html' %}
 
 {% include 'hwyd/dialogs.html' %}
 {% if request.user.is_authenticated %}
@@ -47,12 +51,16 @@
     {% include 'hwyd/table.html' %}
 </section>
 
+{% if not is_view_as %}
 {% include 'notifications/modal_snippet.html' %}
+{% endif %}
+{% include 'hwyd/view_as_controls.html' %}
 
 <script>
 window.IS_AUTHENTICATED = {{ request.user.is_authenticated|yesno:"true,false" }};
 
 (async function () {
+  if (document.body.dataset.viewAs) return;
   console.log('[PUSH] init');
 
   if (!window.IS_AUTHENTICATED) {
@@ -201,14 +209,14 @@ window.PENDING_GUIDES = {{ pending_guides|safe }};
 </script>
 
 {% include 'hwyd/scripts.html' %}
-<script type="module" src="{% static 'hwyd/js/toolbar.js' %}?v=20261004-5"></script>
+<script type="module" src="{% static 'hwyd/js/toolbar.js' %}?v=20261004-6"></script>
 {% if settings.showViewSwitch %}
 <script type="module" src="{% static 'hwyd/js/year-calendar.js' %}"></script>
 {% endif %}
 {% if settings.showStreak %}
 <script type="module" src="{% static 'hwyd/js/streak-firework.js' %}"></script>
 {% endif %}
-{% if request.user.is_authenticated %}
+{% if request.user.is_authenticated and not is_view_as %}
 <script type="module" src="{% static 'chat/js/chat.js' %}"></script>
 {% endif %}
 {# DOMContentLoaded consumers run after these ordered libraries; independent modules need neither. #}

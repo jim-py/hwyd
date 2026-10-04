@@ -9,6 +9,7 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 from .forms import ScheduledThemeForm
 from .models import ScheduledTheme
 from .theme_schedule import lock_theme_owner, schedule_state, display_theme, theme_colors, ensure_default_themes
+from .view_as import get_viewed_user, preview_read_only
 
 
 def error(message, status=400):
@@ -38,17 +39,19 @@ def lock_owner(request):
 def theme_schedule_list(request):
     if not request.user.is_authenticated:
         return error('Войдите в аккаунт.', 401)
-    return JsonResponse(schedule_state(request))
+    return JsonResponse(schedule_state(request, user=get_viewed_user(request)))
 
 
 @never_cache
 @require_POST
+@preview_read_only
 def theme_schedule_create(request):
     return save_theme(request)
 
 
 @never_cache
 @require_http_methods(['PATCH', 'POST'])
+@preview_read_only
 def theme_schedule_update(request, pk):
     return save_theme(request, pk)
 
@@ -93,6 +96,7 @@ def save_theme(request, pk=None):
 
 @never_cache
 @require_http_methods(['DELETE', 'POST'])
+@preview_read_only
 def theme_schedule_delete(request, pk):
     if not request.user.is_authenticated:
         return error('Войдите в аккаунт.', 401)
@@ -107,6 +111,7 @@ def theme_schedule_delete(request, pk):
 
 @never_cache
 @require_POST
+@preview_read_only
 def theme_schedule_apply(request):
     if not request.user.is_authenticated:
         return error('Войдите в аккаунт.', 401)

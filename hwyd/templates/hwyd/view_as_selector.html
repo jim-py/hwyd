@@ -1,0 +1,24 @@
+{% if request.user.is_superuser %}
+<section class="view-as" aria-label="Просмотр пользователя">
+    <form id="viewAsForm" method="get">
+        <label for="viewAsUser">Просмотр пользователя</label>
+        <select id="viewAsUser" name="view_as">
+            <option value=""{% if not is_view_as %} selected{% endif %}>Мой вид — {{ request.user.get_username }}</option>
+            {% for user_id, username in view_as_users %}
+            <option value="{{ user_id }}"{% if is_view_as and viewed_user.pk == user_id %} selected{% endif %}>{{ username }}</option>
+            {% endfor %}
+        </select>
+        {% if request.GET.view %}<input type="hidden" name="view" value="{{ request.GET.view }}">{% endif %}
+        {% if request.GET.year %}<input type="hidden" name="year" value="{{ request.GET.year }}">{% endif %}
+        <button type="submit" class="button-6">Открыть</button>
+    </form>
+    {% if is_view_as %}
+    <p role="status">Просмотр: <strong>{{ viewed_username }}</strong> · Только чтение.
+        <a href="{% url 'by_date' date %}">Вернуться к своему виду</a>
+    </p>
+    {% endif %}
+</section>
+<script>
+document.getElementById('viewAsUser').addEventListener('change', function () { this.form.requestSubmit(); });
+</script>
+{% endif %}

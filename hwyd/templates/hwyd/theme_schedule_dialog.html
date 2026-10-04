@@ -7,7 +7,7 @@
     <div class="activity-dialog__body">
         <p id="themeScheduleTimezone" class="toolbar-dialog__hint"></p>
         <p id="themeScheduleStatus" role="status" aria-live="polite" class="toolbar-dialog__hint"></p>
-        <button type="button" id="saveCurrentTheme" class="button-6 toolbar-dialog__button toolbar-dialog__button--primary" data-initial-focus>
+        <button type="button" id="saveCurrentTheme"{% if is_view_as %} disabled{% endif %} class="button-6 toolbar-dialog__button toolbar-dialog__button--primary" data-initial-focus>
             <i class="fa-solid fa-plus" aria-hidden="true"></i> Сохранить текущую тему
         </button>
         <p id="themeScheduleEmpty" class="theme-schedule__empty" hidden>У вас пока нет сохранённых тем. Сохраните текущую цветовую тему и назначьте ей время автоматического включения.</p>

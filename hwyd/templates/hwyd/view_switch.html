@@ -1,6 +1,6 @@
 <div id="trackerViewSwitch" class="tracker-view-switch" role="group" aria-label="Вид привычек"
      {% if not settings.showViewSwitch %}hidden{% endif %}
-     data-year="{{ year }}" data-user="{{ request.user.pk }}" data-month="{{ date }}"
+     data-year="{{ year }}" data-user="{{ viewed_user.pk }}" data-month="{{ date }}"
      data-summary-url="{% url 'year_summary' 2020 %}" data-month-url="{% url 'by_date' '2020-01' %}">
     <button type="button" data-tracker-view="table" aria-controls="trackerTableView" aria-pressed="true">
         <i class="fa-solid fa-table-cells" aria-hidden="true"></i> Таблица

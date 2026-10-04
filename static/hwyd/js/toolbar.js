@@ -3,6 +3,7 @@ import { createVisibilityControls } from './visibility.js';
 import { showToast } from './toast.js';
 import { enableDialogDrag } from './dialog-drag.js?v=20261004-4';
 import { loadTop } from './top.js';
+import {isViewAs, viewAsURL} from './view-as.js';
 
 const visibility = createVisibilityControls(document.getElementById('myTable'), post, showToast);
 const openers = new WeakMap();
@@ -128,7 +129,12 @@ for (const button of monthButtons) {
     });
 }
 monthForm.addEventListener('submit', event => {
-    if (!/^(202[0-9]|2030)-(0[1-9]|1[0-2])$/.test(dateField.value)) event.preventDefault();
+    const valid = /^(202[0-9]|2030)-(0[1-9]|1[0-2])$/.test(dateField.value);
+    if (!valid || isViewAs) event.preventDefault();
+    if (valid && isViewAs) {
+        const path = document.getElementById('trackerViewSwitch').dataset.monthUrl.replace('2020-01', dateField.value);
+        location.assign(viewAsURL(`${path}?view=table`));
+    }
 });
 resetPicker();
 

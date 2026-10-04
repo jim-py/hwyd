@@ -1,3 +1,5 @@
+import {viewAsURL} from './view-as.js';
+
 const dialog = document.getElementById('topModal');
 const status = document.getElementById('topStatus');
 const list = document.getElementById('topLeaders');
@@ -11,7 +13,7 @@ export async function loadTop() {
     list.replaceChildren();
     current.hidden = true;
     try {
-        const response = await fetch(dialog.dataset.topUrl, { credentials: 'same-origin', cache: 'no-store' });
+        const response = await fetch(viewAsURL(dialog.dataset.topUrl), { credentials: 'same-origin', cache: 'no-store' });
         if (!response.ok || response.redirected) throw new Error();
         const data = await response.json();
         if (request !== generation) return;

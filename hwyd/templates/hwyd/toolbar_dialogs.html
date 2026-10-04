@@ -4,7 +4,7 @@
 <dialog id="calendarModal" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="calendarTitle"
         data-desktop-drag data-mobile="{{ request.user_agent.is_mobile|yesno:'true,false' }}">
     {% include 'hwyd/toolbar_dialog_header.html' with title_id='calendarTitle' title='Выбрать месяц' %}
-    <form id="chooseDate" class="activity-dialog__body" action="{% url 'by_date' date %}" method="post">
+    <form id="chooseDate" class="activity-dialog__body" action="{% url 'by_date' date %}{{ view_as_query }}" method="post">
         {% csrf_token %}
         <input type="hidden" name="chooseDate" value="{{ date }}">
         <div class="month-picker__year">
@@ -33,7 +33,7 @@
 
 <dialog id="deleteAllModal" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="deleteAllTitle">
     {% include 'hwyd/toolbar_dialog_header.html' with title_id='deleteAllTitle' title='Очистить все привычки?' %}
-    <form id="deleteAllForm" class="activity-dialog__body" action="{% url 'delete_all' date %}" method="post">
+    <form id="deleteAllForm" class="activity-dialog__body" action="{% url 'delete_all' date %}{{ view_as_query }}" method="post">
         {% csrf_token %}
         <p>Все привычки и группы за {{ month_name|lower }} {{ year }} будут удалены вместе с отметками и комментариями. Данные других месяцев сохранятся.</p>
         <p class="toolbar-dialog__hint">Это действие нельзя отменить.</p>
@@ -45,7 +45,7 @@
 {% if request.user.is_authenticated %}
 <dialog id="feedbackModal" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="feedbackTitle">
     {% include 'hwyd/toolbar_dialog_header.html' with title_id='feedbackTitle' title='Обратная связь' %}
-    <form id="feedbackForm" class="activity-dialog__body" action="{% url 'submit_feedback' %}" method="post">
+    <form id="feedbackForm" class="activity-dialog__body" action="{% url 'submit_feedback' %}{{ view_as_query }}" method="post">
         {% csrf_token %}
         <div class="toolbar-dialog__field">
             <label for="feedbackCategory">Тип обращения</label>

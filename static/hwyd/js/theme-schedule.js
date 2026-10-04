@@ -2,6 +2,7 @@ import {requestJSON} from './api.js';
 import {showToast} from './toast.js';
 import {applyThemeColors} from './theme-colors.js';
 import {enableDialogDrag} from './dialog-drag.js?v=20261004-4';
+import {isViewAs, viewAsURL} from './view-as.js';
 
 const dialog = document.getElementById('themeScheduleModal');
 enableDialogDrag(dialog);
@@ -44,7 +45,8 @@ function render() {
     empty.hidden = state.themes.length > 0;
     document.getElementById('themeScheduleHeading').hidden = !state.themes.length;
     document.getElementById('themeScheduleTimezone').textContent = state.timezone
-        ? `Время вашего часового пояса: ${state.timezone}.` : 'Уточняем часовой пояс браузера…';
+        ? `${isViewAs ? 'Часовой пояс пользователя' : 'Время вашего часового пояса'}: ${state.timezone}.`
+        : isViewAs ? 'Часовой пояс пользователя ещё не сохранён.' : 'Уточняем часовой пояс браузера…';
     const active = state.themes.find(theme => theme.id === state.active_id);
     status.textContent = state.manual_override ? 'Ручные цвета действуют до следующего переключения.'
         : active ? `Сейчас: ${active.name}` : 'Автоматическое переключение выключено.';
@@ -65,12 +67,14 @@ function render() {
         const enabled = node('input');
         enabled.type = 'checkbox';
         enabled.checked = theme.is_enabled;
+        enabled.disabled = isViewAs;
         enabled.setAttribute('aria-label', `Активна: ${theme.name}`);
         enabled.addEventListener('change', () => mutate(urlFor('update', theme.id), 'PATCH', {is_enabled: enabled.checked},
             enabled.checked ? 'Автоматическое включение настроено.' : 'Автоматическое включение отключено.'));
         const actions = node('div', 'theme-schedule__row-actions');
         actions.append(actionButton('fa-pen', `Изменить тему «${theme.name}»`, () => edit(theme)),
             actionButton('fa-trash-can', `Удалить тему «${theme.name}»`, () => askDelete(theme)));
+        if (isViewAs) for (const button of actions.querySelectorAll('button')) button.disabled = true;
         row.append(name, time, enabled, actions);
         list.append(row);
     }
@@ -102,8 +106,9 @@ async function sync() {
     syncing = true;
     const version = revision;
     try {
-        let next = await requestJSON(dialog.dataset.applyUrl);
-        if (!next.timezone && window.habitusSyncTimezone) {
+        let next = await requestJSON(viewAsURL(isViewAs ? dialog.dataset.listUrl : dialog.dataset.applyUrl),
+            {method: isViewAs ? 'GET' : 'POST'});
+        if (!isViewAs && !next.timezone && window.habitusSyncTimezone) {
             // Reuse the existing browser timezone sender after an offline first load.
             await window.habitusSyncTimezone();
             next = await requestJSON(dialog.dataset.applyUrl);
@@ -129,6 +134,7 @@ function busy(value) {
     for (const control of dialog.querySelectorAll('button, input')) control.disabled = value;
 }
 async function mutate(url, method, data, message) {
+    if (isViewAs) return;
     if (form.dataset.busy) return;
     revision++;
     errorBox.hidden = true;
@@ -205,7 +211,7 @@ document.getElementById('themeScheduleButton').addEventListener('click', async (
     errorBox.hidden = true;
     const version = revision;
     try {
-        const next = await requestJSON(dialog.dataset.listUrl, {method: 'GET'});
+        const next = await requestJSON(viewAsURL(dialog.dataset.listUrl), {method: 'GET'});
         if (version === revision) accept(next);
     } catch (error) {
         showError(error);
