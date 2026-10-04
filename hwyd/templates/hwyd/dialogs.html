@@ -12,7 +12,7 @@
 
     <form id="settingsGlobal" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}
-        <div class="settings-dialog__preset">
+        <!-- <div class="settings-dialog__preset">
             <label for="selectSettings">Настройка</label>
             <button type="button" id="addSetting" class="button-6 preset-button preset-button--add" >add</button>
             <input type="text" id="nameSetting" name="nameSetting" value="{{ settings.name }}">
@@ -22,9 +22,15 @@
                     <option {% if setting.selected %}selected{% endif %} value="{{ setting.pk }}">{{ setting.name }}</option>
                 {% endfor %}
             </select>
-        </div>
+        </div> -->
         <section class="settings-section" aria-labelledby="settings-interface-title">
-            <h4 id="settings-interface-title">Элементы интерфейса</h4>
+            <div class="settings-section__heading">
+                <h4 id="settings-interface-title">Элементы интерфейса</h4>
+                <label class="settings-section__toggle">
+                    <span data-settings-toggle-label>Включить всё</span>
+                    <input type="checkbox" data-settings-toggle aria-label="Включить всё в разделе «Элементы интерфейса»">
+                </label>
+            </div>
             <div class="settings-dialog__options">
                 {% for field in interface_settings %}
                 <div>
@@ -36,7 +42,13 @@
         </section>
 
         <section class="settings-section" aria-labelledby="settings-behavior-title">
-            <h4 id="settings-behavior-title">Поведение и отображение</h4>
+            <div class="settings-section__heading">
+                <h4 id="settings-behavior-title">Поведение и отображение</h4>
+                <label class="settings-section__toggle">
+                    <span data-settings-toggle-label>Включить всё</span>
+                    <input type="checkbox" data-settings-toggle aria-label="Включить всё в разделе «Поведение и отображение»">
+                </label>
+            </div>
             <div class="settings-dialog__options">
                 <div>
                     <label for="selectFont">Шрифт сайта</label>
@@ -82,7 +94,7 @@
                 </div>
             </div>
         </section>
-        <input type="hidden" name="uiVisibilityVersion" value="3">
+        <input type="hidden" name="uiVisibilityVersion" value="4">
 
         <input id="data" name="data">
     </form>
@@ -101,9 +113,13 @@
 
 
 
-<link rel="stylesheet" href="{% static 'hwyd/css/dialogs.css' %}">
+<link rel="stylesheet" href="{% static 'hwyd/css/dialogs.css' %}?v=20261004-4">
 
 <div id="divButtons" class="toolbar">
+    <button id="themeScheduleButton" type="button" data-dialog="themeScheduleModal" aria-controls="themeScheduleModal"
+            title="Расписание тем" aria-label="Расписание тем"{% if not settings.showThemeSchedule %} hidden{% endif %}>
+        <i class="fa-solid fa-clock" aria-hidden="true"></i>
+    </button>
 
     {% if request.user.is_authenticated %}
     <button id="buttonChat" type="button"{% if not settings.showChat %} hidden{% endif %} title="Чат" aria-label="Чат" aria-controls="chatDialog">
@@ -193,6 +209,7 @@
     <span class="habitus-toast__text"></span>
 </div>
 {% include 'hwyd/toolbar_dialogs.html' %}
+{% include 'hwyd/theme_schedule_dialog.html' %}
 
 <script>
 function vibrateOrHaptic() {

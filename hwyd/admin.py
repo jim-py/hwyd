@@ -1,5 +1,14 @@
 from django.contrib import admin
-from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, Feedback
+from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, Feedback, ScheduledTheme
+
+
+@admin.register(ScheduledTheme)
+class ScheduledThemeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'user', 'activation_time', 'is_enabled', 'updated_at')
+    list_filter = ('is_enabled',)
+    search_fields = ('name', 'user__username', 'user__first_name')
+    ordering = ('user', 'activation_time')
+    readonly_fields = ('created_at', 'updated_at')
 
 
 class ActivitiesAdmin(admin.ModelAdmin):

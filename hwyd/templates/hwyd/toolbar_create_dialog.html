@@ -1,4 +1,5 @@
-<dialog id="{{ modal_id }}" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="{{ title_id }}">
+<dialog id="{{ modal_id }}" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="{{ title_id }}"
+        data-desktop-drag data-mobile="{{ request.user_agent.is_mobile|yesno:'true,false' }}">
     {% include 'hwyd/toolbar_dialog_header.html' %}
     <form id="{{ form_id }}" class="activity-dialog__body" action="{% url 'create_activity' date group_type %}" method="post">
         {% csrf_token %}

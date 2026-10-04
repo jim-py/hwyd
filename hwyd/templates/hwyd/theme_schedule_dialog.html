@@ -1,0 +1,43 @@
+<dialog id="themeScheduleModal" class="modalActivity activity-dialog toolbar-dialog theme-schedule" aria-labelledby="themeScheduleTitle"
+        data-desktop-drag data-mobile="{{ request.user_agent.is_mobile|yesno:'true,false' }}"
+        data-list-url="{% url 'theme_schedule_list' %}" data-create-url="{% url 'theme_schedule_create' %}"
+        data-apply-url="{% url 'theme_schedule_apply' %}" data-update-url="{% url 'theme_schedule_update' 0 %}"
+        data-delete-url="{% url 'theme_schedule_delete' 0 %}">
+    {% include 'hwyd/toolbar_dialog_header.html' with title_id='themeScheduleTitle' title='Расписание тем' %}
+    <div class="activity-dialog__body">
+        <p id="themeScheduleTimezone" class="toolbar-dialog__hint"></p>
+        <p id="themeScheduleStatus" role="status" aria-live="polite" class="toolbar-dialog__hint"></p>
+        <button type="button" id="saveCurrentTheme" class="button-6 toolbar-dialog__button toolbar-dialog__button--primary" data-initial-focus>
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Сохранить текущую тему
+        </button>
+        <p id="themeScheduleEmpty" class="theme-schedule__empty" hidden>У вас пока нет сохранённых тем. Сохраните текущую цветовую тему и назначьте ей время автоматического включения.</p>
+        <div id="themeScheduleHeading" class="theme-schedule__list-heading" aria-hidden="true" hidden><span>Название</span><span>Время</span><span>Активна</span><span></span></div>
+        <div id="themeScheduleList" class="theme-schedule__list" role="list" aria-label="Сохранённые темы"></div>
+        <form id="themeScheduleForm" class="theme-schedule__form" hidden>
+            <h4 id="themeScheduleFormTitle">Сохранить текущую тему</h4>
+            <div class="toolbar-dialog__field">
+                <label for="scheduledThemeName">Название темы</label>
+                <input id="scheduledThemeName" name="name" type="text" maxlength="80" required class="inputSettings" placeholder="Например, Вечерняя">
+            </div>
+            <div class="toolbar-dialog__field">
+                <label for="scheduledThemeTime">Время включения</label>
+                <input id="scheduledThemeTime" name="activation_time" type="time" step="60" required>
+            </div>
+            <label class="theme-schedule__enabled"><input name="is_enabled" type="checkbox" checked> Автоматическое включение</label>
+            <p class="toolbar-dialog__hint">{% comment %}The existing color editor stays where it is.{% endcomment %}При создании сохраняются текущие цвета. Изменение названия или времени сохраняет исходные цвета темы.</p>
+            <div class="theme-schedule__actions">
+                <button type="button" id="cancelThemeEdit" class="button-6 toolbar-dialog__button">Отмена</button>
+                <button type="submit" class="button-6 toolbar-dialog__button toolbar-dialog__button--primary">Сохранить</button>
+            </div>
+        </form>
+        <div id="themeDeleteConfirmation" class="theme-schedule__confirmation" hidden>
+            <p id="themeDeleteQuestion"></p>
+            <div class="theme-schedule__actions">
+                <button type="button" id="cancelThemeDelete" class="button-6 toolbar-dialog__button">Отмена</button>
+                <button type="button" id="confirmThemeDelete" class="button-6 toolbar-dialog__button toolbar-dialog__button--danger">Удалить</button>
+            </div>
+        </div>
+        <p id="themeScheduleError" class="toolbar-dialog__error" role="alert" hidden></p>
+    </div>
+</dialog>
+{{ theme_schedule_state|json_script:'themeScheduleInitial' }}

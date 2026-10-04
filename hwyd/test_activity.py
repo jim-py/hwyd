@@ -1,8 +1,10 @@
 import json
+import sqlite3
 from datetime import date, datetime, timedelta, timezone as utc_timezone
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.db import OperationalError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -87,6 +89,32 @@ class VisitTimezoneTests(TestCase):
         self.assertEqual(log.date, date(2026, 10, 1))
         self.assertEqual(log.first_visit, self.instant)
         self.assertEqual(log.last_visit, later)
+
+    def test_late_request_cannot_move_last_visit_backwards(self):
+        self.set_zone('UTC')
+        self.visit(self.instant + timedelta(seconds=10))
+        self.visit(self.instant)
+        self.assertEqual(UserActivityLog.objects.get().last_visit, self.instant + timedelta(seconds=10))
+
+    def test_busy_optional_logging_keeps_successful_response_and_retries_next_visit(self):
+        self.set_zone('UTC')
+        cause = sqlite3.OperationalError('database is locked')
+        cause.sqlite_errorcode = sqlite3.SQLITE_BUSY
+        error = OperationalError('database is locked')
+        error.__cause__ = cause
+        with patch('my_site.middleware.UserActivityLog.objects.get_or_create', side_effect=error):
+            with self.assertLogs('my_site.middleware', level='WARNING'):
+                self.assertEqual(self.visit().status_code, 200)
+        self.assertFalse(UserActivityLog.objects.exists())
+        self.visit()
+        self.assertEqual(UserActivityLog.objects.get().date, self.instant.date())
+
+    def test_other_database_errors_are_not_hidden(self):
+        self.set_zone('UTC')
+        with patch('my_site.middleware.UserActivityLog.objects.get_or_create',
+                   side_effect=OperationalError('disk I/O error')):
+            with self.assertRaises(OperationalError):
+                self.visit()
 
     def test_local_midnight_starts_next_streak_day(self):
         self.set_zone('Asia/Tokyo')

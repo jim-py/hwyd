@@ -2,6 +2,26 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.forms import PasswordChangeForm
 from django import forms
 from django.contrib.auth.models import User
+from .models import UserProfile
+from .avatar import normalize_avatar
+
+
+class ProfilePhotoField(forms.FileField):
+    def to_python(self, data):
+        upload = super().to_python(data)
+        return normalize_avatar(upload) if upload is not None else None
+
+
+class ProfilePhotoForm(forms.ModelForm):
+    avatar = ProfilePhotoField(
+        label='Фотография профиля',
+        help_text='JPEG, PNG, WEBP, GIF или WEBM. До 5 МБ. Анимация до 10 секунд; WEBM без звука.',
+        widget=forms.FileInput(attrs={'accept': 'image/jpeg,image/png,image/webp,image/gif,video/webm,.webm', 'class': 'form-control', 'aria-describedby': 'photo-help'}),
+    )
+
+    class Meta:
+        model = UserProfile
+        fields = ['avatar']
 
 
 class UserUpdateForm(forms.ModelForm):

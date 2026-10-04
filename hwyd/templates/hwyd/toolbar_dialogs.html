@@ -1,7 +1,8 @@
 {% include 'hwyd/toolbar_create_dialog.html' with modal_id='createActivityModal' title_id='createActivityTitle' title='Создать привычку' form_id='createActivityForm' input_name='createActivityInput' group_type=0 label='Название привычки' placeholder='Например, прогулка' %}
 {% include 'hwyd/toolbar_create_dialog.html' with modal_id='createActivityGroupModal' title_id='createGroupTitle' title='Создать группу' form_id='createGroupForm' input_name='createActivityGroupInput' group_type=1 label='Название группы' placeholder='Например, здоровье' %}
 
-<dialog id="calendarModal" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="calendarTitle">
+<dialog id="calendarModal" class="modalActivity activity-dialog toolbar-dialog" aria-labelledby="calendarTitle"
+        data-desktop-drag data-mobile="{{ request.user_agent.is_mobile|yesno:'true,false' }}">
     {% include 'hwyd/toolbar_dialog_header.html' with title_id='calendarTitle' title='Выбрать месяц' %}
     <form id="chooseDate" class="activity-dialog__body" action="{% url 'by_date' date %}" method="post">
         {% csrf_token %}

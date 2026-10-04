@@ -1,4 +1,6 @@
 {% load static %}
+<script type="module" src="{% static 'hwyd/js/theme-colors.js' %}"></script>
+<script type="module" src="{% static 'hwyd/js/theme-schedule.js' %}?v=20261004-4"></script>
 {% load tags %}
 
 
@@ -672,43 +674,6 @@
 
 {# Динамическое изменение цветов #}
 <script>
-    try {
-        //Динамическое изменение цвета заголовка таблицы
-        let tmpElem = document.getElementById('tableHeadColor*changeParagraph')
-        tmpElem.addEventListener("input", function (event) {
-            for (let elem of document.querySelectorAll('p.' + event.target.id.split('*')[1])) {
-                elem.style.backgroundColor = event.target.value;
-            }
-        });
-
-        //Динамическое изменение цвета заголовка таблицы выходных
-        tmpElem = document.getElementById('tableHeadColorWeekend')
-        tmpElem.addEventListener("input", function (event) {
-            for (let elem of document.querySelectorAll('p.weekend')) {
-                elem.style.backgroundColor = event.target.value;
-            }
-        });
-
-        //Динамическое изменение цвета текста заголовка таблицы
-        tmpElem = document.getElementById('tableHeadTextColor*changeParagraph')
-        tmpElem.addEventListener("input", function (event) {
-            for (let elem of document.querySelectorAll('p.' + event.target.id.split('*')[1])) {
-                elem.style.color = event.target.value;
-            }
-            for (let elem of document.querySelectorAll('p.weekend')) {
-                elem.style.color = event.target.value;
-            }
-        });
-
-        //Динамическое изменение заднего фона сайта
-        tmpElem = document.getElementById('backgroundColor')
-        tmpElem.addEventListener("input", function (event) {
-            document.body.style.backgroundColor = event.target.value;
-        });
-    } catch {
-
-    }
-
     for (let elem of document.querySelectorAll('input.colorBackgroundForm')) {
         elem.addEventListener("input", function (event) {
             event.target.data.style.backgroundColor = event.target.value;
@@ -759,7 +724,7 @@
 {#    swapRows();#}
 {# }); #}
 
-$(".activity-dialog:not(#feedbackModal):not(#topModal)").draggable({
+$(".activity-dialog:not(#feedbackModal):not(#topModal):not([data-desktop-drag])").draggable({
     handle: '.modal__header',
     cursor: 'move'
 });
@@ -794,7 +759,7 @@ for (let elem of document.querySelectorAll('.deleteActivityButt')) {
   const tableHeight = myTable.offsetHeight;
 
   html2canvas(myTable, {
-        backgroundColor: '{{ settings.backgroundColor }}',
+        backgroundColor: getComputedStyle(document.body).backgroundColor,
         allowTaint: true,
         useCORS: true,
         width: tableWidth,
@@ -856,7 +821,7 @@ for (let elem of document.querySelectorAll('.deleteActivityButt')) {
             const tableHeight = myTable.offsetHeight;
 
             html2canvas(myTable, {
-                backgroundColor: '{{ settings.backgroundColor }}',
+                backgroundColor: getComputedStyle(document.body).backgroundColor,
                 allowTaint: true,
                 useCORS: true,
                 width: tableWidth,
@@ -922,35 +887,35 @@ for (let elem of document.querySelectorAll('.deleteActivityButt')) {
             }
         }
     }) {% endcomment %}
-    document.querySelector('#selectSettings').addEventListener('change', function (evt) {
-        $.ajax({
-            type: 'POST',
-            url: '{% url 'change_setting' %}',
-            data:
-                {
-                    setting: evt.target.value,
-                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-                }
-        })
-        setTimeout(function () {
-            location.href = '{% url 'by_date' date %}';
-        }, 100)
-    })
+    // document.querySelector('#selectSettings').addEventListener('change', function (evt) {
+    //     $.ajax({
+    //         type: 'POST',
+    //         url: '{% url 'change_setting' %}',
+    //         data:
+    //             {
+    //                 setting: evt.target.value,
+    //                 csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+    //             }
+    //     })
+    //     setTimeout(function () {
+    //         location.href = '{% url 'by_date' date %}';
+    //     }, 100)
+    // })
 
-    document.querySelector('#addSetting').addEventListener('click', function () {
-        $.ajax({
-            type: 'POST',
-            url: '{% url 'add_setting' %}',
-            data:
-                {
-                    nameSetting: document.querySelector('#nameSetting').value,
-                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-                }
-        })
-        setTimeout(function () {
-            location.href = '{% url 'by_date' date %}';
-        }, 100)
-    })
+    // document.querySelector('#addSetting').addEventListener('click', function () {
+    //     $.ajax({
+    //         type: 'POST',
+    //         url: '{% url 'add_setting' %}',
+    //         data:
+    //             {
+    //                 nameSetting: document.querySelector('#nameSetting').value,
+    //                 csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+    //             }
+    //     })
+    //     setTimeout(function () {
+    //         location.href = '{% url 'by_date' date %}';
+    //     }, 100)
+    // })
 
     // document.querySelector('#delSetting').addEventListener('click', function () {
     //     $.ajax({

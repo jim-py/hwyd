@@ -1,0 +1,29 @@
+.activity-dialog.toolbar-dialog.theme-schedule { width: 560px; }
+.theme-schedule [hidden] { display: none !important; }
+.theme-schedule #saveCurrentTheme { width: auto; margin: 4px 0 12px; }
+.theme-schedule__list { margin: 4px 0 0; }
+.theme-schedule__row, .theme-schedule__list-heading { display: grid; grid-template-columns: minmax(0, 1fr) 55px 45px 72px; gap: 12px; align-items: center; }
+.theme-schedule__row { padding: 14px 0; border-bottom: 1px solid #e6e8ec; }
+.theme-schedule__list-heading { margin-top: 14px; color: #737780; font-size: 11px; }
+.theme-schedule__name { font-size: 14px; overflow-wrap: anywhere; }
+.theme-schedule__badge { display: block; margin-top: 3px; color: #4071f4; font-size: 11px; font-weight: 500; }
+.theme-schedule__palette { display: flex; gap: 3px; margin-top: 6px; }
+.theme-schedule__swatch { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #0002; }
+.theme-schedule__time { font-variant-numeric: tabular-nums; font-size: 14px; }
+.theme-schedule__row input[type=checkbox], .theme-schedule__enabled input { display: inline-block; width: 20px; height: 20px; accent-color: #4071f4; cursor: pointer; }
+.theme-schedule__row-actions { display: flex; gap: 4px; }
+.theme-schedule__row-actions button { width: 34px; height: 36px; padding: 0; background: #f4f5f8; border: 0; border-radius: 6px; cursor: pointer; }
+.theme-schedule__row-actions button:hover { background: #e7ebf4; }
+.theme-schedule__empty { margin: 16px 0; color: #737780; font-size: 14px; line-height: 1.6; }
+.theme-schedule__form, .theme-schedule__confirmation { margin-top: 16px; padding: 16px; border-radius: 8px; background: #f5f6f8; }
+.theme-schedule__form h4 { margin: 0 0 12px; font-size: 15px; }
+.theme-schedule__enabled { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 14px 0; }
+.theme-schedule__actions { display: flex; justify-content: flex-end; gap: 8px; }
+.theme-schedule__actions button { width: auto; }
+.theme-schedule .toolbar-dialog__error { margin-top: 12px; }
+@media (max-width: 480px) {
+    .theme-schedule__row, .theme-schedule__list-heading { grid-template-columns: minmax(0, 1fr) 43px 43px 68px; gap: 8px; }
+    .theme-schedule__row-actions button { height: 44px; }
+    .theme-schedule__form, .theme-schedule__confirmation { padding: 12px; }
+    .theme-schedule #saveCurrentTheme { width: 100%; }
+}

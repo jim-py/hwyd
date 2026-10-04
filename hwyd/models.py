@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.forms.models import model_to_dict
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from .preferences import validate_theme_color
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -150,6 +152,7 @@ class Settings(models.Model):
     showChat = models.BooleanField(default=True, verbose_name='Показывать кнопку чата')
     showActivityIcons = models.BooleanField(default=True, verbose_name='Показывать иконки привычек и групп')
     showViewSwitch = models.BooleanField(default=True, verbose_name='Показывать переключатель «Таблица / Год»')
+    showThemeSchedule = models.BooleanField(default=True, verbose_name='Показывать кнопку расписания тем')
     selected = models.BooleanField(verbose_name='Выбрана настройка')
     vanishing = models.CharField(max_length=50, verbose_name='Тип исчезновения')
 
@@ -159,6 +162,57 @@ class Settings(models.Model):
 
     def __str__(self):
         return f'Пользователь: {self.user} {self.fontFamily}'
+
+
+class ScheduledTheme(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='scheduled_themes', verbose_name='Владелец')
+    name = models.CharField('Название темы', max_length=80)
+    rowColumnLight = models.CharField('Выделение строки и столбца', max_length=7, validators=[validate_theme_color])
+    backgroundColor = models.CharField('Фон', max_length=7, validators=[validate_theme_color])
+    tableHeadColorWeekend = models.CharField('Выходные', max_length=7, validators=[validate_theme_color])
+    tableHeadColor = models.CharField('Фон заголовка таблицы', max_length=7, validators=[validate_theme_color])
+    tableHeadTextColor = models.CharField('Текст заголовка таблицы', max_length=7, validators=[validate_theme_color])
+    activation_time = models.TimeField('Время включения')
+    is_enabled = models.BooleanField('Автоматическое включение', default=True)
+    # MySQL has no partial unique indexes. NULL allows disabled themes to share a time.
+    active_time = models.TimeField(null=True, editable=False)
+    created_at = models.DateTimeField('Создана', auto_now_add=True)
+    updated_at = models.DateTimeField('Изменена', auto_now=True)
+
+    class Meta:
+        ordering = ('activation_time', 'pk')
+        verbose_name = 'Тема по расписанию'
+        verbose_name_plural = 'Темы по расписанию'
+        constraints = [
+            models.UniqueConstraint(fields=('user', 'active_time'), name='unique_user_active_theme_time'),
+            models.CheckConstraint(
+                check=(models.Q(is_enabled=False, active_time__isnull=True) |
+                       models.Q(is_enabled=True, active_time__isnull=False, active_time=models.F('activation_time'))),
+                name='theme_active_time_matches_schedule'),
+        ]
+
+    def clean(self):
+        super().clean()
+        self.name = self.name.strip()
+        self.active_time = self.activation_time if self.is_enabled else None
+        if not self.name:
+            raise ValidationError({'name': 'Введите название темы.'})
+        if self.activation_time and (self.activation_time.second or self.activation_time.microsecond):
+            raise ValidationError({'activation_time': 'Укажите время в формате ЧЧ:ММ.'})
+        if self.is_enabled and self.activation_time and self.user_id:
+            conflict = type(self).objects.filter(user_id=self.user_id, active_time=self.activation_time).exclude(pk=self.pk)
+            if conflict.exists():
+                raise ValidationError({'activation_time': f'На {self.activation_time:%H:%M} уже назначена другая тема.'})
+
+    def save(self, *args, **kwargs):
+        self.active_time = self.activation_time if self.is_enabled else None
+        if kwargs.get('update_fields') and {'activation_time', 'is_enabled'} & set(kwargs['update_fields']):
+            kwargs['update_fields'] = set(kwargs['update_fields']) | {'active_time'}
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.name} — {self.activation_time:%H:%M}'
 
 
 class Feedback(models.Model):

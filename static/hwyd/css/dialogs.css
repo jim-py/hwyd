@@ -253,12 +253,27 @@ dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
 }
 
 #feedbackModal,
-#topModal { position: fixed; }
+#topModal,
+.toolbar-dialog[data-desktop-drag] { position: fixed; }
 #feedbackModal > .modal__header,
-#topModal > .modal__header {
+#topModal > .modal__header,
+.toolbar-dialog[data-desktop-drag] > .modal__header {
     cursor: move;
     touch-action: none;
     user-select: none;
+}
+
+.toolbar-dialog[data-desktop-drag][data-mobile="true"] > .modal__header {
+    cursor: default;
+    touch-action: auto;
+    user-select: auto;
+}
+@media (max-width: 767px), (pointer: coarse) {
+    .toolbar-dialog[data-desktop-drag] > .modal__header {
+        cursor: default;
+        touch-action: auto;
+        user-select: auto;
+    }
 }
 
 .toolbar-dialog .dialog__title { margin: 0; font-size: 18px; }

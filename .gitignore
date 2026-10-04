@@ -24,10 +24,8 @@ media/
 *.swp
 
 # Технические файлы
-AGENTS.md
-CODEBASE_MAP.md
-MIGRATIONS.md
-SCHEMA_UPGRADE.md
+*.md
+!static/*.md
 
 migrations/
 

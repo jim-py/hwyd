@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{% static 'hwyd/vendor/driver/driver.css' %}"/>
     <link rel="stylesheet" href="{% static 'hwyd/css/onboarding.css' %}">
 
-    <link rel="stylesheet" href="{% static 'hwyd/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'hwyd/css/main.css' %}?v=20261004-5">
     <link rel="stylesheet" href="{% static 'hwyd/css/tableCells.css' %}">
     <link rel="stylesheet" href="{% static 'hwyd/css/buttons.css' %}">
     <link rel="stylesheet" href="{% static 'hwyd/css/year-calendar.css' %}">
@@ -201,7 +201,7 @@ window.PENDING_GUIDES = {{ pending_guides|safe }};
 </script>
 
 {% include 'hwyd/scripts.html' %}
-<script type="module" src="{% static 'hwyd/js/toolbar.js' %}"></script>
+<script type="module" src="{% static 'hwyd/js/toolbar.js' %}?v=20261004-5"></script>
 {% if settings.showViewSwitch %}
 <script type="module" src="{% static 'hwyd/js/year-calendar.js' %}"></script>
 {% endif %}

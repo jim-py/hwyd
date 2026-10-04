@@ -2,6 +2,10 @@
 {% load static %}
 {% load widget_tweaks %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'general_app/css/profile.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container my-5">
     <div class="row justify-content-center">
@@ -43,6 +47,34 @@
             <div id="edit-profile-section" class="card shadow-sm border-1">
                 <div class="card-body p-4">
                     <h2 class="card-title text-center mb-4">Редактирование профиля</h2>
+
+                    <div class="profile-photo mb-4">
+                        <div class="profile-photo__preview">
+                            {% if profile.avatar %}
+                                {% if profile.avatar_is_video %}
+                                <video src="{{ profile.avatar.url }}" autoplay loop muted playsinline preload="auto" aria-label="Ваш видеоаватар" width="96" height="96"></video>
+                                {% else %}
+                                <img src="{{ profile.avatar.url }}" alt="Ваша фотография профиля" width="96" height="96">
+                                {% endif %}
+                            {% else %}
+                                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                    <circle cx="12" cy="8" r="4"/>
+                                    <path d="M4 21v-2a8 8 0 0 1 16 0v2"/>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data" class="profile-photo__form">
+                            {% csrf_token %}
+                            <input type="hidden" name="profile_action" value="avatar">
+                            {{ photo_form.avatar.label_tag }}
+                            {{ photo_form.avatar }}
+                            <div id="photo-help" class="form-text">{{ photo_form.avatar.help_text }}</div>
+                            {% for error in photo_form.avatar.errors %}
+                                <div class="text-danger mt-1" role="alert">{{ error }}</div>
+                            {% endfor %}
+                            <button type="submit" class="btn btn-outline-primary btn-sm mt-2">{% if profile.avatar %}Заменить фото{% else %}Загрузить фото{% endif %}</button>
+                        </form>
+                    </div>
 
                     <form method="post" action="{% url 'profile' %}">
                         {% csrf_token %}

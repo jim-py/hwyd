@@ -256,11 +256,15 @@ form[id=settingsGlobal] > div > div {
 
 .settings-section {
     margin: 16px 0;
-    padding-top: 12px;
-    border-top: 1px solid #d8d8d8;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #d8d8d8;
 }
 
 .settings-section h4 { margin: 0 0 8px; font-size: 15px; font-weight: 600; }
+.settings-section__heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.settings-section__heading h4 { margin: 0; }
+.settings-section__toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; }
+.settings-section__toggle input { accent-color: #405b50; cursor: pointer; }
 .settings-section .settings-dialog__options > div {
     display: flex;
     align-items: center;

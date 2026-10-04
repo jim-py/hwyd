@@ -1,10 +1,16 @@
 from django.urls import path, include
+from . import theme_views
 from hwyd.views import (start, by_date, create_last_activities, delete_activity, create_activity, global_colors,
                         get_comments, delete_all, user_logout, check_cell, open_group, open_all, change_setting,
                         add_setting, delete_setting, activity_users, export_data_as_json, edit_settings,
                         select_setting, set_timezone, submit_feedback, top_streak, year_summary)
 
 urlpatterns = [
+    path('themes/schedule/', theme_views.theme_schedule_list, name='theme_schedule_list'),
+    path('themes/schedule/create/', theme_views.theme_schedule_create, name='theme_schedule_create'),
+    path('themes/schedule/apply/', theme_views.theme_schedule_apply, name='theme_schedule_apply'),
+    path('themes/schedule/<int:pk>/update/', theme_views.theme_schedule_update, name='theme_schedule_update'),
+    path('themes/schedule/<int:pk>/delete/', theme_views.theme_schedule_delete, name='theme_schedule_delete'),
     path('year-summary/<int:year>/', year_summary, name='year_summary'),
     path('top-streak/', top_streak, name='top_streak'),
     path('feedback/', submit_feedback, name='submit_feedback'),

@@ -375,7 +375,7 @@ class SettingsInterfaceTests(TestCase):
     def settings_payload(self):
         return {'data': ','.join(['true'] * 10), 'nameSetting': 'Interface',
                 'radioSettings': 'group', 'selectFont': 'Georgia', 'selectFade': 'off',
-                'uiVisibilityVersion': '3'}
+                'uiVisibilityVersion': '4'}
 
     def test_new_visibility_defaults_preserve_existing_interface(self):
         preset = Settings.objects.get(user=self.user)
@@ -430,6 +430,34 @@ class SettingsInterfaceTests(TestCase):
                     payload['uiVisibilityVersion'] = version
                     self.client.post(self.url, payload)
                     self.assertEqual(Settings.objects.get(user=self.user).showViewSwitch, enabled)
+
+    def test_older_clients_preserve_theme_schedule_button_visibility(self):
+        for version in ('1', '2', '3'):
+            for enabled in (False, True):
+                with self.subTest(version=version, enabled=enabled):
+                    Settings.objects.filter(user=self.user).update(showThemeSchedule=enabled)
+                    payload = self.settings_payload()
+                    payload['uiVisibilityVersion'] = version
+                    self.client.post(self.url, payload)
+                    self.assertEqual(Settings.objects.get(user=self.user).showThemeSchedule, enabled)
+
+    def test_separate_settings_page_saves_schedule_button_and_preserves_for_old_clients(self):
+        from django.forms.models import model_to_dict
+
+        for enabled in (False, True):
+            preset = Settings.objects.get(user=self.user)
+            payload = model_to_dict(preset)
+            payload.update(vanishing='none', uiVisibilityVersion='4')
+            if enabled:
+                payload['showThemeSchedule'] = 'on'
+            else:
+                payload.pop('showThemeSchedule')
+            self.assertEqual(self.client.post(reverse('edit_settings'), payload).status_code, 302)
+            self.assertEqual(Settings.objects.get(user=self.user).showThemeSchedule, enabled)
+            payload.update(uiVisibilityVersion='3')
+            payload.pop('showThemeSchedule', None)
+            self.client.post(reverse('edit_settings'), payload)
+            self.assertEqual(Settings.objects.get(user=self.user).showThemeSchedule, enabled)
 
     def test_view_switch_off_uses_table_even_with_calendar_in_url(self):
         payload = self.settings_payload()

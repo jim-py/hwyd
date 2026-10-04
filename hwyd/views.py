@@ -20,12 +20,13 @@ from django.db.models import Value, BooleanField
 from django_user_agents.utils import get_user_agent
 
 # Импорты из локальных модулей приложения
-from .forms import LoginForm, RegisterForm, SettingsForm, FeedbackForm
+from .forms import LoginForm, RegisterForm, SettingsForm, FeedbackForm, ThemeColorsForm
 from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, UserActivityLog
-from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS
+from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS, THEME_COLOR_FIELDS
 from .streaks import streak_position, streak_top
 from .timezones import browser_timezone
 from .year_stats import MAX_YEAR, MIN_YEAR, year_completion
+from .theme_schedule import schedule_state, remember_manual_theme, theme_colors
 from general_app.models import Guide, UserGuideProgress
 
 setlocale(category=LC_ALL, locale="Russian")
@@ -99,7 +100,8 @@ def set_timezone(request):
     tz = data.get("timezone") if isinstance(data, dict) else None
     if browser_timezone(tz) is None:
         return JsonResponse({"error": "Неизвестный часовой пояс."}, status=400)
-    request.session["user_timezone"] = tz
+    if request.session.get("user_timezone") != tz:
+        request.session["user_timezone"] = tz
 
     return JsonResponse({"status": "ok"})
 
@@ -168,14 +170,16 @@ def by_date(request, picked_date):
         settings.showTabs = lst[9]
         # A version marker distinguishes unchecked toggles from older clients.
         visibility_version = request.POST.get('uiVisibilityVersion')
-        if visibility_version in ('1', '2', '3'):
+        if visibility_version in ('1', '2', '3', '4'):
             for field in UI_VISIBILITY_FIELDS:
                 if field == 'showTop' and visibility_version == '1':
                     continue
-                if field == 'showViewSwitch' and visibility_version != '3':
+                if field == 'showViewSwitch' and visibility_version not in ('3', '4'):
+                    continue
+                if field == 'showThemeSchedule' and visibility_version != '4':
                     continue
                 setattr(settings, field, request.POST.get(field) == 'on')
-        settings.name = request.POST['nameSetting']
+        # settings.name = request.POST['nameSetting']
 
         if request.POST['radioSettings'] == 'sort':
             settings.enableSortTable = True
@@ -477,6 +481,8 @@ def by_date(request, picked_date):
         )]
         context['font_families'] = FONT_FAMILIES
         request.habitus_settings = setting
+        context['theme_schedule_state'] = schedule_state(request, preset=setting, apply=True)
+        context['theme_palette'] = theme_colors(setting)
         return render(request, 'hwyd/base.html', context=context)
 
 
@@ -615,6 +621,7 @@ def delete_activity(request):
 
 
 @login_required(login_url='entry')
+@require_POST
 def global_colors(request, picked_date):
     """
     Функция для сохранения настроек цветов
@@ -625,12 +632,13 @@ def global_colors(request, picked_date):
     """
 
     settings = Settings.objects.get(user=request.user, selected=True)
-    settings.tableHeadColor = request.POST['tableHeadColor']
-    settings.tableHeadColorWeekend = request.POST['tableHeadColorWeekend']
-    settings.tableHeadTextColor = request.POST['tableHeadTextColor']
-    settings.backgroundColor = request.POST['backgroundColor']
-    settings.rowColumnLight = request.POST['rowColumnLight']
-    settings.save()
+    form = ThemeColorsForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({'error': 'Цвет должен иметь формат #RRGGBB.'}, status=400)
+    for field, value in form.cleaned_data.items():
+        setattr(settings, field, value)
+    settings.save(update_fields=THEME_COLOR_FIELDS)
+    remember_manual_theme(request, settings)
 
     return redirect('by_date', picked_date)
 
@@ -789,6 +797,9 @@ def change_setting(request):
             setting.selected = True
             update_settings.append(setting)
     Settings.objects.bulk_update(update_settings, fields=['selected'])
+    chosen = next((setting for setting in settings if setting.pk == pk_sett), None)
+    if chosen:
+        remember_manual_theme(request, chosen)
 
     return HttpResponse()
 
@@ -959,16 +970,24 @@ def edit_settings(request):
     current_setting = settings_list.filter(selected=True).first()
 
     if request.method == 'POST' and current_setting:
+        old_colors = theme_colors(current_setting)
         data = request.POST.copy()
-        if request.POST.get('uiVisibilityVersion') != '3':
+        if request.POST.get('uiVisibilityVersion') not in ('3', '4'):
             # Older settings pages did not contain the new checkbox.
             if current_setting.showViewSwitch:
                 data['showViewSwitch'] = 'on'
             else:
                 data.pop('showViewSwitch', None)
+        if request.POST.get('uiVisibilityVersion') != '4':
+            if current_setting.showThemeSchedule:
+                data['showThemeSchedule'] = 'on'
+            else:
+                data.pop('showThemeSchedule', None)
         form = SettingsForm(data, instance=current_setting)
         if form.is_valid():
-            form.save()
+            saved = form.save()
+            if theme_colors(saved) != old_colors:
+                remember_manual_theme(request, saved)
             return redirect('edit_settings')
     else:
         form = SettingsForm(instance=current_setting) if current_setting else None
@@ -998,5 +1017,6 @@ def select_setting(request, pk):
     # Отмечаем выбранную
     setting.selected = True
     setting.save(update_fields=["selected"])
+    remember_manual_theme(request, setting)
 
     return redirect('edit_settings')

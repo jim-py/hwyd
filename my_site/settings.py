@@ -25,6 +25,8 @@ MAINTENANCE_MODE = False
 # =========================================================
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 # Authored project-wide assets; STATIC_ROOT remains collected output.
 STATICFILES_DIRS = [BASE_DIR / "assets"]
 

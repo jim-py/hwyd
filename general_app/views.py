@@ -11,11 +11,13 @@ from django.contrib import messages
 from django.utils import timezone
 from django.http import JsonResponse
 
-from .forms import UserUpdateForm
+from .forms import UserUpdateForm, ProfilePhotoForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import HttpResponseRedirect
-from .models import Guide, UserGuideProgress
+from .models import Guide, UserGuideProgress, UserProfile
 from django.views.decorators.http import require_POST
+from django.db import transaction
+import logging
 
 
 def about(request):
@@ -24,9 +26,29 @@ def about(request):
 
 @login_required(login_url="entry")
 def profile_update(request):
+    profile = UserProfile.objects.filter(user=request.user).first()
+    photo_instance = profile or UserProfile(user=request.user)
+    photo_form = ProfilePhotoForm(instance=photo_instance)
     if request.method == "POST":
         profile_form = True if request.POST.get("email", False) else False
-        if profile_form:
+        if request.POST.get('profile_action') == 'avatar':
+            old_name = photo_instance.avatar.name
+            storage = photo_instance.avatar.storage
+            photo_form = ProfilePhotoForm(request.POST, request.FILES, instance=photo_instance)
+            user_form = UserUpdateForm(instance=request.user)
+            password_form = PasswordChangeForm(request.user)
+            if photo_form.is_valid():
+                photo_form.save()
+                if old_name and old_name != photo_instance.avatar.name:
+                    def delete_previous_photo():
+                        try:
+                            storage.delete(old_name)
+                        except OSError:
+                            logging.getLogger(__name__).warning('Could not remove replaced profile photo', exc_info=True)
+                    transaction.on_commit(delete_previous_photo)
+                messages.success(request, 'Фотография профиля обновлена!')
+                return redirect('profile')
+        elif profile_form:
             user_form = UserUpdateForm(request.POST, instance=request.user)
             password_form = PasswordChangeForm(request.user)
             if user_form.is_valid():
@@ -48,7 +70,7 @@ def profile_update(request):
     return render(
         request,
         "general_app/profile.html",
-        {"user_form": user_form, "password_form": password_form},
+        {"user_form": user_form, "password_form": password_form, "photo_form": photo_form, "profile": profile},
     )
 
 

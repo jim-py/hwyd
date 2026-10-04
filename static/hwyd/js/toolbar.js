@@ -1,32 +1,38 @@
-import { getCSRFToken } from '../../site/js/csrf.js';
+import { post } from './api.js';
 import { createVisibilityControls } from './visibility.js';
 import { showToast } from './toast.js';
-import { enableDialogDrag } from './dialog-drag.js';
+import { enableDialogDrag } from './dialog-drag.js?v=20261004-4';
 import { loadTop } from './top.js';
-
-async function post(url, data) {
-    const body = data instanceof FormData ? data : new URLSearchParams(data);
-    const token = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || getCSRFToken();
-    let response;
-    try {
-        response = await fetch(url, {
-            method: 'POST', credentials: 'same-origin',
-            headers: { 'X-CSRFToken': token, 'Accept': 'application/json' }, body
-        });
-    } catch {
-        throw new Error('Не удалось связаться с сервером. Попробуйте ещё раз.');
-    }
-    let result = null;
-    if (response.headers.get('Content-Type')?.includes('application/json')) result = await response.json();
-    if (!response.ok || response.redirected) {
-        throw new Error(result?.error || 'Не удалось выполнить запрос. Попробуйте ещё раз.');
-    }
-    return result;
-}
 
 const visibility = createVisibilityControls(document.getElementById('myTable'), post, showToast);
 const openers = new WeakMap();
-for (const dialog of document.querySelectorAll('#feedbackModal, #topModal')) {
+// Each section controls only its own checkboxes; radio modes and selects stay independent.
+for (const section of document.querySelectorAll('#settingsGlobal .settings-section')) {
+    const toggle = section.querySelector('[data-settings-toggle]');
+    if (!toggle) continue;
+    const options = [...section.querySelectorAll('.settings-dialog__options input[type="checkbox"]')];
+    const label = section.querySelector('[data-settings-toggle-label]');
+    const title = section.querySelector('h4').textContent;
+    const refresh = () => {
+        const count = options.filter(option => option.checked).length;
+        toggle.checked = count === options.length;
+        toggle.indeterminate = count > 0 && count < options.length;
+        label.textContent = toggle.checked ? 'Выключить всё' : 'Включить всё';
+        toggle.setAttribute('aria-label', `${label.textContent} в разделе «${title}»`);
+    };
+    toggle.addEventListener('change', () => {
+        const checked = toggle.checked;
+        for (const option of options) {
+            option.checked = checked;
+            option.dispatchEvent(new Event('change', {bubbles: true}));
+        }
+        refresh();
+    });
+    for (const option of options) option.addEventListener('change', refresh);
+    section.closest('form').addEventListener('reset', () => requestAnimationFrame(refresh));
+    refresh();
+}
+for (const dialog of document.querySelectorAll('#feedbackModal, #topModal, .toolbar-dialog[data-desktop-drag]')) {
     enableDialogDrag(dialog);
 }
 for (const button of document.querySelectorAll('[data-dialog]')) {
@@ -43,16 +49,24 @@ for (const button of document.querySelectorAll('[data-dialog]')) {
     });
 }
 for (const dialog of document.querySelectorAll('.toolbar-dialog')) {
+    let backdropPress = false;
+    const outside = event => {
+        const rect = dialog.getBoundingClientRect();
+        return event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+    };
+    dialog.addEventListener('pointerdown', event => {
+        backdropPress = event.target === dialog && outside(event);
+    });
+    dialog.addEventListener('pointercancel', () => { backdropPress = false; });
     dialog.addEventListener('click', event => {
         if (dialog.querySelector('form')?.dataset.busy) return;
         if (event.target.closest('[data-dialog-close]')) dialog.close();
         // Native backdrop clicks target the dialog, but padding clicks do not close it.
-        if (event.target === dialog) {
-            const rect = dialog.getBoundingClientRect();
-            if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) {
-                if (!dialog.querySelector('form')?.dataset.busy) dialog.close();
-            }
+        // Releasing a touch/selection that started inside is not a backdrop click.
+        if (event.target === dialog && backdropPress && outside(event)) {
+            dialog.close();
         }
+        backdropPress = false;
     });
     dialog.addEventListener('cancel', event => {
         if (dialog.querySelector('form')?.dataset.busy) event.preventDefault();

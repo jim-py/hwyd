@@ -1,18 +1,23 @@
 {% load static %}
 
 <script>
-(function() {
+window.habitusSyncTimezone = function() {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    fetch("{% url 'set_timezone' %}", {
+    return fetch("{% url 'set_timezone' %}", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": "{{ csrf_token }}"
         },
         body: JSON.stringify({ timezone: tz })
+    }).then(response => {
+      if (!response.ok) throw new Error('Timezone request failed');
+      window.dispatchEvent(new Event('habitus:timezone-ready'));
+      return tz;
     });
-})();
+};
+window.habitusTimezoneReady = window.habitusSyncTimezone().catch(() => null);
 </script>
 
 

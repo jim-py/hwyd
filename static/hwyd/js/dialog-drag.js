@@ -1,5 +1,13 @@
+const initialized = new WeakSet();
+
 export function enableDialogDrag(dialog) {
+    if (!dialog || initialized.has(dialog)) return;
     const header = dialog.querySelector('.modal__header');
+    if (!header) return;
+    initialized.add(dialog);
+    const desktopOnly = dialog.hasAttribute('data-desktop-drag');
+    const mobileInput = window.matchMedia('(max-width: 767px), (pointer: coarse)');
+    const canDrag = () => !desktopOnly || (dialog.dataset.mobile !== 'true' && !mobileInput.matches);
     let gesture = null;
     let moved = false;
 
@@ -22,6 +30,7 @@ export function enableDialogDrag(dialog) {
     }
 
     header.addEventListener('pointerdown', event => {
+        if (!canDrag() || (desktopOnly && event.pointerType !== 'mouse')) return;
         if (!dialog.open || gesture || event.button !== 0 || !event.isPrimary) return;
         if (event.target.closest('button, a, input, select, textarea')) return;
         event.preventDefault();
@@ -38,15 +47,24 @@ export function enableDialogDrag(dialog) {
             if (gesture?.pointerId === event.pointerId) stopDrag();
         });
     }
-    window.addEventListener('resize', () => {
+    function resetPosition() {
+        moved = false;
+        for (const property of ['inset', 'margin', 'left', 'top']) dialog.style.removeProperty(property);
+    }
+    function updatePlacement() {
         stopDrag();
+        if (!canDrag()) {
+            if (moved) resetPosition();
+            return;
+        }
         if (!dialog.open || !moved) return;
         const rect = dialog.getBoundingClientRect();
         place(rect.left, rect.top);
-    });
+    }
+    window.addEventListener('resize', updatePlacement);
+    if (desktopOnly) mobileInput.addEventListener('change', updatePlacement);
     dialog.addEventListener('close', () => {
         stopDrag();
-        moved = false;
-        for (const property of ['inset', 'margin', 'left', 'top']) dialog.style.removeProperty(property);
+        resetPosition();
     });
 }

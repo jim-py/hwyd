@@ -5,6 +5,13 @@
     <link rel="stylesheet" href="{% static 'hwyd/css/layout-mobile.css' %}">
 {% endif %}
 <style>
+    :root {
+        --habitus-background: {{ theme_palette.backgroundColor }};
+        --habitus-head: {{ theme_palette.tableHeadColor }};
+        --habitus-weekend: {{ theme_palette.tableHeadColorWeekend }};
+        --habitus-head-text: {{ theme_palette.tableHeadTextColor }};
+        --habitus-row-light: {{ theme_palette.rowColumnLight }};
+    }
 
     body {
         vertical-align: middle;
@@ -47,17 +54,17 @@
     }
 
     p.headParagraph {
-        background-color: {{ settings.tableHeadColor }};
-        color: {{ settings.tableHeadTextColor }};
+        background-color: var(--habitus-head);
+        color: var(--habitus-head-text);
     }
 
     p.headParagraph.weekend {
-        background-color: {{ settings.tableHeadColorWeekend }};
-        color: {{ settings.tableHeadTextColor }};
+        background-color: var(--habitus-weekend);
+        color: var(--habitus-head-text);
     }
 
     body {
-        background-color: {{ settings.backgroundColor }};
+        background-color: var(--habitus-background);
     }
 
     progress.divClick {
@@ -113,7 +120,7 @@
         }
 
         .table td:not(.activity-delete-cell):not(:has(p)):hover:before {
-            background-color: {{ settings.rowColumnLight }};
+            background-color: var(--habitus-row-light);
             content: '';
             height: 100%;
             left: -5000px;
@@ -124,7 +131,7 @@
         }
 
         .table td:not(.activity-delete-cell):not(:has(p)):hover:after {
-            background-color: {{ settings.rowColumnLight }};
+            background-color: var(--habitus-row-light);
             content: '';
             height: 10000px;
             left: 0;
@@ -153,3 +160,4 @@
     {% endif %}
 </style>
 <link rel="stylesheet" href="{% static 'hwyd/css/sortable.css' %}">
+<link rel="stylesheet" href="{% static 'hwyd/css/theme-schedule.css' %}">

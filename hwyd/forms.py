@@ -1,6 +1,6 @@
 from django import forms
-from .models import Settings, Feedback
-from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS
+from .models import Settings, Feedback, ScheduledTheme
+from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS, THEME_COLOR_FIELDS, validate_theme_color
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
@@ -32,7 +32,33 @@ class FeedbackForm(forms.ModelForm):
         fields = ['category', 'message']
 
 
+class ThemeColorsForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in THEME_COLOR_FIELDS:
+            self.fields[field].validators.append(validate_theme_color)
+
+    class Meta:
+        model = Settings
+        fields = THEME_COLOR_FIELDS
+
+
+class ScheduledThemeForm(forms.ModelForm):
+    name = forms.CharField(max_length=80, strip=True, error_messages={'required': 'Введите название темы.'})
+    activation_time = forms.TimeField(input_formats=['%H:%M'],
+                                     error_messages={'required': 'Укажите время включения.', 'invalid': 'Укажите время в формате ЧЧ:ММ.'})
+
+    class Meta:
+        model = ScheduledTheme
+        fields = ('name', 'activation_time', 'is_enabled')
+
+
 class SettingsForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in THEME_COLOR_FIELDS:
+            self.fields[field].validators.append(validate_theme_color)
+
     class Meta:
         model = Settings
         labels = {'showCompletedButton': 'Показывать кнопку выполненных привычек'}

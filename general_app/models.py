@@ -1,6 +1,25 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
+from pathlib import Path
+from uuid import uuid4
+
+
+def profile_photo_path(instance, filename):
+    return f'profiles/{instance.user_id}/{uuid4().hex}{Path(filename).suffix.lower()}'
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    avatar = models.FileField('Фотография профиля', upload_to=profile_photo_path, blank=True)
+
+    @property
+    def avatar_is_video(self):
+        return bool(self.avatar and Path(self.avatar.name).suffix.lower() == '.webm')
+
+    class Meta:
+        verbose_name = 'Профиль пользователя'
+        verbose_name_plural = 'Профили пользователей'
 
 
 class Guide(models.Model):
