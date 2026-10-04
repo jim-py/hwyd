@@ -1,17 +1,36 @@
 """Daily theme selection, shared by page rendering and the JSON endpoints."""
-from datetime import datetime, timedelta, timezone as utc_timezone
+from datetime import datetime, time, timedelta, timezone as utc_timezone
 
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
-from django.db import connections
+from django.db import connections, transaction
 from django.db.models import F
 from django.utils import timezone
 
-from .models import ScheduledTheme, Settings
+from .models import ScheduledTheme
 from .preferences import THEME_COLOR_FIELDS, THEME_COLOR_DEFAULTS, validate_theme_color
 from .timezones import browser_timezone
 
 MANUAL_THEME_KEY = 'habitus_manual_theme_until'
+DISPLAY_THEME_KEY = 'habitus_display_theme'
+DISPLAY_COLORS_KEY = 'habitus_display_colors'
+
+
+def ensure_default_themes(user):
+    """Bootstrap only an empty owner scope, sharing the CRUD/import writer lock."""
+    with transaction.atomic():
+        lock_theme_owner(user.pk)
+        if ScheduledTheme.objects.filter(user=user).exists():
+            return
+        for name, activation, colors in (
+            ('Светлая', time(8), THEME_COLOR_DEFAULTS),
+            ('Тёмная', time(20), dict(zip(THEME_COLOR_FIELDS, (
+                '#3d4b63', '#18202b', '#594052', '#293649', '#f1f5f9',
+            )))),
+        ):
+            theme = ScheduledTheme(user=user, name=name, activation_time=activation, **colors)
+            theme.full_clean()
+            theme.save()
 
 
 def lock_theme_owner(user_id, using='default'):
@@ -67,40 +86,48 @@ def next_activation(themes, now, user_timezone):
     return min(candidates) if candidates else None
 
 
-def selected_settings(user):
-    return Settings.objects.filter(user=user, selected=True).order_by('pk').first()
-
-
-def remember_manual_theme(request, preset):
+def remember_manual_theme(request, theme):
     themes = list(ScheduledTheme.objects.filter(user=request.user, is_enabled=True))
     tz = browser_timezone(request.session.get('user_timezone'))
     event = next_activation(themes, timezone.now(), tz)
     if event:
-        request.session[MANUAL_THEME_KEY] = {'preset_id': preset.pk, 'expires_at': event.timestamp()}
+        request.session[MANUAL_THEME_KEY] = {'theme_id': theme.pk, 'expires_at': event.timestamp()}
     else:
         request.session.pop(MANUAL_THEME_KEY, None)
 
 
-def schedule_state(request, preset=None, now=None, apply=False, force=False, themes=None):
+def resolve_theme(request, themes, now=None, force=False):
+    """Resolve scheduled/manual colors; retain a surviving theme if scheduling is unavailable."""
     now = now or timezone.now()
     tz = browser_timezone(request.session.get('user_timezone'))
-    themes = list(ScheduledTheme.objects.filter(user=request.user)) if themes is None else themes
-    preset = preset if preset is not None else selected_settings(request.user)
     active = current_theme(themes, now, tz)
     event = next_activation(themes, now, tz)
     override = request.session.get(MANUAL_THEME_KEY, {})
-    manual = bool(preset and override.get('preset_id') == preset.pk and override.get('expires_at', 0) > now.timestamp())
+    manual_theme = next((theme for theme in themes if theme.pk == override.get('theme_id')), None)
+    manual = bool(manual_theme and override.get('expires_at', 0) > now.timestamp())
     if force or (override and not manual):
         request.session.pop(MANUAL_THEME_KEY, None)
         manual = False
-    changed = False
-    if apply and preset and active and not manual:
-        colors = theme_colors(active, strict=True)
-        changed = any(getattr(preset, field) != value for field, value in colors.items())
-        if changed:
-            Settings.objects.filter(pk=preset.pk, user=request.user, selected=True).update(**colors)
-            for field, value in colors.items():
-                setattr(preset, field, value)
+    fallback = next((theme for theme in themes if theme.pk == request.session.get(DISPLAY_THEME_KEY)), None)
+    fallback = fallback or next((theme for theme in themes if theme.is_enabled), None)
+    fallback = fallback or (themes[0] if themes else None)
+    return (manual_theme if manual else active or fallback), active, manual, tz, event
+
+
+def display_theme(request, themes=None):
+    themes = list(ScheduledTheme.objects.filter(user=request.user)) if themes is None else themes
+    return resolve_theme(request, themes)[0]
+
+
+def schedule_state(request, now=None, apply=False, force=False, themes=None):
+    now = now or timezone.now()
+    themes = list(ScheduledTheme.objects.filter(user=request.user)) if themes is None else themes
+    theme, active, manual, tz, event = resolve_theme(request, themes, now, force)
+    colors = theme_colors(theme) if theme else None
+    changed = bool(apply and colors and request.session.get(DISPLAY_COLORS_KEY) != colors)
+    if apply and theme:
+        request.session[DISPLAY_THEME_KEY] = theme.pk
+        request.session[DISPLAY_COLORS_KEY] = colors
     return {
         'success': True,
         'themes': [{'id': theme.pk, 'name': theme.name, 'activation_time': theme.activation_time.strftime('%H:%M'),
@@ -110,6 +137,6 @@ def schedule_state(request, preset=None, now=None, apply=False, force=False, the
         'timezone': str(tz) if tz else None,
         'server_now': now.isoformat(),
         'next_change_at': event.isoformat() if event else None,
-        'colors': theme_colors(preset) if preset else None,
+        'colors': colors,
         'changed': changed,
     }

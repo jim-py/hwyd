@@ -104,7 +104,7 @@
         <div class="settings-dialog__actions">
             <button type="button" class="button-6" id="restartGuide">Обучение</button>
             <a href="#" class="button-6 jsonBtn" id="downloadJson">
-                <img src="https://cdn-icons-png.flaticon.com/512/4239/4239049.png" height=16px width=16px alt="Download" class="icon"> JSON
+                <img src="{% static 'hwyd/images/download-json.png' %}" height=16px width=16px alt="Download" class="icon"> JSON
             </a>
         </div>
     </div>
@@ -334,27 +334,27 @@ function vibrateOrHaptic() {
         <div class="activity-color-row">
             <label for="tableHeadColor*changeParagraph">Цвет фона заголовка</label>
             <input name="tableHeadColor" id="tableHeadColor*changeParagraph" type="color" autofocus
-                   value="{{ settings.tableHeadColor }}">
+                   value="{{ theme_palette.tableHeadColor }}">
         </div>
         <div class="activity-color-row">
             <label for="tableHeadColorWeekend">Цвет фона выходных</label>
             <input name="tableHeadColorWeekend" id="tableHeadColorWeekend" type="color"
-                   value="{{ settings.tableHeadColorWeekend }}">
+                   value="{{ theme_palette.tableHeadColorWeekend }}">
         </div>
         <div class="activity-color-row">
             <label for="tableHeadTextColor*changeParagraph">Цвет текста заголовка</label>
             <input name="tableHeadTextColor" id="tableHeadTextColor*changeParagraph"
-                   type="color" value="{{ settings.tableHeadTextColor }}">
+                   type="color" value="{{ theme_palette.tableHeadTextColor }}">
         </div>
         <div class="activity-color-row">
             <label for="backgroundColor">Цвет заднего фона сайта</label>
             <input name="backgroundColor" id="backgroundColor" type="color"
-                   value="{{ settings.backgroundColor }}">
+                   value="{{ theme_palette.backgroundColor }}">
         </div>
         <div class="activity-color-row">
             <label for="rowColumnLight">Цвет выделения строки и столбца</label>
             <input name="rowColumnLight" id="rowColumnLight" type="color"
-                   value="{{ settings.rowColumnLight }}">
+                   value="{{ theme_palette.rowColumnLight }}">
         </div>
 
     </form>

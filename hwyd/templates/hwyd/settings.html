@@ -6,9 +6,9 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'hwyd/css/settings.css' %}">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css"/>
-<link href="https://cdn.jsdelivr.net/combine/npm/daisyui@5/base/rootcolor.css,npm/daisyui@5/components/toggle.css,npm/daisyui@5/components/select.css,npm/daisyui@5/theme/light.css" rel="stylesheet" type="text/css" />
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<link rel="stylesheet" href="{% static 'hwyd/vendor/pickr/1.10.2/classic.min.css' %}"/>
+<link href="{% static 'hwyd/vendor/daisyui/5.7.47/settings.css' %}" rel="stylesheet" type="text/css" />
+<script src="{% static 'hwyd/vendor/tailwind/4.3.3/browser.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -52,7 +52,7 @@
         {% csrf_token %}
         <input type="hidden" name="uiVisibilityVersion" value="4">
         <div class="row g-3">
-            {% for field in form %}
+            {% for field in settings_fields %}
                 <div class="col-md-6">
                     <div class="mb-3 d-flex align-items-center justify-content-between">
                         <label class="form-label fw-semibold mb-0">{{ field.label }}</label>
@@ -94,12 +94,12 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+<script src="{% static 'hwyd/vendor/pickr/1.10.2/pickr.min.js' %}"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // document.documentElement.style.setProperty('--color-base-100', '#f0f0f0');
 
-    {% for field in form %}
+    {% for field in settings_fields %}
         {% if field.field.widget.input_type == "color" %}
         const input_{{ field.auto_id }} = document.querySelector('#{{ field.id_for_label }}');
 

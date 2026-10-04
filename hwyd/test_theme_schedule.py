@@ -7,8 +7,8 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from .models import ScheduledTheme, Settings
-from .preferences import THEME_COLOR_FIELDS
-from .theme_schedule import current_theme, next_activation, schedule_state
+from .preferences import THEME_COLOR_FIELDS, THEME_COLOR_DEFAULTS, validate_theme_color
+from .theme_schedule import current_theme, next_activation, schedule_state, ensure_default_themes
 from .timezones import browser_timezone
 from .views import create_setting
 
@@ -27,7 +27,7 @@ class ThemeScheduleTests(TestCase):
         session['user_timezone'] = 'Europe/Moscow'
         session.save()
         self.preset = Settings.objects.get(user=self.user)
-        self.colors = {field: getattr(self.preset, field) for field in THEME_COLOR_FIELDS}
+        self.colors = THEME_COLOR_DEFAULTS.copy()
         self.now = datetime(2026, 10, 4, 9, tzinfo=utc_timezone.utc) # noon in Moscow
         now = patch('hwyd.theme_schedule.timezone.now', return_value=self.now)
         now.start()
@@ -44,17 +44,19 @@ class ThemeScheduleTests(TestCase):
     def update(self, theme, **data):
         return self.client.patch(reverse('theme_schedule_update', args=[theme.pk]), data, content_type='application/json')
 
-    def test_create_copies_only_selected_owners_persisted_colors(self):
+    def test_create_copies_only_current_owners_scheduled_theme_colors(self):
         create_setting(self.user, 'Not selected')
         Settings.objects.filter(user=self.user).exclude(pk=self.preset.pk).update(selected=False, backgroundColor='#abcdef')
-        response = self.create(name='  Светлая  ', user=self.other.pk, backgroundColor='#000000')
+        source = self.theme(backgroundColor='#345678')
+        self.theme(user=self.other, backgroundColor='#fedcba')
+        response = self.create(name='  Светлая  ', activation_time='09:00', user=self.other.pk, backgroundColor='#000000')
         self.assertEqual(response.status_code, 201)
-        theme = ScheduledTheme.objects.get()
+        theme = ScheduledTheme.objects.get(pk=response.json()['theme']['id'])
         self.assertEqual(theme.user, self.user)
         self.assertEqual(theme.name, 'Светлая')
-        self.assertEqual(theme.activation_time, time(8))
-        for field, value in self.colors.items():
-            self.assertEqual(getattr(theme, field), value)
+        self.assertEqual(theme.activation_time, time(9))
+        for field in THEME_COLOR_FIELDS:
+            self.assertEqual(getattr(theme, field), getattr(source, field))
         self.assertTrue(response.json()['success'])
         self.preset.refresh_from_db()
         self.assertEqual(self.preset.backgroundColor, self.colors['backgroundColor'])
@@ -72,7 +74,7 @@ class ThemeScheduleTests(TestCase):
         from django.test import RequestFactory
         request = RequestFactory().get('/')
         request.user, request.session = self.user, {'user_timezone': 'Europe/Moscow'}
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(1):
             schedule_state(request)
 
     def test_cannot_read_edit_or_delete_foreign_theme(self):
@@ -93,16 +95,17 @@ class ThemeScheduleTests(TestCase):
         self.assertEqual(theme.backgroundColor, self.colors['backgroundColor'])
         self.assertEqual(self.update(theme, backgroundColor='#222222').status_code, 400)
 
-    def test_delete_recalculates_and_keeps_last_colors_if_none_enabled(self):
+    def test_delete_recalculates_without_writing_settings_or_bootstrapping(self):
         light = self.theme()
         dark = self.theme('Тёмная', hour=20, backgroundColor='#121212')
-        self.assertEqual(self.client.delete(reverse('theme_schedule_delete', args=[light.pk])).status_code, 200)
-        self.preset.refresh_from_db()
-        self.assertEqual(self.preset.backgroundColor, '#121212')
+        response = self.client.delete(reverse('theme_schedule_delete', args=[light.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['colors']['backgroundColor'], '#121212')
         response = self.client.delete(reverse('theme_schedule_delete', args=[dark.pk]))
         self.assertEqual(response.json()['themes'], [])
         self.preset.refresh_from_db()
-        self.assertEqual(self.preset.backgroundColor, '#121212')
+        self.assertEqual(self.preset.backgroundColor, self.colors['backgroundColor'])
+        self.assertIsNone(response.json()['colors'])
 
     def test_daily_boundaries_midnight_and_closed_browser(self):
         light = self.theme()
@@ -144,7 +147,8 @@ class ThemeScheduleTests(TestCase):
         self.assertEqual(response.json()['active_id'], light.pk)
         self.assertEqual(self.update(disabled, is_enabled=True).json()['active_id'], disabled.pk)
         self.preset.refresh_from_db()
-        self.assertEqual(self.preset.backgroundColor, '#101010')
+        self.assertEqual(self.preset.backgroundColor, self.colors['backgroundColor'])
+        self.assertEqual(self.client.post(reverse('theme_schedule_apply')).json()['colors']['backgroundColor'], '#101010')
         self.assertEqual(self.update(disabled, is_enabled=False).json()['active_id'], light.pk)
 
     def test_duplicate_active_times_are_validated_and_database_protected(self):
@@ -166,7 +170,7 @@ class ThemeScheduleTests(TestCase):
         self.assertFalse(response.json()['changed'])
         self.assertIsNone(response.json()['next_change_at'])
 
-    def test_repeated_apply_does_not_write_unchanged_settings(self):
+    def test_repeated_apply_reports_color_changes_without_writing_settings(self):
         self.theme(backgroundColor='#111111')
         self.assertTrue(self.client.post(reverse('theme_schedule_apply')).json()['changed'])
         self.assertFalse(self.client.post(reverse('theme_schedule_apply')).json()['changed'])
@@ -178,9 +182,10 @@ class ThemeScheduleTests(TestCase):
                 self.assertEqual(self.create(**data).status_code, 400)
         for body in ('[1,2]', 'bad JSON'):
             self.assertEqual(self.client.post(reverse('theme_schedule_create'), body, content_type='application/json').status_code, 400)
-        Settings.objects.filter(pk=self.preset.pk).update(backgroundColor='bad css')
-        self.assertEqual(self.create().status_code, 400)
-        self.assertFalse(ScheduledTheme.objects.exists())
+        ScheduledTheme.objects.all().delete()
+        self.theme(backgroundColor='bad css')
+        self.assertEqual(self.create(activation_time='09:00').status_code, 400)
+        self.assertEqual(ScheduledTheme.objects.count(), 1)
 
     def test_authorization_csrf_and_methods(self):
         theme = self.theme()
@@ -204,7 +209,7 @@ class ThemeScheduleTests(TestCase):
         self.assertEqual(response.status_code, 302)
         page = self.client.get(reverse('by_date', args=['2026-10']), HTTP_HOST='testserver')
         self.assertTrue(page.context['theme_schedule_state']['manual_override'])
-        self.assertEqual(page.context['settings'].backgroundColor, '#101010')
+        self.assertEqual(page.context['theme_palette']['backgroundColor'], '#101010')
         dark = self.create(name='Тёмная', activation_time='20:00').json()['theme']
         self.assertEqual(dark['colors']['backgroundColor'], '#101010')
         self.preset.refresh_from_db()
@@ -215,9 +220,10 @@ class ThemeScheduleTests(TestCase):
         self.assertFalse(state['manual_override'])
         self.assertEqual(state['active_id'], dark['id'])
         self.preset.refresh_from_db()
-        self.assertEqual(self.preset.backgroundColor, '#101010')
+        self.assertEqual(self.preset.backgroundColor, self.colors['backgroundColor'])
+        self.assertEqual(state['colors']['backgroundColor'], '#101010')
         light.refresh_from_db()
-        self.assertEqual(light.backgroundColor, self.colors['backgroundColor'])
+        self.assertEqual(light.backgroundColor, '#333333')
 
     def test_ui_includes_endpoints_and_safe_initial_data_on_desktop_and_mobile(self):
         theme = self.theme(name='<img src=x onerror=alert(1)>')
@@ -239,7 +245,7 @@ class ThemeScheduleTests(TestCase):
             self.assertContains(response, 'id="themeScheduleModal"', count=1)
             self.assertContains(response, 'hwyd/js/theme-schedule.js')
             self.assertEqual(response.context['theme_schedule_state']['active_id'], theme.pk)
-            self.assertEqual(response.context['settings'].backgroundColor, '#123456')
+            self.assertEqual(response.context['theme_palette']['backgroundColor'], '#123456')
             state = self.client.post(reverse('theme_schedule_apply')).json()
             self.assertEqual(state['active_id'], theme.pk)
         theme.refresh_from_db()
@@ -258,3 +264,118 @@ class ThemeScheduleTests(TestCase):
         now = datetime(2026, 11, 1, 6, 10, tzinfo=utc_timezone.utc) # repeated 01:10
         self.assertEqual(current_theme([previous, event], now, tz), event)
         self.assertGreater(next_activation([previous, event], now, tz), now)
+
+
+    def test_empty_page_bootstraps_two_valid_themes_once_per_owner(self):
+        self.theme(user=self.other, name='Other existing theme')
+        for page in ('by_date', 'edit_settings', 'by_date'):
+            response = self.client.get(reverse(page, args=['2026-10'] if page == 'by_date' else []), HTTP_HOST='testserver')
+            self.assertEqual(response.status_code, 200)
+            themes = list(ScheduledTheme.objects.filter(user=self.user))
+            self.assertEqual([(t.name, t.activation_time, t.is_enabled) for t in themes],
+                             [('Светлая', time(8), True), ('Тёмная', time(20), True)])
+            for theme in themes:
+                theme.full_clean()
+                for field in THEME_COLOR_FIELDS:
+                    validate_theme_color(getattr(theme, field))
+            if page == 'by_date':
+                self.assertEqual(response.context['theme_palette'], self.colors)
+        ensure_default_themes(self.user)
+        self.assertEqual(ScheduledTheme.objects.filter(user=self.user).count(), 2)
+        self.assertEqual(ScheduledTheme.objects.filter(user=self.other).count(), 1)
+
+    def test_settings_page_also_bootstraps_without_an_interface_preset(self):
+        Settings.objects.filter(user=self.user).delete()
+        self.assertEqual(self.client.get(reverse('edit_settings')).status_code, 200)
+        self.assertEqual(ScheduledTheme.objects.filter(user=self.user).count(), 2)
+
+    def test_existing_disabled_custom_theme_is_not_bootstrapped_or_overwritten(self):
+        custom = self.theme(name='Custom', enabled=False, backgroundColor='#123456')
+        before = list(ScheduledTheme.objects.values())
+        response = self.client.get(reverse('by_date', args=['2026-10']), HTTP_HOST='testserver')
+        self.assertEqual(response.context['theme_palette']['backgroundColor'], '#123456')
+        self.assertIsNone(response.context['theme_schedule_state']['active_id'])
+        self.assertEqual(list(ScheduledTheme.objects.values()), before)
+        custom.refresh_from_db()
+        self.assertFalse(custom.is_enabled)
+
+    def test_all_five_runtime_colors_ignore_legacy_settings_on_both_pages(self):
+        colors = dict(zip(THEME_COLOR_FIELDS, ('#234567', '#345678', '#456789', '#56789a', '#6789ab')))
+        theme = self.theme(**colors)
+        for legacy in ('#abcdef', '#fedcba'):
+            Settings.objects.filter(pk=self.preset.pk).update(**dict.fromkeys(THEME_COLOR_FIELDS, legacy))
+            page = self.client.get(reverse('by_date', args=['2026-10']), HTTP_HOST='testserver')
+            self.assertEqual(page.context['theme_palette'], colors)
+            self.assertEqual(page.context['theme_schedule_state']['active_id'], theme.pk)
+            for field, value in colors.items():
+                self.assertContains(page, f'value="{value}"')
+            page = self.client.get(reverse('edit_settings'))
+            fields = {field.name: field.value() for field in page.context['settings_fields']}
+            self.assertEqual({field: fields[field] for field in THEME_COLOR_FIELDS}, colors)
+            state = self.client.get(reverse('theme_schedule_list')).json()
+            self.assertEqual(state['colors'], colors)
+
+    def test_color_update_validates_and_updates_only_own_current_theme(self):
+        theme = self.theme()
+        later = self.theme(name='Later', hour=20)
+        foreign = self.theme(user=self.other)
+        before = list(Settings.objects.order_by('pk').values())
+        colors = dict.fromkeys(THEME_COLOR_FIELDS, '#123abc')
+        url = reverse('global_colors', args=['2026-10'])
+        self.assertEqual(self.client.post(url, {**colors, 'backgroundColor': 'bad css'}).status_code, 400)
+        theme.refresh_from_db()
+        self.assertEqual(theme.backgroundColor, self.colors['backgroundColor'])
+        self.assertEqual(self.client.post(url, colors).status_code, 302)
+        theme.refresh_from_db()
+        self.assertEqual({field: getattr(theme, field) for field in THEME_COLOR_FIELDS}, colors)
+        for untouched in (later, foreign):
+            untouched.refresh_from_db()
+            self.assertEqual(untouched.backgroundColor, self.colors['backgroundColor'])
+        self.assertEqual(list(Settings.objects.order_by('pk').values()), before)
+
+    def test_settings_page_saves_colors_to_theme_and_other_preferences_to_settings(self):
+        from django.forms.models import model_to_dict
+        theme = self.theme(backgroundColor='#123456')
+        colors = dict.fromkeys(THEME_COLOR_FIELDS, '#234567')
+        data = {**model_to_dict(self.preset), **colors, 'fontFamily': 'Georgia', 'vanishing': 'none', 'uiVisibilityVersion': '4'}
+        response = self.client.post(reverse('edit_settings'), data)
+        self.assertEqual(response.status_code, 302)
+        theme.refresh_from_db()
+        self.assertEqual({field: getattr(theme, field) for field in THEME_COLOR_FIELDS}, colors)
+        self.preset.refresh_from_db()
+        self.assertEqual(self.preset.fontFamily, 'Georgia')
+        self.assertEqual({field: getattr(self.preset, field) for field in THEME_COLOR_FIELDS}, self.colors)
+        data.update(backgroundColor='invalid', fontFamily='Arial')
+        response = self.client.post(reverse('edit_settings'), data)
+        self.assertEqual(response.status_code, 200)
+        self.preset.refresh_from_db()
+        theme.refresh_from_db()
+        self.assertEqual(self.preset.fontFamily, 'Georgia')
+        self.assertEqual(theme.backgroundColor, '#234567')
+
+    def test_missing_timezone_and_disabled_schedule_retain_scheduled_theme_colors(self):
+        light = self.theme(backgroundColor='#123456')
+        dark = self.theme(name='Night', hour=20, backgroundColor='#abcdef')
+        self.assertEqual(self.client.post(reverse('theme_schedule_apply')).json()['active_id'], light.pk)
+        session = self.client.session
+        session.pop('user_timezone')
+        session.save()
+        state = self.client.post(reverse('theme_schedule_apply')).json()
+        self.assertIsNone(state['active_id'])
+        self.assertEqual(state['colors']['backgroundColor'], '#123456')
+        self.update(light, is_enabled=False)
+        self.update(dark, is_enabled=False)
+        state = self.client.post(reverse('theme_schedule_apply')).json()
+        self.assertEqual(state['colors']['backgroundColor'], '#123456')
+
+    def test_selecting_interface_settings_does_not_change_theme_colors(self):
+        theme = self.theme(backgroundColor='#123456')
+        create_setting(self.user, 'Another preset')
+        another = Settings.objects.filter(user=self.user).latest('pk')
+        Settings.objects.filter(user=self.user).update(selected=False)
+        Settings.objects.filter(pk=self.preset.pk).update(selected=True)
+        self.client.get(reverse('select_setting', args=[another.pk]))
+        state = self.client.post(reverse('theme_schedule_apply')).json()
+        self.assertEqual(state['active_id'], theme.pk)
+        self.assertEqual(state['colors']['backgroundColor'], '#123456')
+        self.assertFalse(state['manual_override'])

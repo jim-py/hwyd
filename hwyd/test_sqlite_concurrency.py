@@ -11,14 +11,15 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.db import connection, connections
 from django.test import RequestFactory, SimpleTestCase
+from django.http import JsonResponse
 from django.utils import timezone
 
 from chat.models import ChatMessage, ChatReadState
 from chat.views import status
 from my_site.middleware import UserActivityLoggingMiddleware
 from .models import ScheduledTheme, Settings, UserActivityLog
-from .preferences import THEME_COLOR_FIELDS
-from .theme_schedule import schedule_state
+from .preferences import THEME_COLOR_FIELDS, THEME_COLOR_DEFAULTS
+from .theme_schedule import schedule_state, ensure_default_themes
 from .theme_views import theme_schedule_apply
 from .views import create_setting
 
@@ -93,7 +94,7 @@ class SQLiteRequestConcurrencyTests(SimpleTestCase):
             self.assertEqual(chat.result(timeout=10), 200)
             deferred.assert_not_called()
         self.assertEqual(UserActivityLog.objects.count(), 1)
-        self.assertEqual(Settings.objects.get(user=self.user).backgroundColor, '#123456')
+        self.assertEqual(Settings.objects.get(user=self.user).backgroundColor, THEME_COLOR_DEFAULTS['backgroundColor'])
 
     def test_parallel_theme_apply_and_first_visits_remain_consistent(self):
         barrier = Barrier(4)
@@ -104,4 +105,21 @@ class SQLiteRequestConcurrencyTests(SimpleTestCase):
         self.assertEqual(UserActivityLog.objects.count(), 1)
         self.assertEqual(UserActivityLog.objects.get().timezone, 'UTC')
         preset = Settings.objects.get(user=self.user)
-        self.assertEqual({field: getattr(preset, field) for field in THEME_COLOR_FIELDS}, self.colors)
+        self.assertEqual({field: getattr(preset, field) for field in THEME_COLOR_FIELDS}, THEME_COLOR_DEFAULTS)
+
+
+    def test_parallel_empty_scope_bootstrap_creates_exactly_two_themes(self):
+        ScheduledTheme.objects.filter(user=self.user).delete()
+        barrier = Barrier(4)
+
+        def themed_page(request):
+            ensure_default_themes(request.user)
+            return JsonResponse(schedule_state(request, apply=True))
+
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            requests = [pool.submit(self.request, themed_page, 'get', barrier) for _ in range(4)]
+            self.assertEqual([request.result(timeout=10) for request in requests], [200] * 4)
+        themes = list(ScheduledTheme.objects.filter(user=self.user))
+        self.assertEqual([theme.name for theme in themes], ['Светлая', 'Тёмная'])
+        self.assertEqual([theme.activation_time for theme in themes], [time(8), time(20)])
+        self.assertEqual(Settings.objects.get(user=self.user).backgroundColor, THEME_COLOR_DEFAULTS['backgroundColor'])

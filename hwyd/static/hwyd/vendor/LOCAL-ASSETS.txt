@@ -1,0 +1,28 @@
+Local frontend assets
+
+The CDN URLs in the page templates have been replaced with Django static URLs.
+Existing Font Awesome 4.7.0 CSS is reused, with its missing font files added.
+Bootstrap 5.3.8 and unminified jQuery 3.7.1 match the general-page CDN files;
+previous Habitus Bootstrap/jQuery files are intentionally unchanged.
+
+The unpinned URLs resolved to Pickr 1.10.2, DaisyUI 5.7.47,
+Tailwind browser 4.3.3 and Font Awesome kit CSS 7.3.1 at localization time.
+Font Awesome's v4/v5 font-face and v4 class shims retain the kit configuration.
+The kit loader itself is replaced by local CSS; no kit/network loader remains.
+
+Google fonts are in assets/site/vendor/google-fonts. The two original Google
+CSS requests retain all declared families, weights, styles, unicode subsets
+and font-display: swap. Shared binary URLs are stored once, even where several
+weights reference them. 54 files are unicode-subset binaries, not 54 added
+styles. No new font families or weights were requested.
+
+localized-assets.json records upstream sources and SHA-256 checksums.
+Licenses are retained alongside the libraries/fonts. CSS font URLs and two
+jsDelivr source-map comments are the only modifications to downloaded assets.
+Bootstrap and jQuery SRI attributes remain valid against the local bytes.
+
+Deployment: use the normal Django collectstatic workflow. Validation collected
+into a disposable STATIC_ROOT; tracked root static/ was not edited manually.
+Browser QA used a temporary database and a test-only Content-Security-Policy
+blocking non-local CSS, JS, fonts, images and connections. The site settings
+and production CSP were not changed.

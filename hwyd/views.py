@@ -16,6 +16,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.cache import never_cache
+from django.db import transaction
 from django.db.models import Value, BooleanField
 from django_user_agents.utils import get_user_agent
 
@@ -26,7 +27,8 @@ from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS, THEME_COLOR_FIELDS
 from .streaks import streak_position, streak_top
 from .timezones import browser_timezone
 from .year_stats import MAX_YEAR, MIN_YEAR, year_completion
-from .theme_schedule import schedule_state, remember_manual_theme, theme_colors
+from .theme_schedule import (schedule_state, remember_manual_theme, display_theme,
+                             ensure_default_themes, lock_theme_owner)
 from general_app.models import Guide, UserGuideProgress
 
 setlocale(category=LC_ALL, locale="Russian")
@@ -481,8 +483,9 @@ def by_date(request, picked_date):
         )]
         context['font_families'] = FONT_FAMILIES
         request.habitus_settings = setting
-        context['theme_schedule_state'] = schedule_state(request, preset=setting, apply=True)
-        context['theme_palette'] = theme_colors(setting)
+        ensure_default_themes(request.user)
+        context['theme_schedule_state'] = schedule_state(request, apply=True)
+        context['theme_palette'] = context['theme_schedule_state']['colors']
         return render(request, 'hwyd/base.html', context=context)
 
 
@@ -631,14 +634,15 @@ def global_colors(request, picked_date):
     :return: перенаправляет в функцию by_date
     """
 
-    settings = Settings.objects.get(user=request.user, selected=True)
-    form = ThemeColorsForm(request.POST)
-    if not form.is_valid():
-        return JsonResponse({'error': 'Цвет должен иметь формат #RRGGBB.'}, status=400)
-    for field, value in form.cleaned_data.items():
-        setattr(settings, field, value)
-    settings.save(update_fields=THEME_COLOR_FIELDS)
-    remember_manual_theme(request, settings)
+    with transaction.atomic():
+        lock_theme_owner(request.user.pk)
+        ensure_default_themes(request.user)
+        theme = display_theme(request)
+        form = ThemeColorsForm(request.POST, instance=theme)
+        if not form.is_valid():
+            return JsonResponse({'error': 'Цвет должен иметь формат #RRGGBB.'}, status=400)
+        form.save()
+        remember_manual_theme(request, theme)
 
     return redirect('by_date', picked_date)
 
@@ -797,9 +801,6 @@ def change_setting(request):
             setting.selected = True
             update_settings.append(setting)
     Settings.objects.bulk_update(update_settings, fields=['selected'])
-    chosen = next((setting for setting in settings if setting.pk == pk_sett), None)
-    if chosen:
-        remember_manual_theme(request, chosen)
 
     return HttpResponse()
 
@@ -968,9 +969,11 @@ def export_data_as_json(request):
 def edit_settings(request):
     settings_list = Settings.objects.filter(user=request.user).order_by('name')
     current_setting = settings_list.filter(selected=True).first()
+    ensure_default_themes(request.user)
+    theme = display_theme(request)
+    color_form = ThemeColorsForm(instance=theme)
 
     if request.method == 'POST' and current_setting:
-        old_colors = theme_colors(current_setting)
         data = request.POST.copy()
         if request.POST.get('uiVisibilityVersion') not in ('3', '4'):
             # Older settings pages did not contain the new checkbox.
@@ -984,11 +987,19 @@ def edit_settings(request):
             else:
                 data.pop('showThemeSchedule', None)
         form = SettingsForm(data, instance=current_setting)
-        if form.is_valid():
-            saved = form.save()
-            if theme_colors(saved) != old_colors:
-                remember_manual_theme(request, saved)
-            return redirect('edit_settings')
+        has_colors = any(field in data for field in THEME_COLOR_FIELDS)
+        with transaction.atomic():
+            lock_theme_owner(request.user.pk)
+            if has_colors:
+                ensure_default_themes(request.user)
+                theme = display_theme(request)
+                color_form = ThemeColorsForm(data, instance=theme)
+            if form.is_valid() and (not has_colors or color_form.is_valid()):
+                form.save()
+                if has_colors:
+                    color_form.save()
+                    remember_manual_theme(request, theme)
+                return redirect('edit_settings')
     else:
         form = SettingsForm(instance=current_setting) if current_setting else None
 
@@ -996,6 +1007,7 @@ def edit_settings(request):
         'settings_list': settings_list,
         'current_setting': current_setting,
         'form': form,
+        'settings_fields': [*color_form, *form] if form else [],
     }
     return render(request, 'hwyd/settings.html', context)
 
@@ -1017,6 +1029,5 @@ def select_setting(request, pk):
     # Отмечаем выбранную
     setting.selected = True
     setting.save(update_fields=["selected"])
-    remember_manual_theme(request, setting)
 
     return redirect('edit_settings')

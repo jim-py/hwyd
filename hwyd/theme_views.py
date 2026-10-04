@@ -8,7 +8,7 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 
 from .forms import ScheduledThemeForm
 from .models import ScheduledTheme
-from .theme_schedule import lock_theme_owner, schedule_state, selected_settings, theme_colors
+from .theme_schedule import lock_theme_owner, schedule_state, display_theme, theme_colors, ensure_default_themes
 
 
 def error(message, status=400):
@@ -61,10 +61,9 @@ def save_theme(request, pk=None):
         with transaction.atomic():
             lock_owner(request)
             if pk is None:
-                preset = selected_settings(request.user)
-                if preset is None:
-                    return error('Сначала выберите настройки интерфейса.', 409)
-                theme = ScheduledTheme(user=request.user, **theme_colors(preset, strict=True))
+                ensure_default_themes(request.user)
+                source = display_theme(request)
+                theme = ScheduledTheme(user=request.user, **theme_colors(source, strict=True))
             else:
                 theme = ScheduledTheme.objects.filter(pk=pk, user=request.user).first()
                 if theme is None:

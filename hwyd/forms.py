@@ -1,6 +1,6 @@
 from django import forms
 from .models import Settings, Feedback, ScheduledTheme
-from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS, THEME_COLOR_FIELDS, validate_theme_color
+from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS, THEME_COLOR_FIELDS
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
@@ -33,14 +33,13 @@ class FeedbackForm(forms.ModelForm):
 
 
 class ThemeColorsForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in THEME_COLOR_FIELDS:
-            self.fields[field].validators.append(validate_theme_color)
-
     class Meta:
-        model = Settings
+        model = ScheduledTheme
         fields = THEME_COLOR_FIELDS
+        widgets = {
+            field: forms.TextInput(attrs={'type': 'color', 'class': 'form-control form-control-color'})
+            for field in THEME_COLOR_FIELDS
+        }
 
 
 class ScheduledThemeForm(forms.ModelForm):
@@ -54,19 +53,10 @@ class ScheduledThemeForm(forms.ModelForm):
 
 
 class SettingsForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in THEME_COLOR_FIELDS:
-            self.fields[field].validators.append(validate_theme_color)
-
     class Meta:
         model = Settings
         labels = {'showCompletedButton': 'Показывать кнопку выполненных привычек'}
         fields = [
-            "backgroundColor",
-            "tableHeadColorWeekend",
-            "tableHeadColor",
-            "tableHeadTextColor",
             "showCalendar",
             "showCreateActivity",
             "showCreateActivityGroup",
@@ -77,7 +67,6 @@ class SettingsForm(forms.ModelForm):
             "onSounds",
             "showRowColumnLight",
             "showActivityDayLight",
-            "rowColumnLight",
             "fontFamily",
             "showOpenAllGroups",
             "showTabs",
@@ -85,21 +74,6 @@ class SettingsForm(forms.ModelForm):
             *UI_VISIBILITY_FIELDS,
         ]
         widgets = {
-            "backgroundColor": forms.TextInput(
-                attrs={"type": "color", "class": "form-control form-control-color"}
-            ),
-            "tableHeadColorWeekend": forms.TextInput(
-                attrs={"type": "color", "class": "form-control form-control-color"}
-            ),
-            "tableHeadColor": forms.TextInput(
-                attrs={"type": "color", "class": "form-control form-control-color"}
-            ),
-            "tableHeadTextColor": forms.TextInput(
-                attrs={"type": "color", "class": "form-control form-control-color"}
-            ),
-            "rowColumnLight": forms.TextInput(
-                attrs={"type": "color", "class": "form-control form-control-color"}
-            ),
             "fontFamily": forms.Select(
                 choices=[(font, font) for font in FONT_FAMILIES],
                 attrs={"class": "form-select", "style": "font-family: inherit;"},
