@@ -1,6 +1,6 @@
 from django import forms
 from .models import Settings, Feedback, ScheduledTheme
-from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS, THEME_COLOR_FIELDS
+from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS, THEME_COLOR_FIELDS, validate_theme_color
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
@@ -34,12 +34,44 @@ class FeedbackForm(forms.ModelForm):
 
 class ThemeColorsForm(forms.ModelForm):
     class Meta:
-        model = ScheduledTheme
+        model = Settings
         fields = THEME_COLOR_FIELDS
         widgets = {
             field: forms.TextInput(attrs={'type': 'color', 'class': 'form-control form-control-color'})
             for field in THEME_COLOR_FIELDS
         }
+
+    def clean(self):
+        data = super().clean()
+        for field in THEME_COLOR_FIELDS:
+            if field in data:
+                try:
+                    validate_theme_color(data[field])
+                except forms.ValidationError as exc:
+                    self.add_error(field, exc)
+        return data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            if isinstance(instance, Settings) and instance.pk:
+                # The separate preferences form may have updated the same row.
+                instance.save(update_fields=THEME_COLOR_FIELDS)
+            else:
+                instance.save()
+            self.save_m2m()
+        return instance
+
+
+class ScheduledThemeColorsForm(ThemeColorsForm):
+    class Meta(ThemeColorsForm.Meta):
+        model = ScheduledTheme
+
+
+def theme_colors_form(*args, **kwargs):
+    from .theme_schedule import scheduled_colors_enabled
+    form_class = ScheduledThemeColorsForm if scheduled_colors_enabled() else ThemeColorsForm
+    return form_class(*args, **kwargs)
 
 
 class ScheduledThemeForm(forms.ModelForm):

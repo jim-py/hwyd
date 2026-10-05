@@ -8,7 +8,8 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 
 from .forms import ScheduledThemeForm
 from .models import ScheduledTheme
-from .theme_schedule import lock_theme_owner, schedule_state, display_theme, theme_colors, ensure_default_themes
+from .theme_schedule import (lock_theme_owner, schedule_state, display_theme, theme_colors,
+                             ensure_default_themes, scheduled_colors_enabled)
 from .view_as import get_viewed_user, preview_read_only
 
 
@@ -59,6 +60,8 @@ def theme_schedule_update(request, pk):
 def save_theme(request, pk=None):
     if not request.user.is_authenticated:
         return error('Войдите в аккаунт.', 401)
+    if not scheduled_colors_enabled():
+        return error('Расписание тем временно отключено: цвета сохраняются в настройках.', 503)
     try:
         data = payload(request)
         with transaction.atomic():
@@ -100,6 +103,8 @@ def save_theme(request, pk=None):
 def theme_schedule_delete(request, pk):
     if not request.user.is_authenticated:
         return error('Войдите в аккаунт.', 401)
+    if not scheduled_colors_enabled():
+        return error('Расписание тем временно отключено: цвета сохраняются в настройках.', 503)
     with transaction.atomic():
         lock_owner(request)
         theme = ScheduledTheme.objects.filter(pk=pk, user=request.user).first()

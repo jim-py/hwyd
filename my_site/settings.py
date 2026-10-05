@@ -114,6 +114,9 @@ CSRF_COOKIE_SECURE = True
 # Exact parent origins; 127.0.0.1 is deliberately a separate permission.
 HABITUS_FRAME_ORIGINS = ("http://localhost:5173",)
 
+# Temporary rollback: theme colors belong to the selected Settings preset.
+USE_SCHEDULED_THEME_COLORS = False
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

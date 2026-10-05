@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from .models import ScheduledTheme, Settings
@@ -13,6 +13,7 @@ from .timezones import browser_timezone
 from .views import create_setting
 
 
+@override_settings(USE_SCHEDULED_THEME_COLORS=True)
 class ThemeScheduleTests(TestCase):
     @classmethod
     def setUpTestData(cls):

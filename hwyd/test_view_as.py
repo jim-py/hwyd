@@ -3,7 +3,7 @@ from datetime import datetime, time, timedelta, timezone
 from unittest.mock import patch
 
 from django.contrib.auth import SESSION_KEY, get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from general_app.models import Guide, UserGuideProgress
@@ -15,6 +15,7 @@ from .views import create_setting
 NOW = datetime(2026, 10, 4, 12, tzinfo=timezone.utc)
 
 
+@override_settings(USE_SCHEDULED_THEME_COLORS=True)
 class ViewAsTests(TestCase):
     @classmethod
     def setUpTestData(cls):

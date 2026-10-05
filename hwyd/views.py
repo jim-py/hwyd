@@ -23,14 +23,14 @@ from django.db.models import Value, BooleanField
 from django_user_agents.utils import get_user_agent
 
 # Импорты из локальных модулей приложения
-from .forms import LoginForm, RegisterForm, SettingsForm, FeedbackForm, ThemeColorsForm
+from .forms import LoginForm, RegisterForm, SettingsForm, FeedbackForm, theme_colors_form
 from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, UserActivityLog
 from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS, THEME_COLOR_FIELDS
 from .streaks import streak_position, streak_top
 from .timezones import browser_timezone
 from .year_stats import MAX_YEAR, MIN_YEAR, year_completion
 from .theme_schedule import (schedule_state, remember_manual_theme, display_theme,
-                             ensure_default_themes, lock_theme_owner)
+                             ensure_default_themes, lock_theme_owner, scheduled_colors_enabled)
 from .view_as import get_viewed_user, is_view_as, preview_requested, preview_read_only, view_as_context
 from general_app.models import Guide, UserGuideProgress
 
@@ -501,6 +501,7 @@ def by_date(request, picked_date):
             ensure_default_themes(request.user)
         context['theme_schedule_state'] = schedule_state(request, apply=not preview, user=viewed_user)
         context['theme_palette'] = context['theme_schedule_state']['colors']
+        context['scheduled_theme_colors_enabled'] = scheduled_colors_enabled()
         return render(request, 'hwyd/base.html', context=context)
 
 
@@ -661,7 +662,10 @@ def global_colors(request, picked_date):
         lock_theme_owner(request.user.pk)
         ensure_default_themes(request.user)
         theme = display_theme(request)
-        form = ThemeColorsForm(request.POST, instance=theme)
+        if not scheduled_colors_enabled() and theme.pk is None:
+            create_setting(request.user, 'default')
+            theme = display_theme(request)
+        form = theme_colors_form(request.POST, instance=theme)
         if not form.is_valid():
             return JsonResponse({'error': 'Цвет должен иметь формат #RRGGBB.'}, status=400)
         form.save()
@@ -1011,7 +1015,7 @@ def edit_settings(request):
     current_setting = settings_list.filter(selected=True).first()
     ensure_default_themes(request.user)
     theme = display_theme(request)
-    color_form = ThemeColorsForm(instance=theme)
+    color_form = theme_colors_form(instance=theme)
 
     if request.method == 'POST' and current_setting:
         data = request.POST.copy()
@@ -1033,7 +1037,7 @@ def edit_settings(request):
             if has_colors:
                 ensure_default_themes(request.user)
                 theme = display_theme(request)
-                color_form = ThemeColorsForm(data, instance=theme)
+                color_form = theme_colors_form(data, instance=theme)
             if form.is_valid() and (not has_colors or color_form.is_valid()):
                 form.save()
                 if has_colors:

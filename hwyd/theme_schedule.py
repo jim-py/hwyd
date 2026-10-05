@@ -2,18 +2,33 @@
 from datetime import datetime, time, timedelta, timezone as utc_timezone
 
 from django.core.exceptions import ValidationError
+from django.conf import settings as django_settings
 from django.contrib.auth import get_user_model
 from django.db import connections, transaction
 from django.db.models import F
 from django.utils import timezone
 
-from .models import ScheduledTheme, UserActivityLog
+from .models import ScheduledTheme, Settings, UserActivityLog
 from .preferences import THEME_COLOR_FIELDS, THEME_COLOR_DEFAULTS, validate_theme_color
 from .timezones import browser_timezone
 
 MANUAL_THEME_KEY = 'habitus_manual_theme_until'
 DISPLAY_THEME_KEY = 'habitus_display_theme'
 DISPLAY_COLORS_KEY = 'habitus_display_colors'
+
+
+def scheduled_colors_enabled():
+    return django_settings.USE_SCHEDULED_THEME_COLORS
+
+
+def settings_palette_source(request, user=None):
+    user = request.user if user is None else user
+    preset = getattr(request, 'habitus_settings', None)
+    if isinstance(preset, Settings) and preset.user_id == user.pk:
+        return preset
+    presets = Settings.objects.filter(user=user)
+    return (presets.filter(selected=True).first() or presets.first() or
+            Settings(user=user, **THEME_COLOR_DEFAULTS))
 
 
 def default_themes(user):
@@ -47,6 +62,8 @@ def presentation_session(request, user=None):
 
 def ensure_default_themes(user):
     """Bootstrap only an empty owner scope, sharing the CRUD/import writer lock."""
+    if not scheduled_colors_enabled():
+        return
     with transaction.atomic():
         lock_theme_owner(user.pk)
         if ScheduledTheme.objects.filter(user=user).exists():
@@ -110,6 +127,8 @@ def next_activation(themes, now, user_timezone):
 
 
 def remember_manual_theme(request, theme):
+    if not scheduled_colors_enabled():
+        return
     themes = list(ScheduledTheme.objects.filter(user=request.user, is_enabled=True))
     tz = browser_timezone(request.session.get('user_timezone'))
     event = next_activation(themes, timezone.now(), tz)
@@ -139,6 +158,8 @@ def resolve_theme(request, themes, now=None, force=False, session=None):
 
 
 def display_theme(request, themes=None):
+    if not scheduled_colors_enabled():
+        return settings_palette_source(request)
     themes = list(ScheduledTheme.objects.filter(user=request.user)) if themes is None else themes
     return resolve_theme(request, themes)[0]
 
@@ -146,6 +167,15 @@ def display_theme(request, themes=None):
 def schedule_state(request, now=None, apply=False, force=False, themes=None, user=None):
     now = now or timezone.now()
     user = request.user if user is None else user
+    if not scheduled_colors_enabled():
+        # Ignore old scheduled/manual session state and do not touch its table.
+        tz = browser_timezone(presentation_session(request, user).get('user_timezone'))
+        return {
+            'success': True, 'themes': [], 'active_id': None, 'manual_override': False,
+            'timezone': str(tz) if tz else None, 'server_now': now.isoformat(),
+            'next_change_at': None, 'colors': theme_colors(settings_palette_source(request, user)),
+            'changed': False,
+        }
     preview = user.pk != request.user.pk
     if themes is None:
         themes = preview_themes(user) if preview else list(ScheduledTheme.objects.filter(user=user))

@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.db import connection, connections
-from django.test import RequestFactory, SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase, override_settings
 from django.http import JsonResponse
 from django.utils import timezone
 
@@ -25,6 +25,7 @@ from .views import create_setting
 
 
 @skipUnless(connection.vendor == 'sqlite', 'SQLite-specific locking regression')
+@override_settings(USE_SCHEDULED_THEME_COLORS=True)
 class SQLiteRequestConcurrencyTests(SimpleTestCase):
     databases = {'default'}
 

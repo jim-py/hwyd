@@ -114,10 +114,13 @@
 
 
 <div id="divButtons" class="toolbar">
+    {% if scheduled_theme_colors_enabled %}
     <button id="themeScheduleButton" type="button" data-dialog="themeScheduleModal" aria-controls="themeScheduleModal"
             title="Расписание тем" aria-label="Расписание тем"{% if not settings.showThemeSchedule %} hidden{% endif %}>
         <i class="fa-solid fa-clock" aria-hidden="true"></i>
     </button>
+
+    {% endif %}
 
     {% if request.user.is_authenticated %}
     <button id="buttonChat"{% if is_view_as %} disabled{% endif %} type="button"{% if not settings.showChat %} hidden{% endif %} title="Чат" aria-label="Чат" aria-controls="chatDialog">
@@ -207,7 +210,9 @@
     <span class="habitus-toast__text"></span>
 </div>
 {% include 'hwyd/toolbar_dialogs.html' %}
+{% if scheduled_theme_colors_enabled %}
 {% include 'hwyd/theme_schedule_dialog.html' %}
+{% endif %}
 
 <script>
 function vibrateOrHaptic() {

@@ -1,6 +1,8 @@
 {% load static %}
 <script type="module" src="{% static 'hwyd/js/theme-colors.js' %}"></script>
+{% if scheduled_theme_colors_enabled %}
 <script type="module" src="{% static 'hwyd/js/theme-schedule.js' %}?v=20261004-6"></script>
+{% endif %}
 {% load tags %}
 
 
