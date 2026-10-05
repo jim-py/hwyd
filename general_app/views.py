@@ -155,6 +155,8 @@ class LoginRegisterView(View):
         )
 
 
+@method_decorator(xframe_options_exempt, name='dispatch')
+@method_decorator(local_dashboard_frame_ancestors, name='dispatch')
 class HomeView(TemplateView):
     template_name = "general_app/home.html"
 

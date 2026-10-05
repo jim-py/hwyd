@@ -1,4 +1,4 @@
-"""The frame policy for the tracker and its login page only."""
+"""The frame policy for the tracker, login page and landing page."""
 from functools import wraps
 
 from django.conf import settings

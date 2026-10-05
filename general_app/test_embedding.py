@@ -44,13 +44,14 @@ class EmbeddingTests(TestCase):
         self.assertEqual(response['Content-Security-Policy'], POLICY)
         self.assertNotIn('127.0.0.1', response['Content-Security-Policy'])
 
-    def test_only_tracker_and_entry_have_frame_exemptions(self):
-        for name in ('index', 'entry'):
+    def test_tracker_entry_and_home_allow_the_configured_parent_origin(self):
+        for name in ('index', 'entry', 'home'):
             self.assert_embeddable(self.client.get(reverse(name), secure=True))
         self.assert_embeddable(self.client.get(self.page, secure=True))
         self.client.force_login(self.user)
         self.assert_embeddable(self.client.get(self.page, secure=True, HTTP_HOST='testserver'))
-        for name in ('home', 'about', 'profile', 'edit_settings', 'admin:login'):
+        self.assert_embeddable(self.client.get(reverse('home'), secure=True, HTTP_HOST='testserver'))
+        for name in ('about', 'profile', 'edit_settings', 'admin:login'):
             with self.subTest(name=name):
                 response = self.client.get(reverse(name), secure=True, HTTP_HOST='testserver')
                 self.assertEqual(response['X-Frame-Options'], 'DENY')

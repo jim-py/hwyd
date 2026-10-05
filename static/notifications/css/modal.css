@@ -1,4 +1,4 @@
-/* Фон модала */
+/* Match Habitus toolbar dialogs without loading tracker styles on public pages. */
 .notif-modal {
   position: fixed;
   inset: 0;
@@ -6,137 +6,111 @@
   align-items: center;
   justify-content: center;
   z-index: 2000;
+  background: rgba(0, 0, 0, 0.1);
+  visibility: hidden;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease;
-  margin-bottom: 1rem;
+  transition: opacity 160ms ease, visibility 0s linear 160ms;
 }
-
 .notif-modal[aria-hidden="false"] {
+  visibility: visible;
   opacity: 1;
   pointer-events: auto;
+  transition-delay: 0s;
 }
-
-/* Диалоговое окно */
 .notif-modal__dialog {
-  width: 100%;
-  max-width: 600px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px -4px rgba(0,0,0,0.10), 0 1.5px 6px 0 rgba(0,0,0,0.08), 0 0.5px 0.5px 0 rgba(0,0,0,0.12);
-  border: 2px solid #cacaca;
-  overflow: hidden;
-  transform: scale(0.9);
-  opacity: 0;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-  animation: fadeIn 0.3s forwards;
-}
-
-.notif-modal[aria-hidden="false"] .notif-modal__dialog {
-  transform: scale(1);
-  opacity: 1;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.notif-modal__header {
-  padding: 1rem 1.5rem;
+  box-sizing: border-box;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #c7c7c7;
+  border-radius: 15px;
+  background: #fff;
+  color: #222;
+}
+.notif-modal__header {
+  display: flex;
+  flex-shrink: 0;
   align-items: center;
-  border-bottom: 1px solid #eee;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
 }
-
 .notif-modal__header h3 {
+  min-width: 0;
   margin: 0;
-  font-size: 1.25rem;
-  color: #333;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
-
 .notif-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
   cursor: pointer;
-  transition: color 0.2s ease;
 }
-
-.notif-close:hover {
-  color: #ff4d4f;
-}
-
+.notif-close img { display: block; width: 25px; height: 25px; }
 .notif-modal__body {
-  padding: 1rem 1.5rem;
-  max-height: 60vh;
+  min-height: 0;
+  margin: 0;
+  padding: 15px 20px;
   overflow-y: auto;
-  color: #555;
+  overflow-wrap: anywhere;
+  font-weight: 400;
   line-height: 1.5;
-  animation: bodyFade 0.5s ease;
 }
-
-@keyframes bodyFade {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+.notif-modal__body > :first-child { margin-top: 0; }
+.notif-modal__body > :last-child { margin-bottom: 0; }
+.notif-modal__body img,
+.notif-modal__body video { max-width: 100%; height: auto; }
+.notif-modal__body pre { max-width: 100%; overflow-x: auto; }
 .notif-modal__footer {
-  padding: 0.75rem 1.5rem;
-  text-align: right;
-  border-top: 1px solid #eee;
+  display: flex;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px;
+  border-top: 1px solid #e0e0e0;
 }
-
 .notif-btn {
-  padding: 0.5rem 1.25rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  background: #007bff;
+  box-sizing: border-box;
+  min-width: 88px;
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid #4071f4;
+  border-radius: .25rem;
+  background: #4071f4;
   color: #fff;
-  font-weight: 500;
-  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 250ms ease, box-shadow 250ms ease, transform 250ms ease;
 }
-
-.notif-btn:hover {
-  background: #0056b3;
-  transform: translateY(-2px);
+.notif-btn:hover { background: #2856bf; box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px; transform: translateY(-1px); }
+.notif-btn:active { transform: translateY(0); }
+.notif-close:focus-visible,
+.notif-btn:focus-visible { outline: 2px solid #4071f4; outline-offset: 2px; }
+@media (max-width: 1023px) {
+  .notif-modal__body { padding: 16px; }
+  .notif-close { width: 40px; height: 40px; }
+  .notif-btn { min-height: 44px; }
 }
-
-@media (max-width: 600px) {
-  .notif-modal__dialog {
-    max-width: 95%;
-    border-radius: 10px;
-  }
-
-  .notif-modal__body {
-    font-size: 0.95rem;
-  }
-
-  .notif-modal__header h3 {
-    font-size: 1.1rem;
-  }
-
-  .notif-btn {
-    width: 100%;
-  }
-
-  .notif-modal__footer {
-    text-align: center;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .notif-modal, .notif-btn { transition: none; }
 }
