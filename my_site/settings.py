@@ -111,13 +111,15 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SECURE = True
 
-# Exact parent origins; 127.0.0.1 is deliberately a separate permission.
+# Site-wide parent origins except /admin/; 127.0.0.1 is a separate permission.
 HABITUS_FRAME_ORIGINS = ("http://localhost:5173",)
 
 # Temporary rollback: theme colors belong to the selected Settings preset.
 USE_SCHEDULED_THEME_COLORS = False
 
 MIDDLEWARE = [
+    # Outermost so redirects, errors and early middleware responses get a policy.
+    'my_site.embedding.SiteFramePolicyMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -125,7 +127,6 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'django_user_agents.middleware.UserAgentMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',

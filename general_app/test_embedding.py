@@ -6,7 +6,7 @@ from django.test import Client, RequestFactory, SimpleTestCase, TestCase, overri
 from django.urls import reverse
 
 from hwyd.models import Activities
-from my_site.embedding import local_dashboard_frame_ancestors
+from my_site.embedding import SiteFramePolicyMiddleware
 
 
 POLICY = "frame-ancestors 'self' http://localhost:5173"
@@ -17,19 +17,37 @@ class FramePolicyTests(SimpleTestCase):
         original = ("default-src 'self'; frame-ancestors 'none'; script-src 'self' 'nonce-abc', "
                     "img-src 'self' data:; FRAME-ANCESTORS https://old.example; frame-ancestors *")
 
-        @local_dashboard_frame_ancestors
         def view(request):
             return HttpResponse(headers={'Content-Security-Policy': original})
 
-        response = view(RequestFactory().get('/'))
+        response = SiteFramePolicyMiddleware(view)(RequestFactory().get('/'))
         self.assertEqual(response['Content-Security-Policy'],
                          f"default-src 'self'; script-src 'self' 'nonce-abc'; {POLICY}, "
                          f"img-src 'self' data:; {POLICY}")
 
     @override_settings(HABITUS_FRAME_ORIGINS=('http://localhost:5173', 'http://127.0.0.1:5173'))
     def test_loopback_ip_requires_an_explicit_separate_origin(self):
-        response = local_dashboard_frame_ancestors(lambda request: HttpResponse())(RequestFactory().get('/'))
+        response = SiteFramePolicyMiddleware(lambda request: HttpResponse())(RequestFactory().get('/'))
         self.assertEqual(response['Content-Security-Policy'], POLICY + ' http://127.0.0.1:5173')
+
+    def test_admin_prefix_is_denied_even_if_view_sets_a_permissive_policy(self):
+        for path in ('/admin', '/admin/', '/admin/login/', '/admin/auth/user/add/', '/admin/missing/'):
+            with self.subTest(path=path):
+                middleware = SiteFramePolicyMiddleware(lambda request: HttpResponse(headers={
+                    'X-Frame-Options': 'SAMEORIGIN', 'Content-Security-Policy': POLICY}))
+                response = middleware(RequestFactory().get(path))
+                self.assertEqual(response['X-Frame-Options'], 'DENY')
+                self.assertEqual(response['Content-Security-Policy'], "frame-ancestors 'none'")
+
+    def test_policy_applies_to_redirects_errors_and_non_admin_paths(self):
+        for path in ('/home/', '/habitus/chat/status/', '/administration/', '/unknown/'):
+            for status in (200, 302, 403, 404, 500):
+                with self.subTest(path=path, status=status):
+                    response = SiteFramePolicyMiddleware(lambda request: HttpResponse(
+                        status=status, headers={'X-Frame-Options': 'DENY'}))(RequestFactory().get(path))
+                    self.assertEqual(response.status_code, status)
+                    self.assertNotIn('X-Frame-Options', response)
+                    self.assertEqual(response['Content-Security-Policy'], POLICY)
 
 
 class EmbeddingTests(TestCase):
@@ -44,18 +62,22 @@ class EmbeddingTests(TestCase):
         self.assertEqual(response['Content-Security-Policy'], POLICY)
         self.assertNotIn('127.0.0.1', response['Content-Security-Policy'])
 
-    def test_tracker_entry_and_home_allow_the_configured_parent_origin(self):
-        for name in ('index', 'entry', 'home'):
+    def test_all_pages_except_admin_allow_the_configured_parent_origin(self):
+        for name in ('index', 'entry', 'home', 'about', 'profile', 'edit_settings', 'service_worker'):
             self.assert_embeddable(self.client.get(reverse(name), secure=True))
+        for path in ('/', '/hwyd/', '/habitus/chat/status/', '/unknown/'):
+            self.assert_embeddable(self.client.get(path, secure=True))
         self.assert_embeddable(self.client.get(self.page, secure=True))
         self.client.force_login(self.user)
         self.assert_embeddable(self.client.get(self.page, secure=True, HTTP_HOST='testserver'))
         self.assert_embeddable(self.client.get(reverse('home'), secure=True, HTTP_HOST='testserver'))
-        for name in ('about', 'profile', 'edit_settings', 'admin:login'):
-            with self.subTest(name=name):
-                response = self.client.get(reverse(name), secure=True, HTTP_HOST='testserver')
+        for name in ('about', 'profile', 'edit_settings'):
+            self.assert_embeddable(self.client.get(reverse(name), secure=True, HTTP_HOST='testserver'))
+        for path in (reverse('admin:login'), '/admin', '/admin/', '/admin/auth/user/', '/admin/missing/'):
+            with self.subTest(path=path):
+                response = self.client.get(path, secure=True, HTTP_HOST='testserver')
                 self.assertEqual(response['X-Frame-Options'], 'DENY')
-                self.assertNotIn('Content-Security-Policy', response)
+                self.assertEqual(response['Content-Security-Policy'], "frame-ancestors 'none'")
 
     def csrf_client(self):
         client = Client(enforce_csrf_checks=True, HTTP_HOST='testserver')
@@ -63,6 +85,16 @@ class EmbeddingTests(TestCase):
         response = client.get(url, secure=True)
         self.assert_embeddable(response)
         return client, url
+
+    @override_settings(SECURE_SSL_REDIRECT=True)
+    def test_early_https_redirect_gets_the_same_frame_policy(self):
+        response = self.client.get(reverse('about'), HTTP_HOST='testserver')
+        self.assertEqual(response.status_code, 301)
+        self.assert_embeddable(response)
+        response = self.client.get(reverse('admin:login'), HTTP_HOST='testserver')
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response['X-Frame-Options'], 'DENY')
+        self.assertEqual(response['Content-Security-Policy'], "frame-ancestors 'none'")
 
     def login(self, client, url, **overrides):
         data = {'username': self.user.username, 'password': 'iframe-test-password-42', 'login': '',
