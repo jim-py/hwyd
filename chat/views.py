@@ -10,6 +10,8 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
+from general_app.user_roles import display_role
+
 from .models import ChatMessage, ChatReadState, MESSAGE_MAX_LENGTH
 
 
@@ -55,6 +57,7 @@ def serialize(message, user):
     return {
         'id': message.pk,
         'sender': display_name(message.sender),
+        'sender_role': display_role(message.sender),
         'sender_id': message.sender_id,
         'text': message.text,
         'created_at': message.created_at.isoformat(),
@@ -63,6 +66,7 @@ def serialize(message, user):
         'is_deleted': message.deleted_at is not None,
         'reply_to': {
             'id': target.pk, 'sender': display_name(target.sender),
+            'sender_role': display_role(target.sender),
             'text': target.text[:160] if target.deleted_at is None else '',
             # Bounded lookahead lets the client avoid cutting a composed emoji
             # at the 160-codepoint preview boundary. Keep the original API text.

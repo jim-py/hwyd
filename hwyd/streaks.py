@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db.models import DateField, Exists, ExpressionWrapper, F, Func, IntegerField, OuterRef, Q, Subquery
 from django.db.models.functions import Coalesce
 
+from general_app.user_roles import display_role
+
 from .models import UserActivityLog
 
 
@@ -59,11 +61,13 @@ def streak_position(user, *, include_rank=True):
 
 def streak_top(user):
     leaders = (users_with_login_streak().filter(is_active=True, login_streak__gt=0)
-               .only('pk', 'username', 'first_name').order_by('-login_streak', 'username', 'pk')[:10])
+               .only('pk', 'username', 'first_name', 'is_staff', 'is_superuser')
+               .order_by('-login_streak', 'username', 'pk')[:10])
     rows = []
     current = None
     for position, leader in enumerate(leaders, 1):
         rows.append({'rank': position, 'name': leader.first_name.strip() or leader.username,
+                     'role': display_role(leader),
                      'streak': leader.login_streak, 'is_own': leader.pk == user.pk})
         if leader.pk == user.pk:
             current = {'rank': position, 'streak': leader.login_streak}

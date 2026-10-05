@@ -1,4 +1,5 @@
 import {viewAsURL} from './view-as.js';
+import {renderUserName} from '../../site/js/user-name.js';
 
 const dialog = document.getElementById('topModal');
 const status = document.getElementById('topStatus');
@@ -29,7 +30,7 @@ export async function loadTop() {
             rank.setAttribute('aria-label', `Место ${leader.rank}`);
             const name = document.createElement('span');
             name.className = 'streak-top__name';
-            name.textContent = leader.name;
+            renderUserName(name, leader.name, leader.role);
             const streak = document.createElement('span');
             streak.className = 'streak-top__value';
             const icon = document.createElement('i');

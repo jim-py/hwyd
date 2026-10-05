@@ -20,10 +20,11 @@
     <link rel="stylesheet" href="{% static 'hwyd/css/dropdown.css' %}">
     <link rel="stylesheet" href="{% static 'hwyd/css/dialogs.css' %}?v=20261004-4">
     <link rel="stylesheet" href="{% static 'hwyd/css/footer.css' %}">
+    <link rel="stylesheet" href="{% static 'site/css/user-name.css' %}?v=20261005-roles">
     <link rel="stylesheet" href="{% static 'hwyd/vendor/driver/driver.css' %}"/>
     <link rel="stylesheet" href="{% static 'hwyd/css/onboarding.css' %}">
     {% if request.user.is_authenticated %}
-    <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}">
+    <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}?v=20261005-roles">
     {% endif %}
 
 
@@ -209,7 +210,7 @@ window.PENDING_GUIDES = {{ pending_guides|safe }};
 </script>
 
 {% include 'hwyd/scripts.html' %}
-<script type="module" src="{% static 'hwyd/js/toolbar.js' %}?v=20261004-6"></script>
+<script type="module" src="{% static 'hwyd/js/toolbar.js' %}?v=20261005-roles"></script>
 {% if settings.showViewSwitch %}
 <script type="module" src="{% static 'hwyd/js/year-calendar.js' %}"></script>
 {% endif %}
@@ -217,7 +218,7 @@ window.PENDING_GUIDES = {{ pending_guides|safe }};
 <script type="module" src="{% static 'hwyd/js/streak-firework.js' %}"></script>
 {% endif %}
 {% if request.user.is_authenticated and not is_view_as %}
-<script type="module" src="{% static 'chat/js/chat.js' %}"></script>
+<script type="module" src="{% static 'chat/js/chat.js' %}?v=20261005-roles"></script>
 {% endif %}
 {# DOMContentLoaded consumers run after these ordered libraries; independent modules need neither. #}
 <script src="{% static 'hwyd/vendor/jquery/jquery.min.js' %}" defer></script>

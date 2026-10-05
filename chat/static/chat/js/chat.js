@@ -1,7 +1,7 @@
 import { getCSRFToken } from '../../site/js/csrf.js';
 import { createChatWindow } from './window.js';
-import { createMessageList } from './messages.js';
-import { createMessageActions } from './actions.js';
+import { createMessageList } from './messages.js?v=20261005-roles';
+import { createMessageActions } from './actions.js?v=20261005-roles';
 import { renderEmojiText } from './emoji.js';
 
 const dialog = document.getElementById('chatDialog');

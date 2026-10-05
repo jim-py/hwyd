@@ -46,11 +46,31 @@ class ChatTests(TestCase):
         self.assertEqual(message.sender, self.alice)
         self.assertEqual(message.text, 'Привет 👋')
         self.assertEqual(set(response.json()['message']), {
-            'id', 'sender', 'sender_id', 'text', 'created_at', 'is_own', 'edited_at', 'is_deleted', 'reply_to'})
+            'id', 'sender', 'sender_role', 'sender_id', 'text', 'created_at', 'is_own', 'edited_at', 'is_deleted', 'reply_to'})
         self.client.force_login(self.bob)
         data = self.client.get(self.messages_url).json()['messages'][0]
         self.assertEqual(data['sender'], 'alice')
         self.assertFalse(data['is_own'])
+
+    def test_sender_roles_come_from_account_flags_including_replies(self):
+        target = ChatMessage.objects.create(sender=self.bob, text='Original')
+        for superuser, staff, role in [(False, False, ''), (False, True, 'admin'),
+                                      (True, False, 'owner'), (True, True, 'owner')]:
+            with self.subTest(superuser=superuser, staff=staff):
+                self.bob.is_superuser, self.bob.is_staff = superuser, staff
+                self.bob.save(update_fields=['is_superuser', 'is_staff'])
+                self.alice.is_superuser, self.alice.is_staff = superuser, staff
+                self.alice.save(update_fields=['is_superuser', 'is_staff'])
+                ChatReadState.objects.filter(user=self.alice).delete()
+                response = self.post(self.messages_url, {
+                    'text': 'Reply', 'reply_to': target.pk, 'sender_role': 'forged'})
+                self.assertEqual(response.status_code, 201)
+                message = response.json()['message']
+                self.assertEqual(message['sender_role'], role)
+                self.assertEqual(message['reply_to']['sender_role'], role)
+                messages = self.client.get(self.messages_url).json()['messages']
+                self.assertEqual(messages[0]['sender_role'], role)
+                self.assertEqual(messages[-1]['reply_to']['sender_role'], role)
 
     def test_empty_wrong_type_and_long_messages_rejected(self):
         for value in ['', ' \n\t ', None, 123, [], {}, 'x' * (MESSAGE_MAX_LENGTH + 1), '\ud800']:

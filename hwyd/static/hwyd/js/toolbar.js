@@ -2,7 +2,7 @@ import { post } from './api.js';
 import { createVisibilityControls } from './visibility.js';
 import { showToast } from './toast.js';
 import { enableDialogDrag } from './dialog-drag.js?v=20261004-4';
-import { loadTop } from './top.js';
+import { loadTop } from './top.js?v=20261005-roles';
 import {isViewAs, viewAsURL} from './view-as.js';
 
 const visibility = createVisibilityControls(document.getElementById('myTable'), post, showToast);

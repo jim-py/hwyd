@@ -1,4 +1,5 @@
 import { renderEmojiText, emojiPreview } from './emoji.js';
+import { renderUserName } from '../../site/js/user-name.js';
 
 // Server IDs are the only message identity. User markup stays literal text.
 export function createMessageList(history, empty) {
@@ -10,13 +11,14 @@ export function createMessageList(history, empty) {
         node.className = `chat-message${message.is_own ? ' chat-message--own' : ''}`;
         const sender = document.createElement('strong');
         sender.className = 'chat-message__sender';
-        sender.textContent = message.sender;
+        renderUserName(sender, message.sender, message.sender_role);
         node.append(sender);
         if (message.reply_to) {
             const quote = document.createElement('div');
             quote.className = 'chat-message__reply';
             const author = document.createElement('strong');
-            author.textContent = message.reply_to.is_deleted ? 'Сообщение удалено' : message.reply_to.sender;
+            if (message.reply_to.is_deleted) author.textContent = 'Сообщение удалено';
+            else renderUserName(author, message.reply_to.sender, message.reply_to.sender_role);
             const preview = document.createElement('span');
             renderEmojiText(preview, message.reply_to.is_deleted ? '' : emojiPreview(message.reply_to.preview_text ?? message.reply_to.text));
             quote.append(author, preview);
@@ -82,6 +84,7 @@ export function createMessageList(history, empty) {
         for (const { data } of [...items.values()]) {
             if (data.reply_to?.id !== target.id) continue;
             changed = upsert({ ...data, reply_to: { id: target.id, sender: target.sender,
+                sender_role: target.sender_role,
                 text: target.is_deleted ? '' : Array.from(target.text).slice(0, 160).join(''),
                 preview_text: target.is_deleted ? '' : Array.from(target.text).slice(0, 224).join(''),
                 is_deleted: target.is_deleted } }) || changed;

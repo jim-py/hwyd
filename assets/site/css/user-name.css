@@ -1,0 +1,45 @@
+.user-name--admin .user-name__nickname,
+.user-name--admin .user-name__role {
+    color: #c03946;
+}
+
+.user-name--owner .user-name__nickname {
+    color: #7451a8;
+}
+
+@supports ((background-clip: text) or (-webkit-background-clip: text)) {
+    .user-name--owner .user-name__nickname {
+        background-image: linear-gradient(110deg, #446bb0, #8660ad, #b65b80, #358078, #446bb0);
+        background-size: 250% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: user-name-shimmer 12s ease-in-out infinite alternate;
+    }
+}
+
+.user-name--owner .user-name__role {
+    color: #776887;
+}
+
+.user-name__role {
+    font-size: .9em;
+    font-weight: 500;
+}
+
+@keyframes user-name-shimmer {
+    from { background-position: 0% 50%; }
+    to { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .user-name--owner .user-name__nickname { animation: none; }
+}
+
+@media (forced-colors: active) {
+    .user-name--owner .user-name__nickname {
+        background: none;
+        color: CanvasText;
+        animation: none;
+    }
+}

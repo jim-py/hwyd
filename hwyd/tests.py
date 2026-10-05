@@ -47,8 +47,19 @@ class StreakTopTests(TestCase):
         self.assertEqual(data['current'], {'rank': 3, 'streak': 8})
         self.assertTrue(data['leaders'][2]['is_own'])
         for row in data['leaders']:
-            self.assertEqual(set(row), {'rank', 'name', 'streak', 'is_own'})
+            self.assertEqual(set(row), {'rank', 'name', 'role', 'streak', 'is_own'})
         self.assertNotContains(response, 'private@example.com')
+
+    def test_account_roles_and_superuser_precedence_without_extra_queries(self):
+        self.visits(self.user, 1)
+        self.contender('owner', 4, is_superuser=True, is_staff=True)
+        self.contender('superuser-only', 3, is_superuser=True)
+        self.contender('admin', 2, is_staff=True)
+        with self.assertNumQueries(1):
+            data = streak_top(self.user)
+        self.assertEqual([(row['name'], row['role']) for row in data['leaders']],
+                         [('owner', 'owner'), ('superuser-only', 'owner'),
+                          ('admin', 'admin'), ('current', '')])
 
     def test_top_ten_and_current_user_outside_top(self):
         for i in range(12):
