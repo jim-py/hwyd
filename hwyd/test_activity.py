@@ -122,13 +122,15 @@ class VisitTimezoneTests(TestCase):
         self.visit(datetime(2026, 10, 1, 15, 1, tzinfo=utc_timezone.utc))
         self.assertEqual(list(UserActivityLog.objects.order_by('date').values_list('date', flat=True)),
                          [date(2026, 10, 1), date(2026, 10, 2)])
-        self.assertEqual(streak_position(self.user), (2, 1))
+        with patch('hwyd.streaks.timezone.now', return_value=datetime(2026, 10, 1, 15, 1, tzinfo=utc_timezone.utc)):
+            self.assertEqual(streak_position(self.user), (2, 1))
 
     def test_daylight_saving_transition_counts_calendar_days_not_24_hours(self):
         self.set_zone('America/New_York')
         self.visit(datetime(2026, 3, 8, 5, 1, tzinfo=utc_timezone.utc))
         self.visit(datetime(2026, 3, 9, 4, 1, tzinfo=utc_timezone.utc))
-        self.assertEqual(streak_position(self.user), (2, 1))
+        with patch('hwyd.streaks.timezone.now', return_value=datetime(2026, 3, 9, 4, 1, tzinfo=utc_timezone.utc)):
+            self.assertEqual(streak_position(self.user), (2, 1))
 
     def test_anonymous_requests_do_not_create_visits(self):
         self.client.logout()

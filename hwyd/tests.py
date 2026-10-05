@@ -8,7 +8,8 @@ from .forms import SettingsForm
 from .preferences import UI_VISIBILITY_FIELDS
 from .models import UserActivityLog
 from .streaks import streak_position, streak_top, users_with_login_streak
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone as utc_timezone
+from unittest.mock import patch
 from django.utils import timezone
 from django.test import override_settings
 
@@ -20,13 +21,17 @@ from django.test import override_settings
 ])
 class StreakTopTests(TestCase):
     def setUp(self):
+        self.now = datetime(2026, 10, 1, 12, tzinfo=utc_timezone.utc)
+        clock = patch('hwyd.streaks.timezone.now', return_value=self.now)
+        self.clock = clock.start()
+        self.addCleanup(clock.stop)
         self.user = get_user_model().objects.create_user(username='current', email='private@example.com')
         self.client.force_login(self.user)
 
-    def visits(self, user, days, end=date(2026, 10, 1)):
+    def visits(self, user, days, end=date(2026, 10, 1), zone='Europe/Moscow'):
         now = timezone.now()
         UserActivityLog.objects.bulk_create([
-            UserActivityLog(user=user, date=end - timedelta(days=i), first_visit=now, last_visit=now)
+            UserActivityLog(user=user, date=end - timedelta(days=i), first_visit=now, last_visit=now, timezone=zone)
             for i in range(days)])
 
     def contender(self, username, days, **kwargs):
@@ -55,7 +60,7 @@ class StreakTopTests(TestCase):
         self.contender('owner', 4, is_superuser=True, is_staff=True)
         self.contender('superuser-only', 3, is_superuser=True)
         self.contender('admin', 2, is_staff=True)
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             data = streak_top(self.user)
         self.assertEqual([(row['name'], row['role']) for row in data['leaders']],
                          [('owner', 'owner'), ('superuser-only', 'owner'),
@@ -65,7 +70,7 @@ class StreakTopTests(TestCase):
         for i in range(12):
             self.contender(f'leader-{i:02}', 20 - i)
         self.visits(self.user, 2)
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(4):
             data = streak_top(self.user)
         self.assertEqual(len(data['leaders']), 10)
         self.assertEqual(data['current'], {'rank': 13, 'streak': 2})
@@ -80,7 +85,7 @@ class StreakTopTests(TestCase):
                                ('knopka_enter', 13), ('ddkk333q', 6), ('аня', 4),
                                ('dmitry', 3), ('Константин', 3), ('mcgregor', 2), ('Дмитрий', 2)]:
             self.contender(username, days, first_name=' \t ')
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             data = streak_top(self.user)
         self.assertEqual([row['rank'] for row in data['leaders']], list(range(1, 11)))
         self.assertEqual([row['name'] for row in data['leaders']],
@@ -97,19 +102,71 @@ class StreakTopTests(TestCase):
         response = self.client.get(reverse('by_date', args=['2026-10']), HTTP_HOST='testserver')
         self.assertContains(response, 'id="topLeaders" class="streak-top" role="list"')
 
-    def test_latest_chain_keeps_original_metric_and_ignores_old_record(self):
+    def test_old_chain_expires_and_returning_user_starts_at_one(self):
         self.visits(self.user, 40, end=date(2026, 8, 1))
         self.visits(self.user, 3, end=date(2026, 9, 20))
         latest = UserActivityLog.objects.filter(user=self.user).latest('date')
-        self.assertEqual(latest.get_login_streak(), 3)
-        self.assertEqual(streak_position(self.user), (3, 1))
-        # As before, the latest chain remains until a new visit after a gap.
+        self.assertEqual(latest.get_login_streak(), 0)
+        self.assertEqual(streak_position(self.user), (0, None))
+        self.assertEqual(streak_top(self.user), {'leaders': [], 'current': {'rank': None, 'streak': 0}})
+        create_setting(self.user, 'Test')
+        response = self.client.get(reverse('by_date', args=['2026-10']), HTTP_HOST='testserver')
+        self.assertEqual(response.context['login_streak'], 0)
+        self.assertIsNone(response.context['top_rank'])
         self.visits(self.user, 1)
         self.assertEqual(latest.get_login_streak(), 1)
+        self.assertEqual(streak_position(self.user), (1, 1))
+
+    def test_top_excludes_september_chain_and_recalculates_places(self):
+        self.visits(self.user, 3)
+        old = get_user_model().objects.create_user(username='old-leader')
+        self.visits(old, 15, end=date(2026, 9, 5))
+        self.contender('active-leader', 5)
+        data = self.client.get(reverse('top_streak')).json()
+        self.assertEqual([(row['name'], row['rank'], row['streak']) for row in data['leaders']],
+                         [('active-leader', 1, 5), ('current', 2, 3)])
+        self.assertEqual(data['current'], {'rank': 2, 'streak': 3})
+        self.assertEqual(streak_position(old), (0, None))
+
+    def test_yesterday_stays_active_until_a_full_local_day_is_missed(self):
+        self.visits(self.user, 15, end=date(2026, 9, 30))
+        self.assertEqual(streak_position(self.user), (15, 1))
+        self.clock.return_value = datetime(2026, 10, 1, 20, 59, 59, tzinfo=utc_timezone.utc)
+        self.assertEqual(streak_position(self.user), (15, 1))
+        self.clock.return_value += timedelta(seconds=1)  # Oct 2, 00:00 in Moscow.
+        self.assertEqual(streak_position(self.user), (0, None))
+        self.assertEqual(streak_top(self.user)['leaders'], [])
+
+    def test_each_leader_uses_own_timezone_at_the_same_instant(self):
+        self.clock.return_value = datetime(2026, 10, 2, 0, 30, tzinfo=utc_timezone.utc)
+        west = get_user_model().objects.create_user(username='west')
+        east = get_user_model().objects.create_user(username='east')
+        self.visits(west, 4, end=date(2026, 9, 30), zone='America/Los_Angeles')
+        self.visits(east, 10, end=date(2026, 9, 30), zone='Pacific/Kiritimati')
+        self.assertEqual(streak_position(west), (4, 1))
+        self.assertEqual(streak_position(east), (0, None))
+        for viewer in [self.user, west, east]:
+            self.assertEqual([row['name'] for row in streak_top(viewer)['leaders']], ['west'])
+
+    def test_future_dates_and_invalid_timezone_do_not_form_current_streaks(self):
+        future = get_user_model().objects.create_user(username='future')
+        invalid = get_user_model().objects.create_user(username='invalid-zone')
+        self.visits(future, 3, end=date(2026, 10, 2))
+        self.visits(invalid, 3, zone='Made/Up')
+        self.assertEqual(streak_position(future), (0, None))
+        self.assertEqual(streak_position(invalid), (0, None))
+        self.assertEqual(streak_top(self.user)['leaders'], [])
+
+    def test_expiry_uses_calendar_days_across_daylight_saving_change(self):
+        self.visits(self.user, 4, end=date(2026, 3, 8), zone='America/New_York')
+        self.clock.return_value = datetime(2026, 3, 10, 3, 59, 59, tzinfo=utc_timezone.utc)
+        self.assertEqual(streak_position(self.user), (4, 1))  # Mar 9 locally.
+        self.clock.return_value += timedelta(seconds=1)
+        self.assertEqual(streak_position(self.user), (0, None))  # Mar 10 locally.
 
     def test_hidden_top_does_not_calculate_global_rank(self):
         self.visits(self.user, 5)
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             self.assertEqual(streak_position(self.user, include_rank=False), (5, None))
 
     def test_sql_chain_matches_original_date_algorithm_across_months_and_gaps(self):
@@ -120,15 +177,15 @@ class StreakTopTests(TestCase):
             user = get_user_model().objects.create_user(username=f'sample-{i}')
             offsets = sorted(generator.sample(range(90), 40))
             now = timezone.now()
-            dates = [date(2026, 3, 10) - timedelta(days=offset) for offset in offsets]
+            dates = [date(2026, 10, 1) - timedelta(days=offset) for offset in offsets]
             UserActivityLog.objects.bulk_create([UserActivityLog(user=user, date=day, first_visit=now, last_visit=now) for day in dates])
             streak = 1
             for previous, current in zip(dates, dates[1:]):
                 if previous - current != timedelta(days=1):
                     break
                 streak += 1
-            expected[user.pk] = streak
-        with self.assertNumQueries(1):
+            expected[user.pk] = streak if dates[0] >= date(2026, 9, 30) else 0
+        with self.assertNumQueries(2):
             actual = dict(users_with_login_streak().filter(pk__in=expected).values_list('pk', 'login_streak'))
         self.assertEqual(actual, expected)
 
