@@ -241,8 +241,8 @@
 body.chat-fullscreen-open { overflow: hidden; }
 
 .chat-message__reply { margin: 3px 0 5px; padding: 3px 6px; border-left: 3px solid var(--chat-accent); background: rgba(255,255,255,0.5); font-size: 12px; }
-.chat-message__reply strong, .chat-message__reply span { display: block; }
-.chat-message__reply span, .chat-mode p {
+.chat-message__reply > strong, .chat-message__reply > span { display: block; }
+.chat-message__reply > span, .chat-mode p {
     margin: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     overflow-wrap: anywhere; white-space: pre-wrap;
 }

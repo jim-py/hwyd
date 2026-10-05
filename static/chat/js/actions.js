@@ -1,4 +1,5 @@
 import { renderEmojiText, emojiPreview } from './emoji.js';
+import { renderUserName } from '../../site/js/user-name.js';
 
 export function createMessageActions({ dialog, history, input, send, list, request, showError, resizeInput, onMutation }) {
     const narrow = window.matchMedia('(max-width: 1023px)');
@@ -56,7 +57,12 @@ export function createMessageActions({ dialog, history, input, send, list, reque
         resetMode();
         mode = { type, message };
         if (type === 'edit') { draft = input.value; input.value = message.text; }
-        modeTitle.textContent = type === 'edit' ? 'Редактирование сообщения' : `Ответ: ${message.sender}`;
+        modeTitle.textContent = type === 'edit' ? 'Редактирование сообщения' : 'Ответ: ';
+        if (type !== 'edit') {
+            const author = document.createElement('span');
+            renderUserName(author, message.sender, message.sender_role);
+            modeTitle.append(author);
+        }
         renderEmojiText(modeText, emojiPreview(message.text));
         modeBox.hidden = false;
         send.classList.toggle('chat-send--editing', type === 'edit');
