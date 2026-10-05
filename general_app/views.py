@@ -16,6 +16,9 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.http import HttpResponseRedirect
 from .models import Guide, UserGuideProgress, UserProfile
 from django.views.decorators.http import require_POST
+from django.views.decorators.clickjacking import xframe_options_exempt
+from django.utils.decorators import method_decorator
+from my_site.embedding import local_dashboard_frame_ancestors
 from django.db import transaction
 import logging
 
@@ -78,6 +81,8 @@ class LogoutView(DefaultLogoutView):
     next_page = reverse_lazy("home")
 
 
+@method_decorator(xframe_options_exempt, name='dispatch')
+@method_decorator(local_dashboard_frame_ancestors, name='dispatch')
 class LoginRegisterView(View):
     def get(self, request):
         if request.user.is_authenticated:

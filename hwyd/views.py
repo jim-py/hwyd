@@ -16,6 +16,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.cache import never_cache
+from django.views.decorators.clickjacking import xframe_options_exempt
+from my_site.embedding import local_dashboard_frame_ancestors
 from django.db import transaction
 from django.db.models import Value, BooleanField
 from django_user_agents.utils import get_user_agent
@@ -139,6 +141,8 @@ def activity_users(request):
     )
 
 
+@xframe_options_exempt
+@local_dashboard_frame_ancestors
 @never_cache
 @login_required(login_url='entry')
 def by_date(request, picked_date):
@@ -535,6 +539,8 @@ def get_streak_icon(streak: int) -> str:
     return "fa-star"
 
 
+@xframe_options_exempt
+@local_dashboard_frame_ancestors
 @login_required(login_url='entry')
 def start(request):
     """

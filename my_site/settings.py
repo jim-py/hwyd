@@ -105,6 +105,15 @@ CELERY_TIMEZONE = 'Europe/Moscow'
 # MIDDLEWARE
 # =========================================================
 
+# Cross-site iframe sessions require HTTPS and SameSite=None as a string.
+SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SECURE = True
+
+# Exact parent origins; 127.0.0.1 is deliberately a separate permission.
+HABITUS_FRAME_ORIGINS = ("http://localhost:5173",)
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

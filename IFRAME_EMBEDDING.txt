@@ -1,0 +1,105 @@
+Встраивание Habitus в локальный dashboard
+=========================================
+
+Разрешён родительский origin http://localhost:5173. Исключения из
+X-Frame-Options действуют только для start, by_date и LoginRegisterView:
+/habitus/, /habitus/YYYY-MM и /home/entry/. Остальные страницы сохраняют
+штатную защиту Django. API-запросам внутри iframe исключение из XFO не нужно.
+
+На разрешённых страницах приложение выдаёт HTTP-заголовок:
+Content-Security-Policy: frame-ancestors 'self' http://localhost:5173
+Если view уже выдала CSP, заменяется только frame-ancestors в каждой политике.
+Остальные директивы сохраняются. Meta-тег для frame-ancestors не подходит.
+
+Ссылка для iframe:
+<iframe src="https://productivum.ru/habitus/" title="Habitus"></iframe>
+
+Начинать нужно с /habitus/: неавторизованного пользователя он перенаправляет
+на вход с next=/habitus/, после входа пользователь возвращается в трекер.
+Отдельный /home/entry/ без next по старому поведению ведёт после входа на
+/home/, который встраивать не разрешено. Ссылки на профиль и другие страницы
+также сохраняют ограничения. Personal-dashboard этой задачей не изменяется.
+
+Origin включает схему, hostname и порт. http://127.0.0.1:5173, другой порт
+и https://localhost:5173 не разрешены автоматически. При необходимости
+добавьте конкретный origin отдельно в HABITUS_FRAME_ORIGINS в settings.py.
+Для вложенных iframe CSP должна разрешать каждый родительский origin.
+Если на родительской странице есть CSP frame-src, она должна разрешать
+https://productivum.ru. При использовании sandbox входу и трекеру нужны
+allow-forms, allow-scripts и allow-same-origin. Credentialless iframe
+не подходит для обычной сессионной авторизации.
+
+Cookies и CSRF
+-------------
+SESSION_COOKIE_SAMESITE и CSRF_COOKIE_SAMESITE установлены в строку "None";
+SESSION_COOKIE_SECURE и CSRF_COOKIE_SECURE включены. Productivum должен
+обслуживаться по HTTPS с действительным сертификатом. Локальная родительская
+страница может работать по HTTP. HttpOnly сессионной cookie сохранён.
+
+CsrfViewMiddleware остаётся включён. Формы и AJAX самого iframe отправляются
+от origin Productivum и используют штатный CSRF-токен; добавлять localhost
+в CSRF_TRUSTED_ORIGINS для этого не требуется. Эти изменения не разрешают
+JavaScript родительского dashboard читать DOM или напрямую вызывать API
+Productivum: это отдельная задача с учётом same-origin policy и CORS.
+
+SameSite=None; Secure разрешает cross-site cookies, но не отменяет их
+блокировку браузером. При блокировке сторонних cookies вход может не работать
+или повторяться. Потребуется разрешение cookies для этого встраивания в
+браузере либо отдельная реализация Storage Access API/другой схемы интеграции.
+Отключать Secure или CSRF для обхода этой проблемы нельзя.
+
+Развёртывание и внешние заголовки
+-------------------------------
+В репозитории нет конфигурации Nginx/OpenResty/CDN. На 2026-10-05 внешний GET
+https://productivum.ru/home/entry/?next=/habitus/ возвращал Server: openresty,
+X-Frame-Options: DENY и не содержал CSP. Это состояние до развёртывания данных
+изменений; оно не позволяет определить, добавляет DENY Django или proxy.
+
+После развёртывания проверьте внешний ответ страницы входа и авторизованной
+страницы месяца, а не только ответ Django. На них X-Frame-Options должен
+отсутствовать, CSP должна разрешать точный origin dashboard. В PowerShell:
+
+$response = Invoke-WebRequest -Uri 'https://productivum.ru/home/entry/?next=/habitus/'
+$response.Headers['X-Frame-Options']
+$response.Headers['Content-Security-Policy']
+
+Проверьте add_header X-Frame-Options в Nginx/OpenResty и правила CDN. Если proxy
+добавляет DENY/SAMEORIGIN, уберите именно это добавление для разрешённых
+страниц; не снимайте защиту со всех страниц. Дополнительная CSP с более
+строгой frame-ancestors тоже блокирует встраивание: политики действуют
+совместно. Сохраните остальные директивы и согласуйте frame-ancestors на
+этих страницах. Код приложения не может изменить заголовки, добавляемые
+proxy уже после ответа Django. После изменения правил очистите их кеш.
+
+При завершении TLS на reverse proxy Django должен корректно распознавать
+HTTPS для CSRF-проверок. SECURE_PROXY_SSL_HEADER можно настраивать только
+после проверки, что доверенный proxy удаляет/перезаписывает этот заголовок.
+В этой задаче доверие к неизвестному proxy не добавлялось.
+
+Проверки в этой задаче
+---------------------
+173 Django-теста прошли; manage.py check не выявил проблем. Пять новых тестов
+проверяют узкие исключения, сохранение CSP, HTTPS-вход, атрибуты cookies,
+создание/сохранение привычки и отказы CSRF при неверном origin/пустом токене.
+
+Браузер: отдельный стенд localhost:5174 -> 127.0.0.1:8769, временная БД,
+обычный вход через форму, создание привычки, отметка дня, перезагрузка и
+сохранение отметки. Для стенда переопределён только разрешённый origin на
+localhost:5174, поскольку localhost:5173 занят personal-dashboard. Рабочий
+код разрешает только localhost:5173. Попытка встроить с 127.0.0.1:5174
+заблокирована CSP. Настройки cookies и CSRF на стенде не ослаблялись.
+
+Стенд использует браузерное исключение Secure cookies для loopback HTTP;
+это не проверка сертификата/HTTPS на production. HTTPS-запросы отдельно
+проверены Django Client с включёнными CSRF-проверками. Вход и запись в iframe
+на опубликованном Productivum нужно повторить после развёртывания; изменения
+на production в рамках этой задачи не публиковались.
+
+Источники
+---------
+https://docs.djangoproject.com/en/4.1/ref/clickjacking/
+https://docs.djangoproject.com/en/4.1/ref/settings/#session-cookie-samesite
+https://docs.djangoproject.com/en/4.1/ref/csrf/
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-ancestors
+https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Third-party_cookies
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie
