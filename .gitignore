@@ -17,6 +17,7 @@ env/
 db.sqlite3
 /staticfiles/
 media/
+private_media/
 
 # IDE и редакторы
 .vscode/

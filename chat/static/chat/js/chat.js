@@ -1,7 +1,8 @@
 import { getCSRFToken } from '../../site/js/csrf.js';
 import { createChatWindow } from './window.js';
-import { createMessageList } from './messages.js?v=20261005-roles';
-import { createMessageActions } from './actions.js?v=20261005-roles';
+import { createMessageList } from './messages.js?v=20261006-stickers';
+import { createMessageActions } from './actions.js?v=20261006-stickers';
+import { createChatPhotos } from './photos.js?v=20261006-stickers';
 import { renderEmojiText } from './emoji.js';
 
 const dialog = document.getElementById('chatDialog');
@@ -24,10 +25,17 @@ if (dialog && button) {
     let sending = false;
     let expired = false;
     let pollError = false;
-    const list = createMessageList(history, empty);
+    const photos = createChatPhotos(dialog, { showError, onChange: syncComposer });
+    const list = createMessageList(history, empty, { openPhoto: photos.open });
     let refreshOffset = 0;
     const actions = createMessageActions({ dialog, history, input, send, list, request, showError,
-        resizeInput, onMutation: applyMessage });
+        resizeInput, onMutation: applyMessage,
+        onModeChange: mode => photos.setEditing(mode?.type === 'edit') });
+
+    function syncComposer() {
+        const mode = actions.getMode();
+        input.required = !(photos.files().length || (mode?.type === 'edit' && (mode.message.photo || mode.message.attachments?.length)));
+    }
 
     function resizeInput() {
         // CSS caps the height; longer drafts scroll inside the textarea.
@@ -50,10 +58,13 @@ if (dialog && button) {
         if (payload !== undefined) {
             options.method = method;
             options.headers = {
-                'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken() || composer.querySelector('[name=csrfmiddlewaretoken]').value
             };
-            options.body = JSON.stringify(payload);
+            if (payload instanceof FormData) options.body = payload;
+            else {
+                options.headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify(payload);
+            }
         }
         const response = await fetch(url, options);
         if (response.status === 401) expired = true;
@@ -78,7 +89,6 @@ if (dialog && button) {
         const changed = list.upsert(message);
         const repliesChanged = list.updateReplies(message);
         if (changed) actions.onUpdate(message);
-        if (changed || repliesChanged) actions.closeMenu();
         return changed || repliesChanged;
     }
 
@@ -95,16 +105,19 @@ if (dialog && button) {
             refreshOffset = (refreshOffset + refresh.length) % ids.length;
         }
         const data = await request(url);
-        for (const message of data.updated_messages || []) applyMessage(message);
-        for (const id of data.missing_ids || []) applyMessage({ id, text: '', sender: '', is_deleted: true });
+        let changed = false;
+        for (const message of data.updated_messages || []) changed = applyMessage(message) || changed;
+        for (const id of data.missing_ids || []) {
+            changed = applyMessage({ id, text: '', sender: '', is_deleted: true }) || changed;
+        }
         for (const message of data.messages) {
             if (cursor === null || message.id > cursor) {
-                applyMessage(message);
+                changed = applyMessage(message) || changed;
                 cursor = message.id;
             }
         }
         if (cursor === null) cursor = 0;
-        if (initial || nearBottom) history.scrollTop = history.scrollHeight;
+        if (initial || (nearBottom && changed && !actions.isMenuOpen())) history.scrollTop = history.scrollHeight;
         if (dialog.open && document.visibilityState === 'visible') {
             await request(dialog.dataset.readUrl, { last_read_message_id: cursor });
             if (!data.has_more) unread(false);
@@ -159,20 +172,34 @@ if (dialog && button) {
         event.preventDefault();
         if (sending) return;
         const value = input.value;
-        if (!value.trim()) { showError('Введите текст сообщения.'); return; }
-        if (value.length > input.maxLength) { showError('Максимум 2000 символов.'); return; }
         const mode = actions.getMode();
+        if (!value.trim() && !(photos.files().length || (mode?.type === 'edit' && (mode.message.photo || mode.message.attachments?.length)))) {
+            showError('Введите текст сообщения или прикрепите файл.'); return;
+        }
+        if (value.length > input.maxLength) { showError('Максимум 2000 символов.'); return; }
+        if (!photos.validate()) return;
         sending = true;
         send.disabled = true;
         input.readOnly = true;
+        send.setAttribute('aria-busy', 'true');
+        photos.setBusy(true);
         showError();
         pollError = false;
         try {
             if (mode?.type === 'edit') {
                 applyMessage((await request(actions.endpoint(mode.message.id), { text: value }, 'PATCH')).message);
             } else {
-                await request(dialog.dataset.messagesUrl, { text: value,
-                    ...(mode?.type === 'reply' ? { reply_to: mode.message.id } : {}) });
+                let payload = { text: value,
+                    ...(mode?.type === 'reply' ? { reply_to: mode.message.id } : {}) };
+                if (photos.files().length) {
+                    const form = new FormData();
+                    form.append('text', value);
+                    for (const file of photos.files()) form.append('attachments', file);
+                    if (mode?.type === 'reply') form.append('reply_to', mode.message.id);
+                    payload = form;
+                }
+                await request(dialog.dataset.messagesUrl, payload);
+                photos.clear();
             }
             actions.resetMode(false);
             input.value = '';
@@ -187,6 +214,8 @@ if (dialog && button) {
             sending = false;
             send.disabled = false;
             input.readOnly = false;
+            send.removeAttribute('aria-busy');
+            photos.setBusy(false);
             input.focus();
         }
     });
@@ -197,6 +226,7 @@ if (dialog && button) {
         }
     });
     input.addEventListener('input', resizeInput);
+    syncComposer();
 
     const emojis = ['😀', '😃', '😂', '😊', '🙂', '😉', '😍', '😎', '🤔', '😢', '😭', '😡', '👍', '👎', '❤️', '🔥', '🎉', '✅', '🚀'];
     for (const emoji of emojis) {

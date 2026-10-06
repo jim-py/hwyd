@@ -99,7 +99,7 @@ class VisitTimezoneTests(TestCase):
     def test_busy_optional_logging_keeps_successful_response_and_retries_next_visit(self):
         self.set_zone('UTC')
         cause = sqlite3.OperationalError('database is locked')
-        cause.sqlite_errorcode = sqlite3.SQLITE_BUSY
+        cause.sqlite_errorcode = getattr(sqlite3, 'SQLITE_BUSY', 5)
         error = OperationalError('database is locked')
         error.__cause__ = cause
         with patch('my_site.middleware.UserActivityLog.objects.get_or_create', side_effect=error):
@@ -113,6 +113,42 @@ class VisitTimezoneTests(TestCase):
         self.set_zone('UTC')
         with patch('my_site.middleware.UserActivityLog.objects.get_or_create',
                    side_effect=OperationalError('disk I/O error')):
+            with self.assertRaises(OperationalError):
+                self.visit()
+
+    def test_legacy_sqlite_lock_without_errorcode_is_optional(self):
+        self.set_zone('UTC')
+        cause = sqlite3.OperationalError('database is locked')
+        error = OperationalError('database is locked')
+        error.__cause__ = cause
+        with patch('my_site.middleware.UserActivityLog.objects.get_or_create', side_effect=error):
+            with self.assertLogs('my_site.middleware', level='WARNING'):
+                self.assertEqual(self.visit().status_code, 200)
+
+    def test_extended_busy_code_is_optional_but_other_sqlite_codes_are_not(self):
+        self.set_zone('UTC')
+        for code, allowed in ((5 | (2 << 8), True), (6, True), (10, False)):
+            cause = sqlite3.OperationalError('database is locked')
+            cause.sqlite_errorcode = code
+            error = OperationalError('database is locked')
+            error.__cause__ = cause
+            with self.subTest(code=code), patch('my_site.middleware.UserActivityLog.objects.get_or_create', side_effect=error):
+                if allowed:
+                    with self.assertLogs('my_site.middleware', level='WARNING'):
+                        self.assertEqual(self.visit().status_code, 200)
+                else:
+                    with self.assertRaises(OperationalError):
+                        self.visit()
+
+    def test_other_database_backends_do_not_hide_lock_errors(self):
+        self.set_zone('UTC')
+        cause = sqlite3.OperationalError('database is locked')
+        cause.sqlite_errorcode = 5
+        error = OperationalError('database is locked')
+        error.__cause__ = cause
+        with patch('my_site.middleware.connection.vendor', 'mysql'), patch(
+            'my_site.middleware.UserActivityLog.objects.get_or_create', side_effect=error
+        ):
             with self.assertRaises(OperationalError):
                 self.visit()
 

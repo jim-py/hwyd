@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="{% static 'hwyd/vendor/driver/driver.css' %}"/>
     <link rel="stylesheet" href="{% static 'hwyd/css/onboarding.css' %}">
     {% if request.user.is_authenticated %}
-    <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}?v=20261005-roles">
+    <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}?v=20261006-stickers">
     {% endif %}
 
 
@@ -218,7 +218,7 @@ window.PENDING_GUIDES = {{ pending_guides|safe }};
 <script type="module" src="{% static 'hwyd/js/streak-firework.js' %}"></script>
 {% endif %}
 {% if request.user.is_authenticated and not is_view_as %}
-<script type="module" src="{% static 'chat/js/chat.js' %}?v=20261005-roles"></script>
+<script type="module" src="{% static 'chat/js/chat.js' %}?v=20261006-stickers"></script>
 {% endif %}
 {# DOMContentLoaded consumers run after these ordered libraries; independent modules need neither. #}
 <script src="{% static 'hwyd/vendor/jquery/jquery.min.js' %}" defer></script>

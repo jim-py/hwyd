@@ -27,6 +27,7 @@ MAINTENANCE_MODE = False
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+CHAT_PHOTO_ROOT = BASE_DIR / 'private_media' / 'chat'
 # Authored project-wide assets; STATIC_ROOT remains collected output.
 STATICFILES_DIRS = [BASE_DIR / "assets"]
 
@@ -106,10 +107,11 @@ CELERY_TIMEZONE = 'Europe/Moscow'
 # =========================================================
 
 # Cross-site iframe sessions require HTTPS and SameSite=None as a string.
-SESSION_COOKIE_SAMESITE = "None"
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = "None"
-CSRF_COOKIE_SECURE = True
+if HOSTING:
+    SESSION_COOKIE_SAMESITE = "None"
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SAMESITE = "None"
+    CSRF_COOKIE_SECURE = True
 
 # Site-wide parent origins except /admin/; 127.0.0.1 is a separate permission.
 HABITUS_FRAME_ORIGINS = ("http://localhost:5173",)

@@ -3,6 +3,7 @@ from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import subprocess
+import re
 import warnings
 
 from django import forms
@@ -50,10 +51,12 @@ def _webm_header(data):
     return False
 
 
-def _normalize_webm(upload):
+def _normalize_webm(upload, max_size=None, preserve_alpha=False):
     if not _webm_header(upload.read(4096)):
         raise forms.ValidationError('Загрузите корректное видео в формате WEBM.')
     upload.seek(0)
+    # Preserve avatar sizing; chat caps resolution without upscaling small clips.
+    scale = '256:256' if max_size is None else f'min({max_size}\\,iw):min({max_size}\\,ih)'
     try:
         executable = get_ffmpeg_exe()
         with TemporaryDirectory(prefix='habitus-avatar-') as directory:
@@ -62,17 +65,34 @@ def _normalize_webm(upload):
             with source.open('wb') as destination:
                 for chunk in upload.chunks():
                     destination.write(chunk)
+            decoder = []
+            if preserve_alpha:
+                # Native VP8/VP9 decoders discard WebM's separate alpha plane.
+                # Inspect the first video stream without decoding, then select
+                # the matching libvpx decoder; opaque clips remain opaque.
+                probe = subprocess.run([
+                    executable, '-nostdin', '-hide_banner', '-max_alloc', '67108864',
+                    '-protocol_whitelist', 'file', '-f', 'matroska', '-i', str(source),
+                    '-map', '0:v:0', '-c:v', 'copy', '-frames:v', '1', '-f', 'null', '-',
+                ], capture_output=True, timeout=5,
+                    creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+                stream = re.search(r'^\s*Stream #0:\d+(?:\[[^\]]*\])?(?:\([^)]*\))?: Video: (\w+)',
+                                   probe.stderr.decode('utf8', errors='replace'), re.MULTILINE)
+                if probe.returncode or stream is None:
+                    raise forms.ValidationError('Не удалось прочитать WEBM. Выберите другое видео.')
+                if stream.group(1) in ('vp8', 'vp9'):
+                    decoder = ['-c:v', 'libvpx' if stream.group(1) == 'vp8' else 'libvpx-vp9']
             # A separate, time-limited decoder cannot access network protocols.
             result = subprocess.run([
                 executable, '-nostdin', '-hide_banner', '-loglevel', 'warning',
                 '-xerror', '-max_alloc', '67108864', '-max_pixels', str(MAX_AVATAR_PIXELS), '-threads', '1',
-                '-protocol_whitelist', 'file', '-f', 'matroska', '-i', str(source),
+                '-protocol_whitelist', 'file', '-f', 'matroska', *decoder, '-i', str(source),
                 '-map', '0:v:0', '-an', '-sn', '-dn', '-map_metadata', '-1',
                 '-map_chapters', '-1', '-vf',
-                'setpts=PTS-STARTPTS,scale=256:256:force_original_aspect_ratio=decrease:force_divisible_by=2,fps=30',
+                f'setpts=PTS-STARTPTS,scale={scale}:force_original_aspect_ratio=decrease:force_divisible_by=2,fps=30',
                 '-t', str(MAX_ANIMATION_SECONDS + 0.1), '-c:v', 'libvpx-vp9',
                 '-threads', '1', '-b:v', '0', '-crf', '32', '-deadline', 'realtime',
-                '-cpu-used', '8', '-pix_fmt', 'yuv420p', '-fs', str(MAX_AVATAR_BYTES),
+                '-cpu-used', '8', '-pix_fmt', 'yuva420p' if preserve_alpha else 'yuv420p', '-fs', str(MAX_AVATAR_BYTES),
                 '-progress', 'pipe:1', '-nostats', '-y', str(target),
             ], capture_output=True, timeout=20,
                 creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))

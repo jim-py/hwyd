@@ -46,7 +46,7 @@ class ChatTests(TestCase):
         self.assertEqual(message.sender, self.alice)
         self.assertEqual(message.text, 'Привет 👋')
         self.assertEqual(set(response.json()['message']), {
-            'id', 'sender', 'sender_role', 'sender_id', 'text', 'created_at', 'is_own', 'edited_at', 'is_deleted', 'reply_to'})
+            'id', 'sender', 'sender_role', 'sender_id', 'text', 'created_at', 'is_own', 'edited_at', 'is_deleted', 'reply_to', 'photo', 'attachments'})
         self.client.force_login(self.bob)
         data = self.client.get(self.messages_url).json()['messages'][0]
         self.assertEqual(data['sender'], 'alice')

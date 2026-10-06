@@ -20,9 +20,20 @@
             <div><strong id="chatModeTitle"></strong><p id="chatModeText"></p></div>
             <button id="chatModeCancel" type="button" aria-label="Отменить ответ или редактирование">×</button>
         </div>
+        {% if request.user.is_superuser and not is_view_as %}
+        <input id="chatPhotoInput" type="file" accept="image/jpeg,image/png,image/webp,video/webm" multiple hidden>
+        <div id="chatPhotoSelection" class="chat-photo-selection" hidden></div>
+        {% endif %}
         <div class="chat-input-row">
             <textarea id="chatText" maxlength="2000" rows="1" placeholder="Сообщение..."
                       aria-label="Текст сообщения" required></textarea>
+            {% if request.user.is_superuser and not is_view_as %}
+            <button id="chatPhotoAttach" type="button" aria-label="Прикрепить файлы" aria-describedby="chatPhotoHelp" title="Добавить фотографии или WebM">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                    <path d="m8 12 6-6a3 3 0 0 1 4 4l-8 8a5 5 0 0 1-7-7l9-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            {% endif %}
             <button id="chatEmojiToggle" class="button-6" type="button" aria-label="Выбрать emoji"
                     aria-expanded="false" aria-controls="chatEmojiPicker">😀</button>
             <button id="chatSend" class="button-save" type="submit" aria-label="Отправить сообщение" title="Отправить">
@@ -54,4 +65,13 @@
     <div class="chat-resize-handle" data-chat-resize="ne" aria-hidden="true"></div>
     <div class="chat-resize-handle" data-chat-resize="sw" aria-hidden="true"></div>
     <div class="chat-resize-handle" data-chat-resize="se" aria-hidden="true"></div>
+</dialog>
+<dialog id="chatPhotoViewer" class="chat-photo-viewer" aria-labelledby="chatPhotoViewerTitle">
+    <div class="chat-photo-viewer__header">
+        <h3 id="chatPhotoViewerTitle">Фотография</h3>
+        <button id="chatPhotoViewerClose" type="button" aria-label="Закрыть фотографию">×</button>
+    </div>
+    <img id="chatPhotoFull" alt="Фотография из сообщения">
+    <p id="chatPhotoViewerError" role="status" hidden>Не удалось загрузить вложение. Попробуйте открыть файл.</p>
+    <a id="chatPhotoOriginal" target="_blank" rel="noopener">Открыть файл в полном размере</a>
 </dialog>

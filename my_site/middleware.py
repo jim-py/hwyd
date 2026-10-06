@@ -1,6 +1,6 @@
 import logging
 import re
-# from sqlite3 import SQLITE_BUSY, SQLITE_LOCKED
+import sqlite3
 from django.conf import settings
 from django.shortcuts import render
 from django.utils.deprecation import MiddlewareMixin
@@ -61,8 +61,17 @@ class UserActivityLoggingMiddleware:
             # Optional bookkeeping must not turn a successful API response into
             # HTTP 500 if an external/long SQLite writer outlasts the busy timeout.
             code = getattr(exc.__cause__, 'sqlite_errorcode', None)
-            # if connection.vendor != 'sqlite' or code is None or (code & 0xff) not in (SQLITE_BUSY, SQLITE_LOCKED):
-            #     raise
+            if code is not None:
+                busy = (code & 0xff) in (getattr(sqlite3, 'SQLITE_BUSY', 5),
+                                         getattr(sqlite3, 'SQLITE_LOCKED', 6))
+            else:
+                # Python <3.11 exposes neither sqlite_errorcode nor these constants.
+                cause = exc.__cause__
+                busy = isinstance(cause, sqlite3.OperationalError) and str(cause).lower() in (
+                    'database is locked', 'database table is locked', 'database schema is locked',
+                )
+            if connection.vendor != 'sqlite' or not busy:
+                raise
             logger.warning('SQLite visit logging deferred until the next request: database is busy.')
 
         return response

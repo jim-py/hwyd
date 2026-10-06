@@ -1,7 +1,8 @@
 import { renderEmojiText, emojiPreview } from './emoji.js';
 import { renderUserName } from '../../site/js/user-name.js';
+import { messagePreview } from './photos.js?v=20261006-stickers';
 
-export function createMessageActions({ dialog, history, input, send, list, request, showError, resizeInput, onMutation }) {
+export function createMessageActions({ dialog, history, input, send, list, request, showError, resizeInput, onMutation, onModeChange = () => {} }) {
     const narrow = window.matchMedia('(max-width: 1023px)');
     const menu = dialog.querySelector('#chatActionMenu');
     const choices = dialog.querySelector('#chatActionChoices');
@@ -52,6 +53,7 @@ export function createMessageActions({ dialog, history, input, send, list, reque
         send.setAttribute('aria-label', 'Отправить сообщение');
         send.title = 'Отправить';
         resizeInput();
+        onModeChange(null);
     }
     function setMode(type, message) {
         resetMode();
@@ -63,7 +65,7 @@ export function createMessageActions({ dialog, history, input, send, list, reque
             renderUserName(author, message.sender, message.sender_role);
             modeTitle.append(author);
         }
-        renderEmojiText(modeText, emojiPreview(message.text));
+        renderEmojiText(modeText, emojiPreview(messagePreview(message)));
         modeBox.hidden = false;
         send.classList.toggle('chat-send--editing', type === 'edit');
         sendLabel.hidden = type !== 'edit';
@@ -71,6 +73,7 @@ export function createMessageActions({ dialog, history, input, send, list, reque
         send.title = type === 'edit' ? 'Сохранить изменения' : 'Отправить';
         input.focus();
         resizeInput();
+        onModeChange(mode);
     }
 
     history.addEventListener('contextmenu', event => {
@@ -86,6 +89,7 @@ export function createMessageActions({ dialog, history, input, send, list, reque
     history.addEventListener('pointerup', () => { origin = null; });
     history.addEventListener('pointercancel', () => { origin = null; moved = true; });
     history.addEventListener('click', event => {
+        if (event.target.closest('.chat-photo-thumb')) return;
         const node = event.target.closest('[data-message-id]');
         if (narrow.matches && node && !moved && !window.getSelection()?.toString()) {
             openMenu(list.get(Number(node.dataset.messageId)), event.clientX, event.clientY);
@@ -99,7 +103,14 @@ export function createMessageActions({ dialog, history, input, send, list, reque
         const rect = node.getBoundingClientRect();
         openMenu(list.get(Number(node.dataset.messageId)), rect.left + 20, rect.top + 20);
     });
-    history.addEventListener('scroll', () => closeMenu());
+    history.addEventListener('scroll', () => {
+        if (!selected || menu.hidden) return;
+        // Polling and lazy images can shift scroll position without user input.
+        const anchor = list.node(selected.id)?.getBoundingClientRect();
+        const visible = history.getBoundingClientRect();
+        if (!anchor || anchor.bottom <= visible.top || anchor.top >= visible.bottom) closeMenu();
+        else position(anchor.left + 20, anchor.top + 20);
+    });
     dialog.addEventListener('keydown', event => {
         if (event.key === 'Escape' && !menu.hidden) {
             event.preventDefault(); event.stopPropagation(); closeMenu(true);
@@ -137,7 +148,7 @@ export function createMessageActions({ dialog, history, input, send, list, reque
     window.addEventListener('resize', () => closeMenu());
 
     return {
-        closeMenu, resetMode, endpoint, getMode: () => mode,
+        closeMenu, resetMode, endpoint, getMode: () => mode, isMenuOpen: () => !menu.hidden,
         onUpdate(message) {
             if (selected?.id === message.id) closeMenu();
             if (mode?.message.id !== message.id) return;
@@ -145,7 +156,7 @@ export function createMessageActions({ dialog, history, input, send, list, reque
                 resetMode(); showError('Выбранное сообщение удалено.');
             } else if (mode.type === 'reply') {
                 mode.message = message;
-                renderEmojiText(modeText, emojiPreview(message.text));
+                renderEmojiText(modeText, emojiPreview(messagePreview(message)));
             }
         }
     };

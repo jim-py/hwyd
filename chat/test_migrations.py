@@ -18,12 +18,13 @@ class ChatMigrationTests(TransactionTestCase):
             MigrationExecutor(connection).migrate([('chat', '0001_initial')], fake_initial=True)
             self.assertIn(('chat', '0001_initial'), MigrationRecorder(connection).applied_migrations())
         finally:
-            MigrationExecutor(connection).migrate([('chat', '0002_message_actions')])
+            MigrationExecutor(connection).migrate([('chat', '0004_message_attachments')])
         from .models import ChatMessage, ChatReadState
         retained = ChatMessage.objects.get(pk=message.pk)
         self.assertEqual(retained.text, 'keep me')
         self.assertIsNone(retained.reply_to_id)
         self.assertIsNone(retained.deleted_at)
+        self.assertFalse(retained.photo)
         self.assertEqual(ChatReadState.objects.get(user_id=user.pk).last_read_message_id, message.pk)
         reply = ChatMessage.objects.create(sender_id=user.pk, text='reply', reply_to=retained)
         self.assertEqual(ChatMessage.objects.get(pk=reply.pk).reply_to_id, message.pk)

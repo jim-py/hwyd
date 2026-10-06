@@ -102,6 +102,9 @@ class EmbeddingTests(TestCase):
         data.update(overrides)
         return client.post(url, data, secure=True, HTTP_ORIGIN='https://testserver')
 
+    # Local HTTP uses Django's cookie defaults; this exercises production HTTPS embedding.
+    @override_settings(SESSION_COOKIE_SAMESITE='None', SESSION_COOKIE_SECURE=True,
+                       CSRF_COOKIE_SAMESITE='None', CSRF_COOKIE_SECURE=True)
     def test_https_login_create_and_save_with_csrf_protection(self):
         client, url = self.csrf_client()
         csrf_cookie = client.cookies[settings.CSRF_COOKIE_NAME]

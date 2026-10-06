@@ -1,14 +1,17 @@
 import { renderEmojiText, emojiPreview } from './emoji.js';
 import { renderUserName } from '../../site/js/user-name.js';
+import { messagePreview, configureChatWebm } from './photos.js?v=20261006-stickers';
 
 // Server IDs are the only message identity. User markup stays literal text.
-export function createMessageList(history, empty) {
+export function createMessageList(history, empty, { openPhoto = () => {} } = {}) {
     const items = new Map();
     const deleted = new Set();
 
     function render(node, message) {
         node.replaceChildren();
-        node.className = `chat-message${message.is_own ? ' chat-message--own' : ''}`;
+        const attachments = message.attachments?.length ? message.attachments : (message.photo ? [{...message.photo, kind: 'image'}] : []);
+        const mediaOnly = attachments.length > 0 && !(message.text || '').trim();
+        node.className = `chat-message${message.is_own ? ' chat-message--own' : ''}${mediaOnly ? ' chat-message--media-only' : ''}`;
         const sender = document.createElement('strong');
         sender.className = 'chat-message__sender';
         renderUserName(sender, message.sender, message.sender_role);
@@ -20,10 +23,30 @@ export function createMessageList(history, empty) {
             if (message.reply_to.is_deleted) author.textContent = 'Сообщение удалено';
             else renderUserName(author, message.reply_to.sender, message.reply_to.sender_role);
             const preview = document.createElement('span');
-            renderEmojiText(preview, message.reply_to.is_deleted ? '' : emojiPreview(message.reply_to.preview_text ?? message.reply_to.text));
+            renderEmojiText(preview, message.reply_to.is_deleted ? '' : emojiPreview(messagePreview({
+                ...message.reply_to, text: message.reply_to.preview_text ?? message.reply_to.text })));
             quote.append(author, preview);
             node.append(quote);
         }
+        const gallery = document.createElement('div');
+        gallery.className = 'chat-attachments';
+        for (const [index, attachment] of attachments.entries()) {
+            const isVideo = attachment.kind === 'video';
+            const photo = document.createElement(isVideo ? 'div' : 'button');
+            photo.className = `chat-photo-thumb${isVideo ? ' chat-video-inline' : ''}`;
+            if (!isVideo) {
+                photo.type = 'button';
+                photo.setAttribute('aria-label', `Открыть фотографию${attachments.length > 1 ? ` ${index + 1} из ${attachments.length}` : ''}`);
+                photo.addEventListener('click', () => openPhoto(attachment, photo));
+            }
+            const image = document.createElement(isVideo ? 'video' : 'img');
+            if (isVideo) { configureChatWebm(image); image.setAttribute('aria-label', 'Видео WebM в сообщении'); }
+            else { image.alt = 'Фотография в сообщении'; image.loading = 'lazy'; image.decoding = 'async'; }
+            image.src = attachment.url;
+            photo.append(image);
+            gallery.append(photo);
+        }
+        if (attachments.length) node.append(gallery);
         const text = document.createElement('p');
         text.className = 'chat-message__text';
         renderEmojiText(text, message.text);
@@ -87,7 +110,10 @@ export function createMessageList(history, empty) {
                 sender_role: target.sender_role,
                 text: target.is_deleted ? '' : Array.from(target.text).slice(0, 160).join(''),
                 preview_text: target.is_deleted ? '' : Array.from(target.text).slice(0, 224).join(''),
-                is_deleted: target.is_deleted } }) || changed;
+                is_deleted: target.is_deleted,
+                has_photo: !target.is_deleted && Boolean(target.photo),
+                attachment_count: target.is_deleted ? 0 : (target.attachments?.length || 0),
+                has_video: !target.is_deleted && Boolean(target.attachments?.some(item => item.kind === 'video')) } }) || changed;
         }
         return changed;
     }
