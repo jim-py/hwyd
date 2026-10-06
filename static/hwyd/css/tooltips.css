@@ -3,7 +3,9 @@
     right: 105%;
 }
 
-.divClick.hasText:hover::before {
+.divClick.hasText:hover::before,
+.habit-description-tooltip::before,
+.cell-comment-tooltip::before {
     content: attr(data-title);
     position: absolute;
     z-index: 9999;
@@ -17,6 +19,62 @@
     border: 1px solid #ccc;
     box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.1);
 }
+
+/* Outside the transformed mobile table so the shared bubble is not clipped. */
+.habit-description-tooltip {
+    position: fixed;
+    z-index: 9999;
+    left: var(--description-tooltip-left, 16px);
+    top: var(--description-tooltip-top, 16px);
+    width: min(360px, calc(100vw - 32px));
+    max-height: min(300px, var(--description-tooltip-height, 50vh));
+    box-sizing: border-box;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font: 14px/1.4 var(--app-font-family, inherit);
+    text-align: left;
+}
+
+.habit-description-tooltip[hidden] { display: none; }
+
+.habit-description-tooltip::before {
+    position: static;
+    display: block;
+    width: auto;
+    box-sizing: border-box;
+}
+
+/* Let the comment background fit its text, including unbroken words. */
+.divClick.hasText:hover::before,
+.cell-comment-tooltip {
+    width: max-content;
+    max-width: min(360px, calc(100vw - 32px));
+    max-height: min(300px, calc(100dvh - 32px));
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    overflow: auto;
+    text-align: left;
+}
+
+/* A separate container avoids clipping by the scaled mobile table. */
+.cell-comment-tooltip {
+    position: fixed;
+    z-index: 9999;
+    font: 14px/1.4 var(--app-font-family, inherit);
+}
+
+.cell-comment-tooltip[hidden] { display: none; }
+
+.cell-comment-tooltip::before {
+    position: static;
+    display: block;
+    width: auto;
+    box-sizing: border-box;
+}
+
+.cell-comments-enhanced .divClick.hasText:hover::before { content: none; }
 
 .modalActivity::backdrop, .modalColors::backdrop {
     background: 0;

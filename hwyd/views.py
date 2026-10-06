@@ -21,7 +21,7 @@ from django.db.models import Value, BooleanField
 from django_user_agents.utils import get_user_agent
 
 # Импорты из локальных модулей приложения
-from .forms import LoginForm, RegisterForm, SettingsForm, FeedbackForm, theme_colors_form
+from .forms import LoginForm, RegisterForm, SettingsForm, FeedbackForm, HabitDescriptionForm, theme_colors_form
 from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, UserActivityLog
 from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS, THEME_COLOR_FIELDS
 from .streaks import streak_position, streak_top
@@ -300,16 +300,15 @@ def by_date(request, picked_date):
         # Сохранение настроек активностей и групп
         if request.POST.get('activityPk', False):
             pk = int(request.POST['activityPk'])
-            activity = ''
-            for tmp in activities:
-                if tmp.pk == pk:
-                    activity = tmp
+            activity = get_object_or_404(activities, pk=pk, user=request.user)
             old_act = deepcopy(activity)
-
-            if activity.user_id != request.user.pk:
-                request.user.is_active = False
-                request.user.save()
-                return redirect(redirect_url, picked_date)
+            if activity.isGroup:
+                activity.description = ''
+            elif 'description' in request.POST:
+                description_form = HabitDescriptionForm(request.POST)
+                if not description_form.is_valid():
+                    return JsonResponse({'error': description_form.errors['description'][0]}, status=400)
+                activity.description = description_form.cleaned_data['description']
 
             begin = int(request.POST['beginDay'])
             end = int(request.POST['endDay'])
@@ -592,6 +591,7 @@ def create_last_activities(request, picked_date):
             for day in range(days)
         )
         new_activity = Activities(user=request.user, name=activity.name, date=picked_date, marks='False ' * days,
+                       description=activity.description if not activity.isGroup else '',
                        backgroundColor=activity.backgroundColor, number=activity.number, color=activity.color,
                        isGroup=activity.isGroup, isOpen=activity.isOpen, beginDay=0,
                        endDay=days - 1, cellsComments='*|' * days, onOffCells=on_off_cells, hide=activity.hide)
@@ -681,6 +681,12 @@ def create_activity(request, picked_date, is_group):
     """
 
     inp = 'createActivityGroupInput' if is_group else 'createActivityInput'
+    description = ''
+    if not is_group:
+        description_form = HabitDescriptionForm(request.POST)
+        if not description_form.is_valid():
+            return JsonResponse({'error': description_form.errors['description'][0]}, status=400)
+        description = description_form.cleaned_data['description']
     try:
         Activities.objects.get(user=request.user, name=request.POST[inp], date=picked_date)
     except Activities.DoesNotExist:
@@ -692,7 +698,7 @@ def create_activity(request, picked_date, is_group):
         number = number + 1000 if is_group else number
         year, month = list(map(int, picked_date.split('-')))  # Разделение строки даты на массив года и месяца
         days = monthrange(year, month)[1]  # Количество дней в месяце
-        Activities.objects.create(name=request.POST[inp], date=picked_date, color='#000000', backgroundColor='#ffffff',
+        Activities.objects.create(name=request.POST[inp], description=description, date=picked_date, color='#000000', backgroundColor='#ffffff',
                                   marks='False ' * days, onOffCells='True ' * days, number=number, isGroup=is_group,
                                   beginDay=0, endDay=days - 1, isOpen=False, cellsComments='*|' * days,
                                   user=request.user, hide=False)
@@ -910,7 +916,7 @@ def export_data_as_json(request):
 
     # Фильтруем привычки (isGroup=False) и сортируем по дате, затем по имени
     habits = Activities.objects.filter(user=user, isGroup=False).values(
-        'id', 'name', 'color', 'date', 'marks'
+        'id', 'name', 'color', 'date', 'marks', 'description'
     ).order_by('date', 'name')
 
     # Фильтруем группы (isGroup=True) и сортируем по дате, затем по имени
@@ -949,6 +955,7 @@ def export_data_as_json(request):
             day_date = base_date + timedelta(days=index)  # Вычисляем дату для каждой отметки
             result.append({
                 "name": name,
+                "description": activity['description'],
                 "color": color,
                 "date": day_date.strftime("%Y-%m-%d"),  # Преобразуем дату в строку
                 "mark": mark,  # True или False

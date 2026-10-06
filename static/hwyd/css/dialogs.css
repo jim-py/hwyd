@@ -280,6 +280,8 @@ dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
 .toolbar-dialog .settings-dialog__close { width: 32px; height: 32px; align-items: center; justify-content: center; }
 .toolbar-dialog .dialog-divider { border: 0; border-top: 1px solid #e0e0e0; }
 .toolbar-dialog__field { display: flex; flex-direction: column; gap: 8px; }
+.toolbar-dialog__field[hidden] { display: none; }
+.habit-description-field { margin-top: 18px; }
 .toolbar-dialog__field + .toolbar-dialog__field { margin-top: 18px; }
 .toolbar-dialog__field label { font-size: 14px; font-weight: 600; }
 .toolbar-dialog__field .inputSettings,

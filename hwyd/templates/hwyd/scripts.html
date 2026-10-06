@@ -1,4 +1,6 @@
 {% load static %}
+<script type="module" src="{% static 'hwyd/js/habit-descriptions.js' %}"></script>
+<script type="module" src="{% static 'hwyd/js/cell-comment-tooltips.js' %}"></script>
 <script type="module" src="{% static 'hwyd/js/theme-colors.js' %}"></script>
 {% if scheduled_theme_colors_enabled %}
 <script type="module" src="{% static 'hwyd/js/theme-schedule.js' %}?v=20261004-6"></script>
@@ -261,6 +263,7 @@
 {# Тоже что-то #}
 <script>
     function submitActivitySettings() {
+        if (!document.getElementById('formActivitySettings').reportValidity()) return;
         let data = ''
         for (let elem of document.querySelectorAll('.thisDay')) {
             if ($(elem).hasClass('on'))
@@ -383,6 +386,8 @@
 
         activityPk: dialog.querySelector('input[name="activityPk"]'),
         activityName: document.getElementById("activityName"),
+        description: document.getElementById("activityDescription"),
+        descriptionField: document.getElementById("activityDescriptionField"),
 
         colorBg: document.getElementById("colorBackgroundForm"),
         colorBgText: document.getElementById("colorBackgroundFormText"),
@@ -421,7 +426,7 @@
 
     const ACTIVITIES = JSON.parse(document.getElementById('activitiesInitial').textContent);
     const activityMap = new Map(
-        ACTIVITIES.map(a => [a.name, a])
+        ACTIVITIES.map(a => [String(a.id), a])
     );
 
 
@@ -449,6 +454,10 @@
 
         UI.activityPk.value = activity.id;
         UI.activityName.value = activity.name;
+        UI.description.value = activity.isGroup ? '' : (activity.description || '');
+        UI.description.disabled = Boolean(activity.isGroup);
+        UI.descriptionField.hidden = Boolean(activity.isGroup);
+        UI.description.setCustomValidity('');
 
         UI.colorBg.value = activity.backgroundColor;
         UI.colorBgText.value = activity.backgroundColor;
@@ -570,16 +579,17 @@
     function rightClick(e) {
         e.preventDefault();
 
-        const name = e.target.dataset.name;
-        const type = e.target.dataset.type;
+        const nameElement = e.target.closest('.paragraph[data-pk]') || e.target.closest('td.header')?.querySelector('.paragraph[data-pk]');
+        if (!nameElement) return;
+        const type = nameElement.dataset.type;
 
-        const activity = activityMap.get(name);
+        const activity = activityMap.get(nameElement.dataset.pk);
         if (!activity) return;
 
         const connections =
-            JSON.parse(e.target.dataset.conn || "[]");
+            JSON.parse(nameElement.dataset.conn || "[]");
 
-        fillForm(activity, e.target, type);
+        fillForm(activity, nameElement, type);
 
         if (type === "активности") {
             setupActivityMode(activity);

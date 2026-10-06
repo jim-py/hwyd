@@ -32,6 +32,17 @@ class FeedbackForm(forms.ModelForm):
         fields = ['category', 'message']
 
 
+class HabitDescriptionField(forms.CharField):
+    def to_python(self, value):
+        # HTML forms submit CRLF; count a line break like the textarea does.
+        return super().to_python(value).replace('\r\n', '\n').replace('\r', '\n')
+
+
+class HabitDescriptionForm(forms.Form):
+    description = HabitDescriptionField(required=False, max_length=3000, strip=False,
+                                  error_messages={'max_length': 'Описание должно содержать не больше 3000 символов.'})
+
+
 class ThemeColorsForm(forms.ModelForm):
     class Meta:
         model = Settings

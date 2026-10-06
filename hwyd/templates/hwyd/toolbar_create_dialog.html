@@ -8,6 +8,13 @@
             <input id="{{ input_name }}" name="{{ input_name }}" type="text" class="inputSettings"
                    placeholder="{{ placeholder }}" maxlength="100" required data-initial-focus>
         </div>
+        {% if group_type == 0 %}
+        <div class="toolbar-dialog__field">
+            <label for="createActivityDescription">Описание</label>
+            <textarea id="createActivityDescription" name="description" class="inputSettings" rows="5"
+                      placeholder="Необязательное описание привычки"></textarea>
+        </div>
+        {% endif %}
     </form>
     {% include 'hwyd/toolbar_dialog_footer.html' with action_label='Создать' %}
 </dialog>

@@ -247,6 +247,10 @@ function vibrateOrHaptic() {
             <div  class="dialog-spacer"></div>
             <input class="elementActivitySettings inputSettings" name="activityName" id="activityName" type="text">
         </div>
+        <div id="activityDescriptionField" class="toolbar-dialog__field habit-description-field" hidden>
+            <label for="activityDescription">Описание</label>
+            <textarea id="activityDescription" name="description" class="inputSettings" rows="5" disabled></textarea>
+        </div>
         {% comment %} <div class="hideOn">
             <label id="hideOnLabel" for="hideOn">Добавить группу в скрытые</label> ??????????????????????????????????
             <input name="hideOn" id="hideOn" type="checkbox" class="elementActivitySettings">

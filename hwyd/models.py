@@ -88,6 +88,7 @@ class ActivitiesConnection(models.Model):
 
 
 class Activities(models.Model):
+    description = models.TextField('Описание', max_length=3000, blank=True, default='')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Владелец')
     name = models.CharField(max_length=100, verbose_name='Название')
     date = models.CharField(max_length=7, verbose_name='Месяц')
