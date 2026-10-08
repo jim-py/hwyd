@@ -47,7 +47,7 @@ else:
 # =========================================================
 
 DJANGO_APPS = [
-    'django.contrib.admin',
+    'my_site.admin_apps.ProductivumAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -186,10 +186,23 @@ if HOSTING:
 else:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'productivum_local',
+            'USER': 'root',
+            'PASSWORD': 'root',
+            'HOST': 'localhost',
+            'PORT': '3306',
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+            },
         }
     }
+    # DATABASES = {
+    #     'default': {
+    #         'ENGINE': 'django.db.backends.sqlite3',
+    #         'NAME': BASE_DIR / 'db.sqlite3',
+    #     }
+    # }
 
 
 # =========================================================

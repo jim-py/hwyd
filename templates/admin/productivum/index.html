@@ -1,0 +1,17 @@
+{% extends "admin/index.html" %}
+{% block content %}
+<section class="pv-cards" aria-label="Основные задачи">
+{% for card in priority_cards %}<article class="pv-card">
+<h2><a href="{{ card.url }}">{{ card.title }}</a></h2>
+{% if card.count != None %}<strong class="pv-metric">{{ card.count }}</strong>{% endif %}
+<p>{{ card.description }}</p><div class="pv-card-actions"><a href="{{ card.url }}">Открыть →</a>
+{% if card.add_url %}<a class="pv-button" href="{{ card.add_url }}">Создать</a>{% endif %}</div>
+</article>{% empty %}<p>Основные разделы появятся после назначения соответствующих прав.</p>{% endfor %}
+</section>
+{% if can_feedback %}<section class="pv-panel"><h2>Последние обращения</h2>
+<p class="pv-muted">Все поступившие записи. Статус обработки в текущей модели не хранится.</p>
+<ul class="pv-feedback-list">{% for entry in latest_feedback %}<li><a href="{% url 'admin:hwyd_feedback_change' entry.pk %}">{{ entry.get_category_display }}</a>
+<span>{{ entry.created_at|date:"d.m.Y H:i" }} · {{ entry.user.username|default:"Пользователь удалён / не указан" }}</span>
+<p>{{ entry.message|truncatechars:180 }}</p></li>{% empty %}<li>Обращений пока нет.</li>{% endfor %}</ul></section>{% endif %}
+<h2 class="pv-section-title">Все разделы</h2>{{ block.super }}
+{% endblock %}

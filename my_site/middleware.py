@@ -28,7 +28,7 @@ class UserActivityLoggingMiddleware:
 
         response = self.get_response(request)
 
-        if not request.user.is_authenticated:
+        if not request.user.is_authenticated or getattr(request, 'admin_preview', False):
             return response
 
         user = request.user

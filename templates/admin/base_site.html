@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}{% load static %}
+{% block title %}{{ title }} · Productivum{% endblock %}
+{% block branding %}<h1 id="site-name"><a href="{% url 'admin:index' %}">Productivum <span class="pv-brand-label">Управление</span></a></h1>{% endblock %}
+{% block extrahead %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'site/admin/admin.css' %}?v=20261008">
+<script defer src="{% static 'site/admin/admin.js' %}?v=20261008"></script>
+{% endblock %}
+{% block nav-global %}<nav class="pv-nav" aria-label="Основные разделы">
+<a href="{% url 'admin:index' %}">Обзор</a>
+{% if perms.notifications.view_notification or perms.notifications.change_notification %}<a href="{% url 'admin:notifications_notification_changelist' %}">Уведомления</a>{% endif %}
+{% if perms.hwyd.view_feedback or perms.hwyd.change_feedback %}<a href="{% url 'admin:hwyd_feedback_changelist' %}">Обратная связь</a>{% endif %}
+{% if perms.general_app.view_guide or perms.general_app.change_guide %}<a href="{% url 'admin:general_app_guide_changelist' %}">Гайды</a>{% endif %}
+{% if perms.hwyd.view_activities or perms.hwyd.change_activities %}<a href="{% url 'admin:habit_statistics' %}">Отметки</a>{% endif %}
+</nav>{% endblock %}

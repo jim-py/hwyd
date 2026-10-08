@@ -37,3 +37,8 @@ export async function markViewed(slug) {
     });
     if (!response.ok) throw new Error(`Guide progress: HTTP ${response.status}`);
 }
+
+export async function markOpened(slug) {
+    if (isViewAs) return;
+    return requestJSON(`/home/guides/${encodeURIComponent(slug)}/opened/`);
+}

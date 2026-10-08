@@ -1,0 +1,9 @@
+{% extends 'admin/base_site.html' %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Обзор</a> › <a href="{{ changelist_url }}">К списку записей</a> › Пользователи</div>{% endblock %}
+{% block content %}<section class="pv-panel"><p>{{ label }}. {{ page.paginator.count }} пользователей по текущему фильтру.</p>
+<p class="pv-muted">Учёт авторизованных аккаунтов. Записи удалённых пользователей не сохраняются; гостевые подтверждения уведомлений в базе не учитываются.</p>
+<form method="get" class="pv-range"><label for="pv-search">Ник пользователя</label><input id="pv-search" type="search" name="q" value="{{ query }}">
+{% if kind %}<input type="hidden" name="kind" value="{{ kind }}">{% endif %}{% if version %}<input type="hidden" name="version" value="{{ version }}">{% endif %}<button class="pv-button" type="submit">Найти</button></form>
+<table><thead><tr><th>Пользователь</th><th>Дата записи</th></tr></thead><tbody>{% for row in page %}<tr><td>{{ row.user__username }}</td><td>{{ row.timestamp|date:"d.m.Y H:i"|default:"Неизвестна" }}</td></tr>{% empty %}<tr><td colspan="2">Подходящих записей пока нет.</td></tr>{% endfor %}</tbody></table>
+<nav class="pv-pagination" aria-label="Страницы пользователей">{% if page.has_previous %}<a href="?{{ params }}&amp;page={{ page.previous_page_number }}">← Назад</a>{% endif %}<span>{{ page.number }} / {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a href="?{{ params }}&amp;page={{ page.next_page_number }}">Далее →</a>{% endif %}</nav>
+</section>{% endblock %}

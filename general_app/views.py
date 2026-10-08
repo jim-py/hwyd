@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.views import LogoutView as DefaultLogoutView
 from django.urls import reverse_lazy
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
@@ -14,7 +14,8 @@ from django.http import JsonResponse
 from .forms import UserUpdateForm, ProfilePhotoForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import HttpResponseRedirect
-from .models import Guide, UserGuideProgress, UserProfile
+from .models import Guide, UserGuideProgress, UserProfile, GuideOpening
+from .guides import GUIDE_MODULES
 from django.views.decorators.http import require_POST
 from django.db import transaction
 import logging
@@ -192,3 +193,13 @@ def mark_guide_viewed(request, slug):
     progress.save()
 
     return JsonResponse({"status": "ok"})
+
+
+@login_required(login_url='entry')
+@require_POST
+def mark_guide_opened(request, slug):
+    if slug not in GUIDE_MODULES:
+        return JsonResponse({'error': 'Гайд не поддерживается.'}, status=404)
+    guide = get_object_or_404(Guide, slug=slug, is_active=True)
+    GuideOpening.objects.get_or_create(user=request.user, guide=guide, version=guide.version)
+    return JsonResponse({'status': 'ok', 'version': guide.version})

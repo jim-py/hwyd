@@ -1,0 +1,8 @@
+{% extends "admin/change_form.html" %}
+{% block after_field_sets %}{{ block.super }}
+<section class="pv-panel"><h2>Проверить перед сохранением</h2>
+<p>Предпросмотр текущего содержимого формы. Объявление не сохраняется, подтверждения и web-push не отправляются.</p>
+<button type="button" class="pv-button" data-notification-preview="{{ preview_url }}" data-method="{{ preview_method }}" aria-expanded="false" aria-controls="pv-preview-frame">Предпросмотр уведомления</button>
+<p id="pv-preview-status" role="status"></p>
+<iframe id="pv-preview-frame" class="pv-preview-frame" title="Предпросмотр уведомления" sandbox="" hidden></iframe>
+</section>{% endblock %}

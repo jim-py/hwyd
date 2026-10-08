@@ -70,3 +70,18 @@ class UserGuideProgress(models.Model):
         
     def __str__(self):
         return f"{self.user} → {self.guide}"
+
+
+class GuideOpening(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='guide_openings')
+    guide = models.ForeignKey(Guide, on_delete=models.CASCADE, related_name='openings')
+    version = models.PositiveIntegerField()
+    opened_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Открытие гайда'
+        verbose_name_plural = 'Открытия гайдов'
+        constraints = [models.UniqueConstraint(fields=['guide', 'version', 'user'], name='unique_guide_version_opening')]
+
+    def __str__(self):
+        return f'{self.user} → {self.guide_id}, версия {self.version}'

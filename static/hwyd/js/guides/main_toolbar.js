@@ -1,25 +1,10 @@
-import { markViewed } from '../api.js';
+import { markViewed, markOpened } from '../api.js?v=20261008-admin';
+import { controls, buildGuideSteps } from './main_toolbar_content.js?v=20261008-admin';
 import { forceShowHiddenButtons } from '../utils.js';
 import { showToast } from '../toast.js';
 
 let active = null;
-const controls = [
-    ['#buttonSettings', 'Настройки Habitus', 'Выберите видимые кнопки, шрифт, звуки и поведение таблицы. Здесь же можно повторно открыть обучение.'],
-    ['#buttonTheme', 'Тема', 'Переключает тему интерфейса.'],
-    ['#themeScheduleButton', 'Расписание тем', 'Сохраните текущие цвета под своим названием и назначьте время автоматического включения в вашем часовом поясе. Можно хранить несколько тем, менять время и выключать расписание.'],
-    ['#createActivityButton', 'Новая привычка', 'Создайте привычку для отслеживания в выбранном месяце.'],
-    ['#createGroupButton', 'Группа привычек', 'Создайте группу, затем добавьте в неё привычки через настройки группы.'],
-    ['#calendarButton', 'Выбор месяца', 'Откройте календарь, выберите месяц и перейдите к его таблице.'],
-    ['#hideCompleteActivities', 'Выполненные привычки', 'Показывает или скрывает привычки, выполненные сегодня. Свёрнутые группы сохраняют своё состояние.'],
-    ['#openAll', 'Управление группами', 'Раскрывает все свёрнутые группы или сворачивает все раскрытые.'],
-    ['#loginStreak', 'Стрик посещений', 'Число последовательных дней посещения приложения в последней цепочке. Посещение после пропущенного дня начинает новую цепочку.'],
-    ['#topStreak', 'Top по стрику', 'Число рядом с Top — ваше место по текущему стрику посещений. Нажмите, чтобы увидеть Top-10. При равном стрике порядок определяется именем пользователя. Кнопку можно скрыть в настройках.'],
-    ['#buttonChat', 'Общий чат', 'Общайтесь, отвечайте на сообщения и редактируйте свои. На компьютере окно можно перемещать и менять его размер, на телефоне оно занимает весь экран.'],
-    ['#buttonFeedback', 'Обратная связь', 'Сообщите об ошибке, предложите улучшение или оставьте отзыв.'],
-    ['#btnActLastMonth', 'Привычки прошлого месяца', 'Копирует привычки и группы прошлого месяца без отметок. Обычно кнопка доступна, когда таблица выбранного месяца пуста.'],
-    ['#deleteAll', 'Очистить месяц', 'Открывает подтверждение удаления всех привычек, групп, отметок и комментариев выбранного месяца. До подтверждения ничего не удаляется.'],
-    ['#trackerViewSwitch', 'Вид привычек: Таблица / Год', '«Таблица» — привычная таблица месяца, в которой можно отмечать выполнение. «Год» заменяет её календарём за весь год: заполненность кружка показывает процент выполненных привычек среди доступных в этот день. Выберите день, чтобы увидеть результат и перейти к его месяцу. Переключатель можно скрыть в настройках.'],
-];
+
 
 function controlsInVisualOrder() {
     const positioned = controls.flatMap(control => {
@@ -95,13 +80,7 @@ export function start() {
         restore = forceShowHiddenButtons([...controls.map(([selector]) => selector), '#createLastMonthActivitiesForm']);
         document.body.classList.add('onboarding-lock');
         for (const type of eventTypes) document.addEventListener(type, blockActions, true);
-        const steps = [
-            { popover: { title: 'Добро пожаловать в Habitus', description: 'Отмечайте привычки в таблице и объединяйте их в группы. Пройдём по кнопкам сверху вниз, в каждом ряду — слева направо. Скрытые кнопки временно показаны; ваши настройки сохранятся.' } },
-            ...controlsInVisualOrder().map(([element, title, description]) => ({
-                element, popover: { title, description, side: 'bottom', align: 'center' },
-            })),
-            { popover: { title: 'Можно начинать', description: 'Создайте привычку и отмечайте её выполнение. Повторить этот обзор можно через «Настройки → Обучение».' } },
-        ];
+        const steps = buildGuideSteps(controlsInVisualOrder());
         const finish = () => {
             // Driver can omit onDestroyed when closed mid-transition, before
             // its first active element is committed. Always restore explicitly.
@@ -126,6 +105,7 @@ export function start() {
         });
         tour.drive();
         started = true;
+        markOpened('main_toolbar').catch(error => console.error('Guide opening:', error));
     } catch (error) {
         try { tour?.destroy(); } catch { /* cleanup also covers partial initialization */ }
         cleanup();

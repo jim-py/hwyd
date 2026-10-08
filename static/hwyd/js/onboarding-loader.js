@@ -2,7 +2,8 @@ import { loadDriver } from "./driver-loader.js";
 import { showToast } from './toast.js';
 
 async function loadGuide(slug) {
-    return import(`./guides/${slug}.js`);
+    if (slug === 'main_toolbar') return import('./guides/main_toolbar.js?v=20261008-admin');
+    throw new Error('Неизвестный гайд');
 }
 
 async function startOnboarding() {

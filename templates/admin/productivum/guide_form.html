@@ -1,0 +1,2 @@
+{% extends "admin/change_form.html" %}
+{% block after_field_sets %}{{ block.super }}<p class="pv-panel">Открытия учитываются с установки обновления, отдельно от подтверждения или закрытия. Исторические открытия до обновления неизвестны.</p>{% endblock %}

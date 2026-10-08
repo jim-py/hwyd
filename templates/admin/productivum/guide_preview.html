@@ -1,0 +1,18 @@
+{% extends 'admin/base_site.html' %}{% load static %}
+{% block extrahead %}{{ block.super }}{% if supported %}
+<link rel="stylesheet" href="{% static 'hwyd/vendor/driver/driver.css' %}"><link rel="stylesheet" href="{% static 'hwyd/css/onboarding.css' %}">
+<script type="module" src="{% static 'site/admin/guide-preview.js' %}?v=20261008"></script>{% endif %}{% endblock %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Обзор</a> › <a href="{% url 'admin:general_app_guide_changelist' %}">Гайды</a> › Предпросмотр</div>{% endblock %}
+{% block content %}
+<section class="pv-panel"><h2>{{ guide.title }} · версия {{ guide.version }}</h2>
+<p>Это демонстрационные кнопки. Шаги и оформление взяты из пользовательского гайда. Предпросмотр не запускает обучение на аккаунте и не записывает открытия или прогресс.</p>
+{% if supported %}<button type="button" class="pv-button" id="pv-start-guide">Показать гайд</button><p id="pv-guide-status" role="status"></p>
+<div id="pv-guide-controls" class="pv-guide-controls" aria-label="Демонстрационные элементы Habitus"></div>
+<h3>Содержание сценария</h3><ol id="pv-guide-steps" class="pv-guide-steps"></ol>
+{% else %}<p role="status">Для кода «{{ guide.slug }}» нет проверенного модуля предпросмотра. Никакие произвольные скрипты не загружаются.</p>{% endif %}
+</section>
+<section class="pv-panel"><h2>Пользователи по версиям</h2>
+<p class="pv-muted">Открытия — уникальные авторизованные пользователи после установки обновления. Исторические открытия до обновления неизвестны. Удалённые аккаунты не входят в показатели. Подтверждения — завершение или явное закрытие; сохраняется только последняя подтверждённая версия, а не полная история завершений.</p>
+<div class="pv-table-scroll"><table><thead><tr><th>Версия</th><th>Открыли</th><th>Подтвердили / закрыли</th></tr></thead><tbody>
+{% for item in versions %}<tr><td>{{ item.version }}{% if item.version == guide.version %} · текущая{% endif %}</td><td><a href="{{ item.open_url }}" data-audience-url="{{ item.open_url }}">{{ item.openings }}</a></td><td><a href="{{ item.confirmed_url }}">{{ item.confirmations|default:0 }}</a></td></tr>{% endfor %}
+</tbody></table></div></section>{% endblock %}

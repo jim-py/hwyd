@@ -1,0 +1,11 @@
+{% extends 'admin/base_site.html' %}
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Обзор</a> › Отметки привычек</div>{% endblock %}
+{% block content %}<section class="pv-panel">
+<p>Текущее сохранённое состояние клеток за календарные даты, а не история действий. Время установки и снятия отметки не хранится. Группы, отключённые клетки и дни вне границ привычки исключены; скрытые привычки включены.</p>
+<form method="get" class="pv-range">{{ form.non_field_errors }}{% for field in form %}<div><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}<button type="submit" class="pv-button">Показать</button></form>
+<nav class="pv-quick" aria-label="Быстрые периоды"><a href="?start={{ month_start }}&amp;end={{ month_end }}">Текущий месяц</a><a href="?start={{ today }}&amp;end={{ today }}">Сегодня</a></nav>
+{% if stats %}{% if stats.malformed %}<p class="errornote" role="alert">Есть {{ stats.malformed }} некорректных записей привычек в выбранном периоде. Они исключены целиком; показатели ниже неполные, это не достоверный ноль.</p>{% endif %}
+<div class="pv-totals"><div><strong>{{ stats.marks }}</strong> положительных отметок</div><div><strong>{{ stats.users }}</strong> уникальных пользователей за весь период</div></div>
+<div class="pv-table-scroll"><table class="pv-stat-table"><caption>{{ stats.start|date:"d.m.Y" }} — {{ stats.end|date:"d.m.Y" }}</caption><thead><tr><th>Дата</th><th>Отметки</th><th>Пользователи</th><th>Количество отметок</th></tr></thead><tbody>
+{% for day in stats.days %}<tr><td>{{ day.date|date:"d.m.Y" }}</td><td>{{ day.marks }}</td><td>{{ day.users }}</td><td><span class="pv-bar" style="width:{{ day.bar }}%" aria-hidden="true"></span></td></tr>{% endfor %}
+</tbody></table></div>{% endif %}</section>{% endblock %}
