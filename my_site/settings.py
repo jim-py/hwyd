@@ -74,6 +74,13 @@ LOCAL_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+if not DEBUG:
+    INSTALLED_APPS = [
+        app
+        for app in INSTALLED_APPS
+        if app != 'debug_toolbar'
+    ]
+
 
 # =========================================================
 # WEB PUSH
@@ -137,6 +144,13 @@ MIDDLEWARE = [
     'my_site.middleware.MaintenanceMiddleware',
     'my_site.middleware.UserActivityLoggingMiddleware',
 ]
+
+if not DEBUG:
+    MIDDLEWARE = [
+        middleware
+        for middleware in MIDDLEWARE
+        if middleware != 'debug_toolbar.middleware.DebugToolbarMiddleware'
+    ]
 
 
 # =========================================================
