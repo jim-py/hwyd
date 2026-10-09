@@ -188,9 +188,16 @@ class ScheduledTheme(models.Model):
         constraints = [
             models.UniqueConstraint(fields=('user', 'active_time'), name='unique_user_active_theme_time'),
             models.CheckConstraint(
-                check=(models.Q(is_enabled=False, active_time__isnull=True) |
-                       models.Q(is_enabled=True, active_time__isnull=False, active_time=models.F('activation_time'))),
-                name='theme_active_time_matches_schedule'),
+                    condition=(
+                        models.Q(is_enabled=False, active_time__isnull=True)
+                        | models.Q(
+                            is_enabled=True,
+                            active_time__isnull=False,
+                            active_time=models.F('activation_time'),
+                        )
+                    ),
+                    name='theme_active_time_matches_schedule',
+                ),
         ]
 
     def clean(self):
