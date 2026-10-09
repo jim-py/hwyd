@@ -13,6 +13,6 @@
 </section>
 <section class="pv-panel"><h2>Пользователи по версиям</h2>
 <p class="pv-muted">Открытия — уникальные авторизованные пользователи после установки обновления. Исторические открытия до обновления неизвестны. Удалённые аккаунты не входят в показатели. Подтверждения — завершение или явное закрытие; сохраняется только последняя подтверждённая версия, а не полная история завершений.</p>
-<div class="pv-table-scroll"><table><thead><tr><th>Версия</th><th>Открыли</th><th>Подтвердили / закрыли</th></tr></thead><tbody>
+<div class="pv-table-scroll" tabindex="0" role="region" aria-label="Версии гайда"><table><thead><tr><th>Версия</th><th>Открыли</th><th>Подтвердили / закрыли</th></tr></thead><tbody>
 {% for item in versions %}<tr><td>{{ item.version }}{% if item.version == guide.version %} · текущая{% endif %}</td><td><a href="{{ item.open_url }}" data-audience-url="{{ item.open_url }}">{{ item.openings }}</a></td><td><a href="{{ item.confirmed_url }}">{{ item.confirmations|default:0 }}</a></td></tr>{% endfor %}
 </tbody></table></div></section>{% endblock %}

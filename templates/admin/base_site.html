@@ -1,9 +1,17 @@
 {% extends "admin/base.html" %}{% load static %}
 {% block title %}{{ title }} · Productivum{% endblock %}
-{% block branding %}<h1 id="site-name"><a href="{% url 'admin:index' %}">Productivum <span class="pv-brand-label">Управление</span></a></h1>{% endblock %}
+{% block branding %}<h1 id="site-name"><a href="{% url 'admin:index' %}">Productivum <span class="pv-brand-label">Управление</span></a></h1>
+{% if not has_permission %}{% include 'admin/color_theme_toggle.html' %}{% endif %}{% endblock %}
+{% block dark-mode-vars %}
+<link rel="stylesheet" href="{% static 'admin/css/dark_mode.css' %}">
+{# Keep Django's theme key/data attribute; the local adapter tolerates unavailable storage. #}
+<script src="{% static 'site/admin/theme.js' %}?v=20261009"></script>
+{% endblock %}
 {% block extrahead %}{{ block.super }}
-<link rel="stylesheet" href="{% static 'site/admin/admin.css' %}?v=20261008">
 <script defer src="{% static 'site/admin/admin.js' %}?v=20261008"></script>
+{% endblock %}
+{% block responsive %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'site/admin/admin.css' %}?v=20261009">
 {% endblock %}
 {% block nav-global %}<nav class="pv-nav" aria-label="Основные разделы">
 <a href="{% url 'admin:index' %}">Обзор</a>

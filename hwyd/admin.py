@@ -20,9 +20,24 @@ class ActivitiesAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Activities, ActivitiesAdmin)
-admin.site.register(ActivitiesConnection)
-admin.site.register(Settings)
-admin.site.register(CustomFieldsUser)
+
+@admin.register(ActivitiesConnection)
+class ActivitiesConnectionAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        # Default __str__ labels read all three relations, also on change/delete.
+        return super().get_queryset(request).select_related('user', 'group', 'activity')
+
+
+@admin.register(Settings)
+class SettingsAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
+
+
+@admin.register(CustomFieldsUser)
+class CustomFieldsUserAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
 
 
 @admin.register(Feedback)
