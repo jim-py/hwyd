@@ -113,6 +113,34 @@ html[data-public-theme="dark"] {
 .public-preview { margin-top: 40px; border: 1px solid var(--public-line); border-radius: 20px; padding: 24px; background: var(--public-surface); box-shadow: var(--public-shadow); text-align: left; }
 .public-preview-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; font-size: 14px; font-weight: 600; }
 .public-preview-heading span:last-child { border-radius: 8px; padding: 4px 10px; background: var(--public-panel); color: var(--public-muted); font-size: 11px; font-weight: 400; }
+.public-preview-heading { flex-wrap: wrap; }
+.public-preview-views { display: grid; grid-template-columns: repeat(2, max-content) 1fr; gap: 0; min-width: 0; margin: 0; padding: 0; border: 0; }
+.public-page .public-preview-choice { margin: 0; padding: 7px 14px; background: var(--public-panel); color: var(--public-muted); border: 1px solid var(--public-line); font-size: 13px; font-weight: 500; cursor: pointer; }
+.public-preview-choice[for="preview-view-habitus"] { border-radius: 10px 0 0 10px; }
+.public-preview-choice[for="preview-view-week"] { border-radius: 0 10px 10px 0; }
+.public-preview-radio:checked + .public-preview-choice { background: var(--public-surface); color: var(--public-accent); box-shadow: var(--public-shadow); }
+.public-preview-radio:focus-visible + .public-preview-choice { outline: 3px solid var(--public-accent); outline-offset: 3px; z-index: 1; }
+.public-preview-pane { grid-column: 1 / -1; min-width: 0; margin-top: 20px; }
+#preview-view-habitus:not(:checked) ~ #preview-habitus,
+#preview-view-week:not(:checked) ~ #preview-week { display: none; }
+.public-preview-caption { margin: 14px 5px 0; color: var(--public-muted); font-size: 11px; }
+/* Read-only copy of Habitus main.css/tableCells.css and its default preset.
+   Scope every rule: the real tracker keeps its own controls and user palette. */
+.public-tracker-stage { background: #f0f0f0; color: #000; color-scheme: light; padding: 12px; }
+.public-tracker-table { width: max-content; margin: 0 auto; border-collapse: collapse; color: #000; font: 400 16px/1.5 Inter, sans-serif; text-align: start; }
+.public-tracker-table * { box-sizing: content-box; }
+.public-tracker-table :is(th, td) { padding: 1px; border: 0; vertical-align: middle; }
+.public-tracker-table th { font-weight: 700; }
+.public-tracker-table .header { font-weight: 400; }
+.public-tracker-table .headParagraph { display: flex; align-items: center; justify-content: center; height: 25px; margin: 0 0 5px; border: 1px solid #a1a1a1; border-radius: 3px; background: #e6e4ce; color: #000; font-weight: 600; }
+.public-tracker-table .headParagraph.main { min-width: 150px; margin-right: 5px; }
+.public-tracker-table .headParagraph.minor { width: 25px; }
+.public-tracker-table .headParagraph.weekend { background: #eeb3b3; }
+.public-tracker-table .paragraph { display: flex; align-items: center; justify-content: start; height: 24px; line-height: 24px; margin: 0 5px 0 0; padding: 0 10px; border: 1px solid #a1a1a1; border-radius: 3px; overflow: hidden; white-space: nowrap; background: #fff; color: #000; font-size: 14px; font-weight: 600; }
+.public-tracker-table .activity-name-icon { flex: 0 0 14px; margin-right: 6px; opacity: .75; pointer-events: none; }
+.public-tracker-table .divClick { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid #ccc; border-radius: 3px; font-size: 9px; }
+.public-tracker-table .divClick.today { background: #fff; }
+.public-tracker-table .divClick.on { border-color: #555; background: #fff; color: #000; box-shadow: 0 1px 0 rgb(255 255 255 / 30%) inset, 0 1px 1px rgb(100 100 100 / 30%); }
 .public-table-scroll { overflow-x: auto; border-radius: 8px; }
 .public-habit-table { width: 100%; min-width: 470px; border-spacing: 5px; border-collapse: separate; font-size: 13px; text-align: center; }
 .public-habit-table th { font-weight: 500; padding: 6px 10px; }
@@ -162,6 +190,9 @@ html[data-public-theme="dark"] {
 .public-error-art svg { width: 84px; height: 92px; }
 .public-error h1 { font-size: clamp(30px, 4vw, 44px); margin-bottom: 20px; }
 .public-page [hidden] { display: none; }
+@media (min-width: 1200px) {
+    .public-preview { margin-inline: -40px; }
+}
 @media (max-width: 700px) {
     .public-container { width: calc(100% - 32px); }
     .public-hero { padding-top: 28px; padding-bottom: 24px; }

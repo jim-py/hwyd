@@ -23,7 +23,17 @@
         </div>
         <p class="public-small">Для сохранения привычек и отметок нужен аккаунт.</p>
         <div class="public-preview">
-            <div class="public-preview-heading"><span>Небольшие шаги, день за днём</span><span>Пример недели</span></div>
+            <div class="public-preview-heading"><span>Небольшие шаги, день за днём</span><span>Пример трекера</span></div>
+            <fieldset class="public-preview-views">
+                <legend class="visually-hidden">Вид примера таблицы привычек</legend>
+                <input class="visually-hidden public-preview-radio" type="radio" name="public-preview-view" id="preview-view-habitus" value="habitus" aria-controls="preview-habitus" checked>
+                <label class="public-preview-choice" for="preview-view-habitus">Как в Habitus</label>
+                <input class="visually-hidden public-preview-radio" type="radio" name="public-preview-view" id="preview-view-week" value="week" aria-controls="preview-week">
+                <label class="public-preview-choice" for="preview-view-week">Пример недели</label>
+                <div class="public-preview-pane" id="preview-habitus">
+                    {% include 'general_app/includes/home_habitus_preview.html' %}
+                </div>
+                <div class="public-preview-pane" id="preview-week">
             <div class="public-table-scroll" role="region" aria-label="Пример таблицы привычек, прокрутка по горизонтали" tabindex="0">
                 <table class="public-habit-table">
                     <caption>Иллюстрация с условными привычками и отметками.</caption>
@@ -35,6 +45,8 @@
                     </tbody>
                 </table>
             </div>
+                </div>
+            </fieldset>
         </div>
     </section>
     <section class="public-section" id="features" aria-labelledby="features-title">

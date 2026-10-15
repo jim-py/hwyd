@@ -1,0 +1,31 @@
+<div class="public-tracker-stage public-table-scroll" role="region" aria-label="Пример месячной таблицы Habitus, прокрутка по горизонтали" tabindex="0">
+    <table class="public-tracker-table" aria-describedby="habitus-preview-caption">
+        <thead>
+            <tr>
+                <th scope="col"><p class="headParagraph changeParagraph main">{{ preview_month|date:'F Y'|capfirst }}</p></th>
+                {% for day in preview_days %}
+                <th scope="col"><p class="headParagraph {% if day.weekend %}weekend{% else %}changeParagraph{% endif %} minor">{{ day.number }}</p></th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for habit in preview_habits %}
+            <tr>
+                <th scope="row" class="header">
+                    <p class="paragraph">
+                        <svg class="activity-name-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            <path d="M8 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path>
+                            <rect x="8" y="2" width="8" height="6" rx="2"></rect><path d="M8 13h8M8 17h5"></path>
+                        </svg>
+                        {{ habit.name }}
+                    </p>
+                </th>
+                {% for cell in habit.cells %}
+                <td><div class="divClick{% if cell.today %} today{% endif %}{% if cell.done %} on{% endif %}" role="img" aria-label="{% if cell.done %}Отмечено{% else %}Не отмечено{% endif %}"></div></td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p class="public-preview-caption" id="habitus-preview-caption">Иллюстрация с условными привычками и отметками.</p>

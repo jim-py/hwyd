@@ -1,11 +1,15 @@
 """Public routing, metadata, accounts and the isolated presentation layer."""
 from html.parser import HTMLParser
+from datetime import date
+from unittest.mock import patch
 from urllib.parse import parse_qs, urlencode, urlsplit
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.test import Client, TestCase, override_settings
 from django.urls import resolve, reverse
+
+from .views import HomeView
 
 
 class PageElements(HTMLParser):
@@ -46,6 +50,46 @@ class PublicPagesTests(TestCase):
                     links = PageElements(response).tags('a')
                     starts = [parse_qs(urlsplit(link.get('href', '')).query) for link in links]
                     self.assertIn({'type': ['register'], 'next': [reverse('index')]}, starts)
+
+    def test_home_defaults_to_habitus_and_keeps_week_example_as_a_native_choice(self):
+        response = self.client.get('/')
+        elements = PageElements(response)
+        choices = [tag for tag in elements.tags('input') if tag.get('name') == 'public-preview-view']
+        self.assertEqual([choice['value'] for choice in choices], ['habitus', 'week'])
+        self.assertTrue(all(choice['type'] == 'radio' for choice in choices))
+        self.assertIn('checked', choices[0])
+        self.assertNotIn('checked', choices[1])
+        labels = {tag['for'] for tag in elements.tags('label')}
+        ids = [tag.get('id') for _, tag in elements.elements if 'id' in tag]
+        for choice in choices:
+            self.assertIn(choice['id'], labels)
+            self.assertEqual(ids.count(choice['aria-controls']), 1)
+        self.assertTemplateUsed(response, 'general_app/includes/home_habitus_preview.html')
+        self.assertEqual(len(elements.tags('table')), 2)
+        self.assertContains(response, 'class="public-habit-table"')
+        self.assertContains(response, '<caption>Иллюстрация с условными привычками и отметками.</caption>', html=True)
+        self.assertNotContains(response, 'id="myTable"')
+        self.assertNotContains(response, 'data-activity-id=')
+        for path in (reverse('about'), reverse('entry'), '/missing-preview-page/'):
+            other = self.client.get(path)
+            self.assertNotContains(other, 'public-preview-view', status_code=other.status_code)
+
+    def test_habitus_example_uses_current_calendar_and_synthetic_marks_without_queries(self):
+        for today, total in ((date(2028, 2, 29), 29), (date(2027, 2, 28), 28), (date(2026, 10, 15), 31)):
+            with self.subTest(today=today), patch('general_app.views.timezone.localdate', return_value=today):
+                with self.assertNumQueries(0):
+                    context = HomeView().get_context_data()
+                days = context['preview_days']
+                self.assertEqual(context['preview_month'], today.replace(day=1))
+                self.assertEqual([day['number'] for day in days], list(range(1, total + 1)))
+                self.assertEqual([day['number'] for day in days if day['today']], [today.day])
+                self.assertEqual([day['weekend'] for day in days],
+                                 [today.replace(day=n).weekday() >= 5 for n in range(1, total + 1)])
+                self.assertEqual([habit['name'] for habit in context['preview_habits']], ['Читать', 'Гулять', 'Зарядка'])
+                for habit in context['preview_habits']:
+                    self.assertEqual(len(habit['cells']), total)
+                    self.assertTrue(any(cell['done'] for cell in habit['cells']))
+                    self.assertTrue(all(not cell['done'] for cell in habit['cells'] if cell['number'] >= today.day))
 
     def test_both_old_home_variants_redirect_directly_and_preserve_query(self):
         query = 'utm_source=guide&next=%2Fhabitus%2F&tag=a&tag=b'

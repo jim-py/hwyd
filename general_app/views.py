@@ -7,6 +7,7 @@ from django.urls import reverse, reverse_lazy
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from urllib.parse import urlsplit
+from calendar import monthrange
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
@@ -166,6 +167,19 @@ class HomeView(TemplateView):
                 or parts.query or parts.fragment or parts.username is not None or parts.password is not None):
             raise ImproperlyConfigured('PUBLIC_SITE_ORIGIN must be an HTTP(S) origin without a path or credentials.')
         context['canonical_url'] = origin + reverse('home')
+        today = timezone.localdate()
+        month = today.replace(day=1)
+        days = [
+            {'number': day, 'weekend': month.replace(day=day).weekday() >= 5, 'today': day == today.day}
+            for day in range(1, monthrange(today.year, today.month)[1] + 1)
+        ]
+        context['preview_month'] = month
+        context['preview_days'] = days
+        context['preview_habits'] = [
+            {'name': name, 'cells': [dict(day, done=day['number'] < today.day and (day['number'] + row) % 3 != 0)
+                                     for day in days]}
+            for row, name in enumerate(('Читать', 'Гулять', 'Зарядка'))
+        ]
         return context
 
 
