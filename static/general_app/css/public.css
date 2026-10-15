@@ -67,6 +67,7 @@ html[data-public-theme="dark"] {
     padding-top: 76px;
 }
 .public-page *, .public-page *::before, .public-page *::after { box-sizing: border-box; }
+.public-page .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .public-page a { color: var(--public-accent); text-underline-offset: 4px; }
 .public-page a:hover { color: var(--public-accent-hover); }
 .public-page ::selection { background: var(--public-selection); }
@@ -96,6 +97,7 @@ html[data-public-theme="dark"] {
 .public-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--public-muted); font-size: 13px; margin: 0 0 22px; }
 .public-brand img { width: 28px; height: 28px; }
 .public-hero h1 { max-width: 840px; margin: 0 auto 22px; }
+.public-tagline { margin: 0 0 16px; color: var(--public-muted); font-size: 20px; }
 .public-lead { color: var(--public-muted); font-size: 17px; max-width: 660px; margin: 0 auto 24px; }
 .public-actions { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 26px; }
 .public-page .public-button, .public-page .btn-primary {
@@ -205,6 +207,24 @@ html[data-public-theme="dark"] {
 .public-page .profile-page__skills { flex-wrap: wrap; }
 .public-page .profile-page__skill { background: var(--public-panel); border: 1px solid var(--public-line); border-radius: 8px; padding: 4px 10px; font-size: 13px; }
 .public-page .profile-page__card-title { padding: 4px 0 10px; }
+.public-page .profile-page__card-title { margin: 0 0 8px; font-size: 19px; }
+.public-about-header { max-width: 800px; margin-inline: auto; }
+.profile-page__author { margin: 0 0 18px; font-size: 22px; font-weight: 600; }
+.public-reading-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.public-article { max-width: 800px; padding-block: 32px 12px; }
+.public-article h1 { margin: 0 0 22px; font-size: clamp(32px, 4.5vw, 48px); }
+.public-article h2 { margin: 0 0 18px; font-size: clamp(24px, 3vw, 30px); }
+.public-article h3 { margin-top: 24px; }
+.public-article p { margin-top: 0; margin-bottom: 16px; }
+.public-article section, .public-article__related { margin-top: 36px; scroll-margin-top: 96px; }
+.public-article li { margin-block: 10px; }
+.public-article__back { margin-bottom: 22px; color: var(--public-muted); font-size: 13px; }
+.public-article__contents { display: flex; flex-wrap: wrap; gap: 12px 22px; padding: 20px; border: 1px solid var(--public-line); border-radius: 16px; background: var(--public-surface); }
+.public-article__ideas > div, .public-article__related { padding: 22px; border: 1px solid var(--public-line); border-radius: 16px; background: var(--public-surface); }
+.public-article__ideas > div + div { margin-top: 12px; }
+.public-article__ideas dt { margin-bottom: 6px; font-weight: 600; }
+.public-article__ideas dd { margin: 0; color: var(--public-muted); }
+@media (max-width: 700px) { .public-reading-grid { grid-template-columns: 1fr; } }
 .public-page .profile-page__card-body { padding: 24px; }
 .public-page .telegram-link a { background: var(--public-accent); color: var(--public-on-accent); border-radius: 12px; transition: transform .2s ease; }
 .public-page .telegram-link a:hover { background: var(--public-accent-hover); transform: none; }

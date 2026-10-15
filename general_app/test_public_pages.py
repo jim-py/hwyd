@@ -129,7 +129,7 @@ class PublicPagesTests(TestCase):
         descriptions = [tag['content'] for tag in elements.tags('meta') if tag.get('name') == 'description']
         self.assertEqual(len(descriptions), 1)
         self.assertIn('привычек', descriptions[0])
-        self.assertContains(response, 'Habitus — трекер привычек по дням | Productivum')
+        self.assertContains(response, 'Трекер привычек онлайн — Habitus | Productivum')
         self.assertNotContains(response, 'noindex')
         self.assertNotContains(response, 'name="keywords"')
 

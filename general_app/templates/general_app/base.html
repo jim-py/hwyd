@@ -11,8 +11,9 @@
     <!-- Общие стили -->
     <link rel="shortcut icon" type="image/png" href="{% static 'site/images/favicon.png' %}" />
     <link rel="stylesheet" href="{% static 'general_app/css/scroll.css' %}">
-    <link href="{% static 'hwyd/vendor/bootstrap/5.3.8/bootstrap.min.css' %}" rel="stylesheet"
+    {% block framework_styles %}<link href="{% static 'hwyd/vendor/bootstrap/5.3.8/bootstrap.min.css' %}" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    {% endblock %}
     {% include 'includes/navigation_styles.html' %}
 
     {% block extra_css %}{% endblock %}

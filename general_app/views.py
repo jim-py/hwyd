@@ -5,9 +5,8 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.views import LogoutView as DefaultLogoutView
 from django.urls import reverse, reverse_lazy
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
-from urllib.parse import urlsplit
 from calendar import monthrange
+from datetime import date
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
@@ -21,12 +20,60 @@ from django.http import HttpResponseRedirect
 from .models import Guide, UserGuideProgress, UserProfile, GuideOpening
 from .guides import GUIDE_MODULES
 from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_safe
+from django.http import HttpResponse
+from .seo import canonical_url, public_origin, PUBLIC_PAGE_NAMES
 from django.db import transaction
 import logging
 
 
 def about(request):
-    return render(request, "general_app/about.html")
+    today = timezone.localdate()
+
+    def experience(start):
+        months = max(0, (today.year - start.year) * 12 + today.month - start.month)
+        years, months = divmod(months, 12)
+
+        def amount(value, forms):
+            index = 2 if 11 <= value % 100 <= 14 else 0 if value % 10 == 1 else 1 if 2 <= value % 10 <= 4 else 2
+            return f'{value} {forms[index]}'
+
+        return ' '.join(text for text in (
+            amount(years, ('год', 'года', 'лет')) if years else '',
+            amount(months, ('месяц', 'месяца', 'месяцев')) if months else '',
+        ) if text) or 'меньше месяца'
+
+    return render(request, "general_app/about.html", {
+        'canonical_url': canonical_url('about'),
+        'experience_1c': experience(date(2023, 9, 13)),
+        'experience_django': experience(date(2022, 10, 1)),
+        'experience_self': experience(date(2022, 1, 1)),
+    })
+
+
+class PublicGuideView(TemplateView):
+    page_name = ''
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['canonical_url'] = canonical_url(self.page_name)
+        return context
+
+
+@require_safe
+def robots(request):
+    return HttpResponse('User-agent: *\nAllow: /\n\nSitemap: ' + canonical_url('sitemap') + '\n',
+                        content_type='text/plain; charset=utf-8')
+
+
+@require_safe
+def sitemap(request):
+    if not public_origin().startswith('https://'):
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured('The public sitemap requires an HTTPS PUBLIC_SITE_ORIGIN.')
+    return render(request, 'general_app/sitemap.xml',
+                  {'locations': [canonical_url(name) for name in PUBLIC_PAGE_NAMES]},
+                  content_type='application/xml; charset=utf-8')
 
 
 @login_required(login_url="entry")
@@ -161,12 +208,7 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        origin = settings.PUBLIC_SITE_ORIGIN.rstrip('/')
-        parts = urlsplit(origin)
-        if (parts.scheme not in ('https', 'http') or not parts.netloc or parts.path
-                or parts.query or parts.fragment or parts.username is not None or parts.password is not None):
-            raise ImproperlyConfigured('PUBLIC_SITE_ORIGIN must be an HTTP(S) origin without a path or credentials.')
-        context['canonical_url'] = origin + reverse('home')
+        context['canonical_url'] = canonical_url('home')
         today = timezone.localdate()
         month = today.replace(day=1)
         total_days = monthrange(today.year, today.month)[1]

@@ -20,6 +20,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 # Confirmed public origin; never derive search metadata from a request Host.
 PUBLIC_SITE_ORIGIN = environ.get('PUBLIC_SITE_ORIGIN', 'https://productivum.ru').strip().rstrip('/')
+CANONICAL_REDIRECTS_ENABLED = environ.get('PRODUCTIVUM_CANONICAL_REDIRECTS', '0') == '1'
 
 MAINTENANCE_MODE = False
 
@@ -39,6 +40,7 @@ if HOSTING:
     ALLOWED_HOSTS = [
         'a0853298.xsph.ru',
         'productivum.ru',
+        'www.productivum.ru',
     ]
     STATIC_ROOT = f'{DIR_PROD}static/'
 else:
@@ -133,6 +135,7 @@ USE_SCHEDULED_THEME_COLORS = False
 MIDDLEWARE = [
     # Outermost so redirects, errors and early middleware responses get a policy.
     'my_site.embedding.SiteFramePolicyMiddleware',
+    'my_site.seo.SearchEnginePolicyMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',

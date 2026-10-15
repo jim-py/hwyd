@@ -1,0 +1,12 @@
+{% extends 'general_app/public_base.html' %}
+{% block framework_styles %}{% endblock %}
+{% block metadata %}
+<meta name="description" content="{% block description %}{% endblock %}">
+<link rel="canonical" href="{{ canonical_url }}">
+{% endblock %}
+{% block public_content %}
+<article class="public-article public-container">
+    <p class="public-article__back"><a href="{% url 'home' %}">Главная</a> / Материалы о привычках</p>
+    {% block article_content %}{% endblock %}
+</article>
+{% endblock %}

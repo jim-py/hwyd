@@ -1,0 +1,101 @@
+SEO Productivum — результат локальной проверки 15.10.2026
+=======================================================
+
+Изменения
+---------
+- my_site/seo.py: управляемые постоянные перенаправления с проверкой Host,
+  объединением HTTP/www/старой главной и сохранением query; noindex auth header.
+- my_site/settings.py: флаг PRODUCTIVUM_CANONICAL_REDIRECTS (по умолчанию 0),
+  middleware и разрешённый hosting host www. Другие настройки не менялись.
+- my_site/urls.py: robots.txt, sitemap.xml, два публичных материала.
+- general_app/seo.py: общий проверяемый origin и allowlist содержательных страниц.
+- general_app/views.py: robots/sitemap, публичные материалы, canonical about,
+  серверный вывод стажа автора, общий canonical главной.
+- general_app/templates/general_app/home.html, about.html, entry.html:
+  title/H1/description/canonical, содержательные ссылки/FAQ, noindex auth.
+- general_app/templates/general_app/public_article.html, habitus_guide.html,
+  habit_tracking_guide.html: инструкции и идеи по реальным функциям Habitus.
+- general_app/templates/general_app/sitemap.xml: четыре канонических HTTPS URL
+  без auth, private, query, redirects и недостоверного lastmod.
+- general_app/templates/general_app/base.html и public_base.html,
+  general_app/static/general_app/css/public.css: отдельный блок framework CSS,
+  исключение ненужного Bootstrap у четырёх содержательных страниц, ранняя загрузка
+  двух существующих Inter subset, общий стиль материалов и ссылки в подвале.
+  Формы и профиль продолжают получать прежний CSS framework.
+- general_app/test_seo.py: 12 регрессий HTTP/robots/sitemap/noindex/публичных
+  материалов/метаданных/ссылок/ресурсов/404. test_public_pages.py обновляет title.
+- deploy/nginx/*.conf и SEO_DEPLOYMENT.txt: готовые контекстные include и точные
+  шаги применения на внешнем OpenResty/nginx либо включения Django-варианта.
+- docs/PROJECT_INDEX.md обновлён (этот Markdown игнорируется существующим *.md;
+  staging и изменение .gitignore не выполнялись).
+
+Проверки
+--------
+82/82 выбранных Django-теста прошли в отдельной копии со своими SQLite settings:
+
+  python manage.py test general_app.test_seo general_app.test_public_pages general_app.test_home_preview general_app.test_profile_page general_app.test_resource_loading general_app.test_local_static general_app.test_embedding general_app.tests.RemainingPagesTests general_app.tests.StaticServingTests hwyd.test_activity_users hwyd.test_settings_entry hwyd.tests.SettingsInterfaceTests --settings=public_suite_settings --noinput --verbosity=1
+
+public_suite_settings — диагностический модуль в копии, не штатный модуль проекта.
+В нём debug_toolbar включён для существующих тестов с DEBUG=True, что даёт W001
+об отсутствующем toolbar middleware. Обычный check с review settings — 0 проблем.
+Не запускать тесты против рабочей БД без изоляции.
+
+22/22 Node-теста прошли:
+  node --test scripts/tests/public_theme.test.mjs scripts/tests/admin_theme.test.mjs scripts/tests/chat_emoji.test.mjs
+
+manage.py check и collectstatic --dry-run --noinput прошли в изолированной копии.
+git diff --check прошёл. Новых зависимостей и миграций нет.
+
+Edge проверяет:
+- главную, about и оба материала при 1440/390px в светлой теме и 1440/320px
+  в тёмной: 200, один H1, метаданные, читаемость, отсутствие переполнения;
+- руководство без JS и рабочие ссылки на разделы;
+- пример: реальные нажатия, нативное MP3 playing, проценты 0/33/67/100,
+  сворачивание Enter/Space, оба вида, пять дней, JS-off и сброс после reload;
+- переход с главной через вход к настоящему settings dialog, сохранение формы,
+  отсутствие перекрытия автоматическим обучением, старые адреса и hashchange.
+Ошибок JS/консоли, сбоев загрузки и браузерных регрессий в финальных запусках нет.
+
+Код интерактивного примера, backend/маршруты/скрипты трекера, рабочая БД и
+собранная корневая static совпадают с исходным состоянием по SHA-256.
+Семантическое сравнение settings подтверждает только три ожидаемые области:
+ALLOWED_HOSTS, CANONICAL_REDIRECTS_ENABLED, MIDDLEWARE; секреты не изменялись.
+
+Скорость: доступный аналог Lighthouse
+-----------------------------------
+Команда Lighthouse недоступна. Использованы Edge CDP, Navigation/Resource/Paint
+Timing и PerformanceObserver. Это не Lighthouse score и не полевые Core Web Vitals.
+Один холодный локальный прогон до/после; телефон 390px, CPU 4x,
+1.6 Mbps download / 750 Kbps upload, latency 150ms.
+
+Страница                    LCP до/после       CLS до/после
+/                           3408 / 2468ms      0.00215 / 0
+/home/about/                3512 / 2508ms      0.16547 / 0
+/guides/habitus/            новая: 2160ms      0
+/guides/habit-tracking/     новая: 2188ms      0
+
+Мобильная главная: transferSize 633658 -> 405572 байта (примерно -36%).
+Изменения текста/страниц также входят в сравнение. При столь малом числе прогонов
+это диагностическое наблюдение, не статистическое доказательство и не обещание
+скорости для пользователей. На production уже работает gzip HTML/CSS; локальный
+runserver измерялся без внешнего OpenResty, поэтому production нужно измерить после
+выкладки отдельно. Проверенные сдвиги устранены ранней загрузкой шрифтов и
+серверным заполнением автора; ненужный Bootstrap CSS не запрашивается содержательными
+страницами. Стиль, шрифты, навигация, формы и трекер сохранены.
+
+Production и оставшиеся действия
+-------------------------------
+Прямые HTTP-проверки в начале и конце работы сохраняют исходные проблемы:
+HTTP / — 200; www — 400; robots/sitemap и новые материалы ещё не выложены (404).
+Действующий /home и /home/ — 301 на /; отсутствующая страница остаётся 404.
+Поисковый fetch показал устаревшую копию, она не использовалась как актуальный HTTP-аудит.
+
+Выкладка, nginx -t/reload, проверка доверенной proxy/TLS схемы и MySQL не выполнялись.
+nginx/OpenResty отсутствуют локально, реальная hosting-конфигурация вне репозитория.
+Полный Django suite с известными отсутствующими migration nodes не запускался;
+выбраны проверки затронутых контрактов. Существующее диагностическое venv использовано
+без повторной полной установки requirements (известная проблема pin gyp остаётся).
+
+Порядок выкладки, проверки после неё, Google Search Console, Яндекс Вебмастер и
+вопросы об оплате/лимитах/хранении данных описаны в SEO_DEPLOYMENT.txt. Неподтверждённые
+коммерческие условия, гарантии, отзывы или статистика на сайте не опубликованы.

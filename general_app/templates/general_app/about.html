@@ -1,35 +1,39 @@
 {% extends 'general_app/public_base.html' %}
 {% load static %}
+{% block framework_styles %}{% endblock %}
 
-{% block title %}About me{% endblock %}
+{% block title %}О проекте Habitus и его авторе | Productivum{% endblock %}
+{% block metadata %}
+<meta name="description" content="Habitus — трекер привычек Productivum. О проекте, его авторе Дмитрии, развитии таблицы привычек и людях, которые помогли с тестированием и дизайном.">
+<link rel="canonical" href="{{ canonical_url }}">
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'general_app/css/about-main.css' %}">
 {% endblock %}
 
 {% block public_content %}
-<div class="profile-page__container container">
-    <div class="row justify-content-center">
-        <div class="col-md-8 profile-page__header">
+<div class="profile-page__container public-container">
+    <header class="profile-page__header public-about-header">
             <img src="{% static 'general_app/images/iam.jpg' %}" alt="Дмитрий, автор Habitus" class="profile-page__image" width="200" height="200">
-            <h1 class="profile-page__name">Дмитрий</h1>
-            <p class="profile-page__skills lead">
+            <h1 class="profile-page__name">О проекте Habitus и его авторе</h1>
+            <p class="profile-page__author">Дмитрий</p>
+            <p class="profile-page__skills">
                 <span class="profile-page__skill">1С</span>
                 <span class="profile-page__skill">Django</span>
                 <span class="profile-page__skill">Саморазвитие</span>
             </p>
-        </div>
-    </div>
+    </header>
 
     <div class="profile-page__grid card-grid">
         <div class="profile-page__card card">
             <div class="profile-page__card-body card-body">
-                <h3 class="profile-page__card-title card-title">Обо мне</h3>
+                <h2 class="profile-page__card-title card-title">Об авторе</h2>
                 <p class="profile-page__card-text card-text">
                     Живу в Ярославле, окончил университет ЯГТУ (направление 09.03.02).
-                    1С-разработка <span id="exp-1c"></span>,
-                    Django-разработка (как хобби) <span id="exp-django"></span>,
-                    в теме саморазвития <span id="exp-self"></span>.
+                    1С-разработка <span id="exp-1c">{{ experience_1c }}</span>,
+                    Django-разработка (как хобби) <span id="exp-django">{{ experience_django }}</span>,
+                    в теме саморазвития <span id="exp-self">{{ experience_self }}</span>.
                 </p>
 
                 <div class="telegram-link">
@@ -46,7 +50,7 @@
         </div>
         <div class="profile-page__card card">
             <div class="profile-page__card-body card-body">
-                <h3 class="profile-page__card-title card-title">Благодарности</h3>
+                <h2 class="profile-page__card-title card-title">Благодарности</h2>
                 <p class="profile-page__card-text card-text">
                     <b>Всем участникам Простого Сообщества</b>, которые непосредственно участвовали в тестировании и
                     обратной связи.
@@ -58,7 +62,7 @@
         </div>
         <div class="profile-page__card card">
             <div class="profile-page__card-body card-body">
-                <h3 class="profile-page__card-title card-title">Про Productivum</h3>
+                <h2 class="profile-page__card-title card-title">О проекте Habitus</h2>
                 <p class="profile-page__card-text card-text">
                     Проект Productivum начинался с трекера привычек, который ныне называется
                     <a href="{% url 'index' %}">Habitus</a>. Основная идея была взята с сайта <a
@@ -69,58 +73,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    function calculateYearsMonths(startDateStr) {
-        const startDate = new Date(startDateStr);
-        const now = new Date();
-
-        let years = now.getFullYear() - startDate.getFullYear();
-        let months = now.getMonth() - startDate.getMonth();
-
-        if (months < 0) {
-            years--;
-            months += 12;
-        }
-
-        const yearsText = years > 0 ? `${years} ${getYearWord(years)}` : "";
-        const monthsText = months > 0 ? `${months} ${getMonthWord(months)}` : "";
-
-        if (yearsText && monthsText) {
-            return `${yearsText} ${monthsText}`;
-        } else if (yearsText) {
-            return yearsText;
-        } else {
-            return monthsText;
-        }
-    }
-
-    function getYearWord(years) {
-        if (years % 10 === 1 && years % 100 !== 11) {
-            return "год";
-        } else if ([2, 3, 4].includes(years % 10) && ![12, 13, 14].includes(years % 100)) {
-            return "года";
-        } else {
-            return "лет";
-        }
-    }
-
-    function getMonthWord(months) {
-        if (months % 10 === 1 && months % 100 !== 11) {
-            return "месяц";
-        } else if ([2, 3, 4].includes(months % 10) && ![12, 13, 14].includes(months % 100)) {
-            return "месяца";
-        } else {
-            return "месяцев";
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("exp-1c").textContent = calculateYearsMonths("2023-09-13");
-        document.getElementById("exp-django").textContent = calculateYearsMonths("2022-10-01");
-        document.getElementById("exp-self").textContent = calculateYearsMonths("2022-01-01");
-    });
-</script>
 {% endblock %}

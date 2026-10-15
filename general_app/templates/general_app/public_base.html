@@ -3,16 +3,18 @@
 {% block html_attributes %} data-public-theme="auto"{% endblock %}
 {% block body_attributes %} class="public-page"{% endblock %}
 {% block page_head %}
+<link rel="preload" href="{% static 'site/vendor/google-fonts/files/1e8edb2fc100b7f7.woff2' %}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{% static 'site/vendor/google-fonts/files/e3237528af752eed.woff2' %}" as="font" type="font/woff2" crossorigin>
 {% block metadata %}{% endblock %}
 {% include 'general_app/includes/public_theme_init.html' %}
 <script defer src="{% static 'general_app/js/public-theme.js' %}?v=20261015"></script>
 {% endblock %}
-{% block page_styles %}<link rel="stylesheet" href="{% static 'general_app/css/public.css' %}?v=20261015-interactive">{% endblock %}
+{% block page_styles %}<link rel="stylesheet" href="{% static 'general_app/css/public.css' %}?v=20261015-seo">{% endblock %}
 {% block navbar %}
 <a class="public-skip" href="#main-content">Перейти к содержанию</a>
 {% include 'includes/navbar.html' with public_theme=True %}
 {% endblock %}
 {% block content %}
 <main class="public-content" id="main-content" tabindex="-1">{% block public_content %}{% endblock %}</main>
-<footer class="public-footer public-container"><span>Productivum · Habitus</span><a href="{% url 'home' %}">Главная</a><a href="{% url 'about' %}">О проекте</a><span>© {% now 'Y' %}</span></footer>
+<footer class="public-footer public-container"><span>Productivum · Habitus</span><a href="{% url 'home' %}">Главная</a><a href="{% url 'about' %}">О проекте</a><a href="{% url 'habitus_guide' %}">Инструкция</a><a href="{% url 'habit_tracking_guide' %}">Идеи привычек</a><span>© {% now 'Y' %}</span></footer>
 {% endblock %}

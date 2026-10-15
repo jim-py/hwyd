@@ -1,0 +1,177 @@
+Productivum: применение SEO-изменений
+===================================
+
+Проверка 15.10.2026 (прямые GET без автопереходов):
+HTTPS / — 200; HTTP / — 200; HTTPS www / — 400;
+/home и /home/ — 301 на /; /robots.txt и /sitemap.xml — 404;
+/home/about/ — 200 с title About me; /home/entry/ без noindex;
+отсутствующая страница — настоящий 404. Сервер сообщает OpenResty.
+При Accept-Encoding: gzip HTML и public.css уже сжимаются на production.
+Поисковый fetch показывал старую копию; для выводов использованы прямые HTTP-запросы.
+
+В репозитории нет конфигурации виртуальных хостов, app-server или TLS хостинга.
+По HTTP-заголовку нельзя определить, где именно завершается TLS и как upstream
+формирует wsgi.url_scheme. Схема ниже сохраняет существующее приложение и TLS.
+Выкладка из этой рабочей сессии не выполнялась.
+
+1. Код и статика
+---------------
+Обновить checkout обычным процессом проекта, сохранить действующие секреты,
+настройки БД и переменные окружения. Новых пакетов и миграций нет.
+Установить PUBLIC_SITE_ORIGIN=https://productivum.ru.
+Из активированного серверного venv в корне с manage.py:
+
+  python manage.py check
+  python manage.py collectstatic --noinput
+
+Перезапустить приложение штатным способом хостинга. В репозитории нет описания
+этого процесса; не подменять действующий WSGI-сервер новым сервером наугад.
+При обновлении очистить только известный кэш HTML/404 для robots.txt, sitemap.xml
+и новых страниц, если он включён на хостинге. Не очищать пользовательские файлы.
+Собранная корневая static в рабочем checkout намеренно не редактировалась.
+
+2. Рекомендуемый вариант: перенаправления на OpenResty/nginx
+---------------------------------------------------------
+Правила выполняются на внешнем HTTP/TLS-уровне, до Django. Сохраняются действующие
+upstream, proxy/Passenger/uWSGI, static/media, сертификаты и политика встраивания.
+PRODUCTIVUM_CANONICAL_REDIRECTS оставить 0 (значение по умолчанию).
+
+Файлы для администратора собственного nginx (из корня обновлённого checkout):
+
+  sudo install -Dm644 deploy/nginx/productivum-seo-map.conf /etc/nginx/snippets/productivum-seo-map.conf
+  sudo install -Dm644 deploy/nginx/productivum-seo-redirect.conf /etc/nginx/snippets/productivum-seo-redirect.conf
+  sudo install -Dm644 deploy/nginx/productivum-seo-canonical.conf /etc/nginx/snippets/productivum-seo-canonical.conf
+
+В http {} один раз:
+
+  include /etc/nginx/snippets/productivum-seo-map.conf;
+
+В существующем HTTP server {} с server_name productivum.ru www.productivum.ru:
+
+  include /etc/nginx/snippets/productivum-seo-redirect.conf;
+
+В существующем HTTPS server {} только для server_name www.productivum.ru:
+
+  include /etc/nginx/snippets/productivum-seo-redirect.conf;
+
+Этот HTTPS vhost должен иметь действующий сертификат, покрывающий www. Если оба
+имени сейчас перечислены в одном TLS vhost, разделить www и основной TLS vhost,
+сохранив существующие ssl_certificate/ssl_certificate_key и параметры TLS. Не
+добавлять конкурирующие server_name в несколько уже существующих vhost.
+
+В HTTPS server {} только для server_name productivum.ru:
+
+  include /etc/nginx/snippets/productivum-seo-canonical.conf;
+
+Существующие точные location = /home и = /home/ заменить этими location,
+не создавать дубликаты. Остальные location оставить действующими. Нельзя
+включать productivum-seo-redirect.conf в основной HTTPS vhost: это создаст цикл.
+
+После сохранения резервной копии действующей конфигурации:
+
+  sudo nginx -t
+  sudo systemctl reload nginx
+
+Для OpenResty использовать его установленный бинарный файл и штатную команду
+reload вместо nginx/systemctl, если хостинг управляет им иначе. На shared hosting
+те же три include/правила применяются через панель или администратором хостинга;
+локальные пути /etc/nginx могут быть недоступны. Готовые include — контекстные
+фрагменты, а не самостоятельный nginx.conf. Их nginx -t на реальном хостинге
+ещё не выполнялся.
+
+Правила сохраняют исходный request_uri/query string. Только /home и /home/
+сводятся сразу к /, поэтому http://www.productivum.ru/home/?x=1 ведёт одним 301
+на https://productivum.ru/?x=1. Цель содержит буквальный домен, а не $host или
+внешний forwarded-заголовок. CSS/JS и HTML не получают новых правил кэширования.
+
+3. Альтернатива при недоступном внешнем vhost
+------------------------------------------
+В коде есть SearchEnginePolicyMiddleware. Для сервера, где доверенный WSGI/ASGI
+scheme уже корректно отражает внешний HTTPS, установить:
+
+  PRODUCTIVUM_CANONICAL_REDIRECTS=1
+  PUBLIC_SITE_ORIGIN=https://productivum.ru
+
+Перезапустить приложение штатно. www добавлен в явный hosting ALLOWED_HOSTS.
+Middleware валидирует Host, объединяет HTTP/www/старую главную в один 301,
+сохраняет путь и query. Без флага локальная разработка продолжает работать по HTTP.
+
+Сначала установить фактическую схему proxy/TLS из панели или у администратора.
+Не включать флаг, если HTTPS приходит в Django как обычный HTTP: появится цикл.
+Не добавлять SECURE_PROXY_SSL_HEADER вслепую. Код не включает доверие к
+X-Forwarded-Proto, X-Forwarded-Host или Forwarded.
+
+Если существующий сервер — Gunicorn за собственным nginx, backend должен быть
+доступен только доверенному proxy (loopback/Unix socket), nginx должен заменять
+входящий X-Forwarded-Proto реальной схемой своего TLS-уровня, а Gunicorn должен
+принимать scheme headers только от этих адресов (forwarded_allow_ips). Не
+использовать '*' и не копировать присланный клиентом X-Forwarded-Proto. Для
+Passenger/uWSGI использовать штатную передачу доверенного HTTPS scheme.
+Управление scheme выполняется на проверенной границе proxy/app-server; кода,
+доверяющего произвольному заголовку посетителя, не добавлено.
+
+Проверить HTTPS / сразу после включения: если он перенаправляет сам на себя,
+вернуть PRODUCTIVUM_CANONICAL_REDIRECTS=0, перезапустить и исправить передачу scheme
+в hosting-конфигурации. Не обходить проблему отключением CSRF или авторизации.
+
+4. Проверка после развёртывания (curl не следует редиректам без -L)
+----------------------------------------------------------------
+  curl -sS -D - -o /dev/null 'http://productivum.ru/'
+  curl -sS -D - -o /dev/null 'http://www.productivum.ru/home/?tag=a&tag=b'
+  curl -sS -D - -o /dev/null 'https://www.productivum.ru/guides/habitus/?x=1'
+  curl -sS -D - -o /dev/null 'https://productivum.ru/home/?x=1'
+  curl -sS -D - -o /dev/null 'https://productivum.ru/'
+
+Первые четыре — 301 с абсолютным HTTPS Location без www. Вторая цель —
+https://productivum.ru/?tag=a&tag=b. Пятая — 200 без Location. Проверить отсутствие
+дополнительных переходов через curl -L -w '%{num_redirects} %{url_effective}\n'.
+Сертификат www должен проверяться без -k.
+
+  curl -sS -D - 'https://productivum.ru/robots.txt'
+  curl -sS -D - 'https://productivum.ru/sitemap.xml'
+  curl -sS -D - 'https://productivum.ru/home/entry/?type=register&next=%2Fhabitus%2F'
+  curl -sS -D - -o /dev/null 'https://productivum.ru/missing-seo-verification-page/'
+
+Ожидаются: text/plain 200 и Sitemap; application/xml 200 с четырьмя URL;
+noindex, follow в meta и X-Robots-Tag у входа/регистрации; настоящий 404.
+robots не блокирует вход, CSS, JS или шрифты. Авторизация остаётся границей
+доступа к приватным данным. В sitemap нет auth, профиля, трекера, админки,
+редиректов, query string, 404 или недостоверных lastmod.
+
+Посетить анонимно четыре канонические страницы, проверить их HTML source:
+/, /home/about/, /guides/habitus/, /guides/habit-tracking/.
+У каждой — уникальные title/description, один H1, собственный canonical,
+нет noindex. Проверить телефон, темы, пример, вход/регистрацию и сохранение в
+настоящем трекере после TLS-настройки. Проверить CSRF, штатные статику/media,
+сертификат обоих доменов и внешние embeds. Измерить production повторно:
+локальные CDP-замеры не являются полевыми Core Web Vitals или Lighthouse score.
+
+5. Google Search Console и Яндекс Вебмастер
+-----------------------------------------
+После успешной выкладки, подтвердив права на домен:
+- Google Search Console: выбрать свойство productivum.ru (Domain) или
+  https://productivum.ru/ (URL-prefix), открыть Sitemaps и отправить sitemap.xml.
+  Через URL Inspection проверить четыре URL, Live Test, выбранный canonical,
+  доступность роботу и отсутствие noindex; запросить индексацию нужных страниц.
+- Яндекс Вебмастер: выбрать https://productivum.ru/, подтвердить права, проверить
+  robots.txt и добавить https://productivum.ru/sitemap.xml в «Файлы Sitemap».
+  Проверить диагностику URL и отправить содержательные страницы на переобход.
+- Отслеживать ошибки обхода/индексации и выбранное зеркало. Авторизацию не
+  отправлять на индексацию. Sitemap и запросы переобхода не гарантируют индексацию.
+
+Официальные инструкции:
+https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap
+https://developers.google.com/search/docs/crawling-indexing/block-indexing
+https://support.google.com/webmasters/answer/9012289
+https://yandex.ru/support/webmaster/ru/controlling-robot/sitemap
+https://docs.djangoproject.com/en/6.0/ref/settings/#secure-proxy-ssl-header
+
+6. Уточнить у владельца до публикации условий
+-------------------------------------------
+- Бесплатен ли сервис целиком, существуют ли тарифы и ограничения числа привычек
+  или групп? Код не подтверждает публичные коммерческие условия.
+- Каковы сроки хранения данных, порядок удаления аккаунта, резервного копирования
+  и восстановления? Техническое сохранение в аккаунте не подтверждает гарантий.
+- Где управляются внешние HTTP/TLS vhost, какой app-server и какие proxy доверены?
+- Отдельно заменить приватный push-ключ, случайно попавший в диагностический вывод;
+  его значение не включено в эту инструкцию. Ротация не выполнялась в SEO-задаче.

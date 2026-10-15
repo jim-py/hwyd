@@ -20,10 +20,16 @@ from django.views.generic import TemplateView
 
 from django.conf import settings
 from django.conf.urls.static import static
-from general_app.views import HomeView
+from general_app.views import HomeView, PublicGuideView, robots, sitemap
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
+    path('robots.txt', robots, name='robots'),
+    path('sitemap.xml', sitemap, name='sitemap'),
+    path('guides/habitus/', PublicGuideView.as_view(page_name='habitus_guide',
+         template_name='general_app/habitus_guide.html'), name='habitus_guide'),
+    path('guides/habit-tracking/', PublicGuideView.as_view(page_name='habit_tracking_guide',
+         template_name='general_app/habit_tracking_guide.html'), name='habit_tracking_guide'),
     path('home', RedirectView.as_view(pattern_name='home', permanent=True, query_string=True)),
     path('home/', RedirectView.as_view(pattern_name='home', permanent=True, query_string=True)),
 

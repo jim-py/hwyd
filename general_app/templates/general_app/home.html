@@ -1,13 +1,14 @@
 {% extends 'general_app/public_base.html' %}
 {% load static %}
-{% block title %}Habitus — трекер привычек по дням | Productivum{% endblock %}
+{% block framework_styles %}{% endblock %}
+{% block title %}Трекер привычек онлайн — Habitus | Productivum{% endblock %}
 {% block metadata %}
-<meta name="description" content="Habitus — трекер привычек Productivum. Отмечайте выполнение по дням, объединяйте привычки в группы, добавляйте заметки и смотрите календарь месяца и года.">
+<meta name="description" content="Habitus — онлайн-трекер привычек: ежедневные отметки, группы и заметки в одной таблице. Планируйте месяц и смотрите выполнение в календаре месяца и года.">
 <link rel="canonical" href="{{ canonical_url }}">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ru_RU">
 <meta property="og:site_name" content="Productivum · Habitus">
-<meta property="og:title" content="Habitus — трекер привычек по дням">
+<meta property="og:title" content="Трекер привычек онлайн — Habitus | Productivum">
 <meta property="og:description" content="Ваша таблица привычек: ежедневные отметки, группы, заметки и обзор прогресса.">
 <meta property="og:url" content="{{ canonical_url }}">
 {% endblock %}
@@ -19,8 +20,9 @@
 <div class="public-container">
     <section class="public-hero" aria-labelledby="home-title">
         <p class="public-brand"><img src="{% static 'site/images/favicon.png' %}" alt="" width="28" height="28">Productivum · Habitus</p>
-        <h1 id="home-title">Привычки, день за днём.</h1>
-        <p class="public-lead">Habitus — ваша таблица привычек. Отмечайте выполнение, объединяйте привычки в группы и смотрите на месяц целиком.</p>
+        <h1 id="home-title">Habitus — онлайн-трекер привычек</h1>
+        <p class="public-tagline">Привычки, день за днём.</p>
+        <p class="public-lead">Соберите привычки для учёбы, движения или повседневных дел в одной таблице. Отмечайте выполнение по дням, объединяйте строки в группы и добавляйте заметки.</p>
         <div class="public-actions">
             {% if user.is_authenticated %}<a class="public-button" href="{% url 'index' %}">Открыть мой трекер <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% else %}{% url 'index' as tracker_url %}<a class="public-button" href="{% url 'entry' %}?type=register&amp;next={{ tracker_url|urlencode }}">Начать отслеживать <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
             <a class="public-button public-button-secondary" href="#features">Как это работает</a>
@@ -78,8 +80,18 @@
     <section class="public-section public-faq" aria-labelledby="faq-title">
         <div class="public-section-heading"><h2 id="faq-title">Перед первой отметкой</h2></div>
         <details><summary>Нужна ли регистрация?</summary><p>Да. Привычки, отметки и настройки сохраняются в вашем аккаунте. Главную и <a href="{% url 'about' %}">страницу о проекте</a> можно читать без входа.</p></details>
-        <details><summary>Где найти руководство?</summary><p>В настройках трекера есть раздел «Обучение». Встроенный обзор объясняет кнопки и его можно пройти повторно.</p></details>
+        <details><summary>Где найти руководство?</summary><p><a href="{% url 'habitus_guide' %}">Публичная инструкция по Habitus</a> доступна без регистрации. В настройках трекера есть раздел «Обучение»: встроенный обзор объясняет кнопки, его можно пройти повторно.</p></details>
+        <details><summary>Где сохраняются привычки и отметки?</summary><p>В вашем аккаунте на сервере. Для продолжения с другого устройства войдите в тот же аккаунт. Отметки в примере на главной не сохраняются.</p></details>
+        <details><summary>Можно пользоваться с телефона?</summary><p>Да. Мобильная таблица показывает пять дней рядом с текущим. Для другого месяца используйте календарь, а вид «Год» поможет посмотреть выполнение за год.</p></details>
+        <details><summary>Есть ограничения на текст?</summary><p>В форме название привычки ограничено 100 символами, описание — 3000. Краткое название удобно читать в таблице, а подробности можно оставить в описании.</p></details>
         <details><summary>Что показывает календарь года?</summary><p>Долю выполненных привычек среди доступных на каждый день. Выберите день, чтобы перейти к таблице его месяца.</p></details>
+    </section>
+    <section class="public-section" aria-labelledby="reading-title">
+        <div class="public-section-heading"><h2 id="reading-title">От первой строки до целого месяца</h2><p>Инструкции и идеи, которые можно прочитать до создания аккаунта.</p></div>
+        <div class="public-feature-grid public-reading-grid">
+            <article><h3><a href="{% url 'habitus_guide' %}">Как пользоваться Habitus</a></h3><p>Создание привычки, ежедневные отметки, группы, заметки и календарь — по шагам.</p></article>
+            <article><h3><a href="{% url 'habit_tracking_guide' %}">Как вести трекер привычек</a></h3><p>Примеры привычек по целям и спокойный порядок работы с таблицей в течение месяца.</p></article>
+        </div>
     </section>
 </div>
 {% endblock %}
