@@ -1,14 +1,15 @@
-{% extends 'general_app/base.html' %}
+{% extends 'general_app/public_base.html' %}
 {% load static %}
 
 {% block title %}Активность пользователей · Productivum{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'hwyd/css/activity-users.css' %}">
+{% block page_styles %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'hwyd/css/activity-users.css' %}?v=20261015-public">
 {% endblock %}
 
-{% block content %}
-<main class="activity-users-page" aria-labelledby="activity-users-title">
+{% block public_content %}
+<div class="activity-users-page public-container">
     <header class="activity-users-page__header">
         <h1 id="activity-users-title">Активность пользователей</h1>
         <p>История посещений по дням. Время указано в часовом поясе пользователя.</p>
@@ -53,10 +54,11 @@
         </section>
     {% empty %}
         <div class="activity-users-empty">
+            <span class="activity-users-empty__icon" aria-hidden="true"><i class="fa-solid fa-calendar-days"></i></span>
             <h2>Пока нет посещений</h2>
             <p>Здесь появится история активности, когда пользователи начнут посещать приложение.</p>
         </div>
     {% endfor %}
     </div>
-</main>
+</div>
 {% endblock %}

@@ -1,0 +1,7 @@
+{% load widget_tweaks %}
+<div class="mb-3">
+    {{ field.label_tag }}
+    {% render_field field class+="form-control" autocomplete=autocomplete %}
+    {% if field.help_text %}<div id="{{ field.auto_id }}_helptext" class="form-text">{{ field.help_text }}</div>{% endif %}
+    {% if field.errors %}<div class="public-profile-field-error" role="alert">{{ field.errors }}</div>{% endif %}
+</div>

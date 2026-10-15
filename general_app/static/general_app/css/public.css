@@ -132,10 +132,10 @@ html[data-public-theme="dark"] {
 .public-tracker-table :is(th, td) { padding: 1px; border: 0; vertical-align: middle; }
 .public-tracker-table th { font-weight: 700; }
 .public-tracker-table .header { font-weight: 400; }
-.public-tracker-table .headParagraph { display: flex; align-items: center; justify-content: center; height: 25px; margin: 0 0 5px; border: 1px solid #a1a1a1; border-radius: 3px; background: #e6e4ce; color: #000; font-weight: 600; }
+.public-tracker-table .headParagraph { display: flex; align-items: center; justify-content: center; height: 25px; margin: 0 0 5px; border: 1px solid #a1a1a1; border-radius: 3px; background: #ffffff; color: #000; font-weight: 600; }
 .public-tracker-table .headParagraph.main { min-width: 150px; margin-right: 5px; }
 .public-tracker-table .headParagraph.minor { width: 25px; }
-.public-tracker-table .headParagraph.weekend { background: #eeb3b3; }
+.public-tracker-table .headParagraph.weekend { background: #eec9c9; }
 .public-tracker-table .paragraph { display: flex; align-items: center; justify-content: start; height: 24px; line-height: 24px; margin: 0 5px 0 0; padding: 0 10px; border: 1px solid #a1a1a1; border-radius: 3px; overflow: hidden; white-space: nowrap; background: #fff; color: #000; font-size: 14px; font-weight: 600; }
 .public-tracker-table .activity-name-icon { flex: 0 0 14px; margin-right: 6px; opacity: .75; pointer-events: none; }
 .public-tracker-table .divClick { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid #ccc; border-radius: 3px; font-size: 9px; }

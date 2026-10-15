@@ -1,158 +1,114 @@
-{% extends 'general_app/base.html' %}
+{% extends 'general_app/public_base.html' %}
 {% load static %}
 {% load widget_tweaks %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'general_app/css/profile.css' %}">
+{% block title %}Профиль — Habitus{% endblock %}
+{% block page_styles %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'general_app/css/profile.css' %}?v=20261015-public">
 {% endblock %}
 
-{% block content %}
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-8 col-lg-6">
+{% block public_content %}
+<div class="public-container public-profile">
+    <h1 class="public-profile-title">Профиль</h1>
+    {% if messages or user_form.errors or password_form.errors %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-public-dismiss hidden aria-label="Закрыть сообщение"></button>
+        </div>
+        {% endfor %}
+        {% if user_form.errors or password_form.errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <ul class="mb-0 ps-3">
+                {% for field in user_form %}{% for error in field.errors %}
+                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                {% endfor %}{% endfor %}
+                {% for error in user_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                {% for field in password_form %}{% for error in field.errors %}
+                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                {% endfor %}{% endfor %}
+                {% for error in password_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+            <button type="button" class="btn-close" data-public-dismiss hidden aria-label="Закрыть сообщение"></button>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
 
-            <!-- Общий блок для сообщений и ошибок -->
-            {% if messages or user_form.errors or password_form.errors %}
-                <div class="mb-4">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-
-                    {% if user_form.errors or password_form.errors %}
-                        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-                            <ul class="mb-0 ps-3">
-                                {% for field, errors in user_form.errors.items %}
-                                    {% for error in errors %}
-                                        <li><strong>{{ field|capfirst }}:</strong> {{ error }}</li>
-                                    {% endfor %}
-                                {% endfor %}
-                                {% for field, errors in password_form.errors.items %}
-                                    {% for error in errors %}
-                                        <li><strong>{{ field|capfirst }}:</strong> {{ error }}</li>
-                                    {% endfor %}
-                                {% endfor %}
-                            </ul>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
+    <section id="edit-profile-section" class="card" aria-labelledby="edit-profile-title">
+        <div class="card-body p-4">
+            <h2 id="edit-profile-title" class="card-title text-center mb-4" tabindex="-1">Редактирование профиля</h2>
+            <div class="profile-photo mb-4">
+                <div class="profile-photo__preview">
+                    {% if profile.avatar %}
+                        {% if profile.avatar_is_video %}
+                        <video src="{{ profile.avatar.url }}" autoplay loop muted playsinline preload="auto" aria-label="Ваш видеоаватар" width="96" height="96"></video>
+                        {% else %}
+                        <img src="{{ profile.avatar.url }}" alt="Ваша фотография профиля" width="96" height="96">
+                        {% endif %}
+                    {% else %}
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4"></circle><path d="M4 21v-2a8 8 0 0 1 16 0v2"></path>
+                    </svg>
                     {% endif %}
                 </div>
+                <form id="profile-avatar-form" method="post" action="{% url 'profile' %}" enctype="multipart/form-data" class="profile-photo__form">
+                    {% csrf_token %}
+                    <input type="hidden" name="profile_action" value="avatar">
+                    {{ photo_form.avatar.label_tag }}
+                    {% if photo_form.avatar.errors %}
+                    {% render_field photo_form.avatar aria-describedby="photo-help photo-errors" %}
+                    {% else %}{{ photo_form.avatar }}{% endif %}
+                    <div id="photo-help" class="form-text">{{ photo_form.avatar.help_text }}</div>
+                    {% if photo_form.avatar.errors %}
+                    <div id="photo-errors" class="public-profile-field-error" role="alert">{{ photo_form.avatar.errors }}</div>
+                    {% endif %}
+                    {{ photo_form.non_field_errors }}
+                    <button type="submit" class="public-button public-button-secondary mt-2">{% if profile.avatar %}Заменить фото{% else %}Загрузить фото{% endif %}</button>
+                </form>
+            </div>
+
+            <form id="profile-user-form" method="post" action="{% url 'profile' %}">
+                {% csrf_token %}
+                {% include 'general_app/includes/profile_field.html' with field=user_form.username autocomplete='username' %}
+                {% include 'general_app/includes/profile_field.html' with field=user_form.first_name autocomplete='given-name' %}
+                {% include 'general_app/includes/profile_field.html' with field=user_form.last_name autocomplete='family-name' %}
+                {% include 'general_app/includes/profile_field.html' with field=user_form.email autocomplete='email' %}
+                <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary w-100">Сохранить</button>
+                    <a href="#change-password-section" class="public-button public-button-secondary w-100" id="change-password-switch" aria-controls="change-password-section">Сменить пароль</a>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section id="change-password-section" class="card" aria-labelledby="change-password-title" data-password-errors="{{ password_form.errors|yesno:'true,false' }}">
+        <div class="card-body p-4">
+            <h2 id="change-password-title" class="card-title text-center mb-4" tabindex="-1">Смена пароля</h2>
+            <form id="profile-password-form" method="post" action="{% url 'profile' %}">
+                {% csrf_token %}
+                {% include 'general_app/includes/profile_field.html' with field=password_form.old_password autocomplete='current-password' %}
+                {% include 'general_app/includes/profile_field.html' with field=password_form.new_password1 autocomplete='new-password' %}
+                {% include 'general_app/includes/profile_field.html' with field=password_form.new_password2 autocomplete='new-password' %}
+                <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary w-100">Сохранить</button>
+                    <a href="#edit-profile-section" class="public-button public-button-secondary w-100" id="edit-profile-switch" aria-controls="edit-profile-section">Редактировать профиль</a>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <div class="card mt-4">
+        <div class="card-body p-4 text-center">
+            {% if user.is_superuser %}
+            <a class="public-button public-button-secondary w-100 mb-3" href="{% url 'activity_users' %}">Статистика</a>
             {% endif %}
-
-            <!-- Карточка редактирования профиля -->
-            <div id="edit-profile-section" class="card shadow-sm border-1">
-                <div class="card-body p-4">
-                    <h2 class="card-title text-center mb-4">Редактирование профиля</h2>
-
-                    <div class="profile-photo mb-4">
-                        <div class="profile-photo__preview">
-                            {% if profile.avatar %}
-                                {% if profile.avatar_is_video %}
-                                <video src="{{ profile.avatar.url }}" autoplay loop muted playsinline preload="auto" aria-label="Ваш видеоаватар" width="96" height="96"></video>
-                                {% else %}
-                                <img src="{{ profile.avatar.url }}" alt="Ваша фотография профиля" width="96" height="96">
-                                {% endif %}
-                            {% else %}
-                                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                                    <circle cx="12" cy="8" r="4"/>
-                                    <path d="M4 21v-2a8 8 0 0 1 16 0v2"/>
-                                </svg>
-                            {% endif %}
-                        </div>
-                        <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data" class="profile-photo__form">
-                            {% csrf_token %}
-                            <input type="hidden" name="profile_action" value="avatar">
-                            {{ photo_form.avatar.label_tag }}
-                            {{ photo_form.avatar }}
-                            <div id="photo-help" class="form-text">{{ photo_form.avatar.help_text }}</div>
-                            {% for error in photo_form.avatar.errors %}
-                                <div class="text-danger mt-1" role="alert">{{ error }}</div>
-                            {% endfor %}
-                            <button type="submit" class="btn btn-outline-primary btn-sm mt-2">{% if profile.avatar %}Заменить фото{% else %}Загрузить фото{% endif %}</button>
-                        </form>
-                    </div>
-
-                    <form method="post" action="{% url 'profile' %}">
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            {{ user_form.username.label_tag }}
-                            {{ user_form.username|add_class:"form-control" }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ user_form.first_name.label_tag }}
-                            {{ user_form.first_name|add_class:"form-control" }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ user_form.last_name.label_tag }}
-                            {{ user_form.last_name|add_class:"form-control" }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ user_form.email.label_tag }}
-                            {{ user_form.email|add_class:"form-control" }}
-                        </div>
-
-                        <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary w-100">Сохранить</button>
-                            <button type="button" class="btn btn-outline-secondary w-100" id="change-password-switch">Сменить пароль</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Карточка смены пароля -->
-            <div id="change-password-section" class="card shadow-sm border-1" style="display:none;">
-                <div class="card-body p-4">
-                    <h2 class="card-title text-center mb-4">Смена пароля</h2>
-
-                    <form method="post" action="{% url 'profile' %}">
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            {{ password_form.old_password.label_tag }}
-                            {{ password_form.old_password|add_class:"form-control" }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ password_form.new_password1.label_tag }}
-                            {{ password_form.new_password1|add_class:"form-control" }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ password_form.new_password2.label_tag }}
-                            {{ password_form.new_password2|add_class:"form-control" }}
-                        </div>
-
-                        <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary w-100">Сохранить</button>
-                            <button type="button" class="btn btn-outline-secondary w-100" id="edit-profile-switch">Редактировать профиль</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <!-- Logout -->
-            <div class="card shadow-sm border-1 mt-4">
-                <div class="card-body p-4 text-center">
-                    {% if user.is_superuser %}
-                    <button class="btn btn-outline-secondary w-100 mb-3" onclick="window.location.href='{% url 'activity_users' %}'">
-                        Статистика
-                    </button>
-                    {% endif %}
-                    <form method="post" action="{% url 'logout' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger w-100">
-                            Выйти из аккаунта
-                        </button>
-                    </form>
-                </div>
-            </div>
+            <form id="profile-logout-form" method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="public-button public-button-secondary public-profile-logout w-100">Выйти из аккаунта</button>
+            </form>
         </div>
     </div>
 </div>
@@ -160,32 +116,21 @@
 
 {% block extra_js %}
 <script>
-    // Получаем кнопки
-    const editProfileBtn = document.getElementById("edit-profile-switch");
-    const changePasswordBtn = document.getElementById("change-password-switch");
-
-    // Обработчик нажатия на кнопку "Редактировать профиль"
-    editProfileBtn.addEventListener("click", function () {
-        document.getElementById("edit-profile-section").style.display = "block";
-        document.getElementById("change-password-section").style.display = "none";
-        editProfileBtn.classList.add("button-inactive");
-        editProfileBtn.classList.remove("button-active");
-        changePasswordBtn.classList.add("button-active");
-        changePasswordBtn.classList.remove("button-inactive");
-    });
-
-    // Обработчик нажатия на кнопку "Сменить пароль"
-    changePasswordBtn.addEventListener("click", function () {
-        document.getElementById("edit-profile-section").style.display = "none";
-        document.getElementById("change-password-section").style.display = "block";
-        changePasswordBtn.classList.add("button-inactive");
-        changePasswordBtn.classList.remove("button-active");
-        editProfileBtn.classList.add("button-active");
-        editProfileBtn.classList.remove("button-inactive");
-    });
-
-    // Первоначальное состояние при загрузке страницы
-    document.getElementById("edit-profile-section").style.display = "block"; // Показываем секцию редактирования профиля
-    document.getElementById("change-password-section").style.display = "none"; // Скрываем секцию смены пароля
+(() => {
+    const profile = document.getElementById('edit-profile-section');
+    const password = document.getElementById('change-password-section');
+    const toPassword = document.getElementById('change-password-switch');
+    const toProfile = document.getElementById('edit-profile-switch');
+    function showPassword(active, focus = false) {
+        profile.hidden = active;
+        password.hidden = !active;
+        toPassword.setAttribute('aria-expanded', String(active));
+        toProfile.setAttribute('aria-expanded', String(!active));
+        if (focus) (active ? password : profile).querySelector('h2').focus();
+    }
+    toPassword.addEventListener('click', event => { event.preventDefault(); showPassword(true, true); });
+    toProfile.addEventListener('click', event => { event.preventDefault(); showPassword(false, true); });
+    showPassword(password.dataset.passwordErrors === 'true');
+})();
 </script>
 {% endblock %}

@@ -269,9 +269,9 @@ class PublicPagesTests(TestCase):
             self.assertNotContains(response, 'Traceback', status_code=404)
             self.assertContains(response, '<a class="public-button" href="/">', status_code=404)
 
-    def test_profile_tracker_and_admin_do_not_receive_the_public_layer(self):
+    def test_tracker_and_admin_do_not_receive_the_public_layer(self):
         self.client.force_login(self.user)
-        for path in (reverse('profile'), reverse('by_date', args=['2026-10']), reverse('admin:login')):
+        for path in (reverse('by_date', args=['2026-10']), reverse('admin:login')):
             response = self.client.get(path, HTTP_HOST='testserver')
             self.assertEqual(response.status_code, 200)
             for marker in ('data-public-theme=', 'public-theme.js', 'general_app/css/public.css', 'productivum.publicTheme'):
