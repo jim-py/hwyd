@@ -1,16 +1,38 @@
-<div class="public-tracker-stage public-table-scroll" role="region" aria-label="Пример месячной таблицы Habitus, прокрутка по горизонтали" tabindex="0">
+{% load static %}
+<div class="public-tracker-stage public-table-scroll" data-habitus-preview
+     data-sound-on="{% static 'hwyd/audio/on.MP3' %}" data-sound-off="{% static 'hwyd/audio/off.MP3' %}"
+     role="region" aria-label="Пример месячной таблицы Habitus, прокрутка по горизонтали" tabindex="0">
     <table class="public-tracker-table" aria-describedby="habitus-preview-caption">
         <thead>
             <tr>
                 <th scope="col"><p class="headParagraph changeParagraph main">{{ preview_month|date:'F Y'|capfirst }}</p></th>
                 {% for day in preview_days %}
-                <th scope="col"><p class="headParagraph {% if day.weekend %}weekend{% else %}changeParagraph{% endif %} minor">{{ day.number }}</p></th>
+                <th scope="col" class="public-preview-day{% if day.mobile_visible %} public-preview-mobile-day{% endif %}" data-preview-day="{{ day.number }}"><p class="headParagraph {% if day.weekend %}weekend{% else %}changeParagraph{% endif %} minor">{{ day.number }}</p></th>
                 {% endfor %}
             </tr>
         </thead>
         <tbody>
+            <tr data-preview-group>
+                <th scope="row" class="header">
+                    <button type="button" class="paragraph public-preview-group-toggle" disabled aria-expanded="true"
+                            aria-controls="preview-habit-1 preview-habit-2 preview-habit-3">
+                        <svg class="activity-name-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            <path d="M3 7V5a2 2 0 0 1 2-2h5l3 3h6a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"></path><path d="M3 9h18"></path>
+                        </svg>
+                        <span>{{ preview_group.name }}</span>
+                    </button>
+                </th>
+                {% for cell in preview_group.cells %}
+                <td class="public-preview-day{% if cell.mobile_visible %} public-preview-mobile-day{% endif %}">
+                    <div class="progress vertical{% if cell.today %} today{% endif %}{% if cell.percent %} full{% else %} off{% endif %}"
+                         data-preview-progress="{{ cell.number }}" role="progressbar" aria-label="{{ preview_group.name }}, {{ cell.number }} {{ preview_month|date:'E' }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ cell.percent }}">
+                        <div class="progress-bar" style="width: {% if cell.percent %}100{% else %}0{% endif %}%">{% if cell.percent %}{{ cell.percent }}{% endif %}</div>
+                    </div>
+                </td>
+                {% endfor %}
+            </tr>
             {% for habit in preview_habits %}
-            <tr>
+            <tr id="preview-habit-{{ forloop.counter }}" data-preview-habit>
                 <th scope="row" class="header">
                     <p class="paragraph">
                         <svg class="activity-name-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
@@ -21,11 +43,11 @@
                     </p>
                 </th>
                 {% for cell in habit.cells %}
-                <td><div class="divClick{% if cell.today %} today{% endif %}{% if cell.done %} on{% endif %}" role="img" aria-label="{% if cell.done %}Отмечено{% else %}Не отмечено{% endif %}"></div></td>
+                <td class="public-preview-day{% if cell.mobile_visible %} public-preview-mobile-day{% endif %}"><button type="button" disabled class="divClick{% if cell.today %} today{% endif %}{% if cell.done %} on{% endif %}" data-preview-cell="{{ cell.number }}" aria-label="{{ habit.name }}, {{ cell.number }} {{ preview_month|date:'E' }}" aria-pressed="{{ cell.done|yesno:'true,false' }}"></button></td>
                 {% endfor %}
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
-<p class="public-preview-caption" id="habitus-preview-caption">Иллюстрация с условными привычками и отметками.</p>
+<p class="public-preview-caption" id="habitus-preview-caption">Условные привычки и отметки. Изменения в примере не сохраняются. <span data-preview-hint hidden>Нажимайте на клетки и сворачивайте группу.</span></p>

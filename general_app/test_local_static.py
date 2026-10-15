@@ -59,7 +59,7 @@ class LocalStaticTests(TestCase):
                 self.client.force_login(self.user)
             pages = ['home', 'about']
             if authenticated:
-                pages += ['profile', 'edit_settings', 'by_date']
+                pages += ['profile', 'by_date']
             else:
                 pages += ['entry']
             for page in pages:

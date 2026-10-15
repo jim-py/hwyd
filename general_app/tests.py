@@ -401,8 +401,7 @@ class RemainingPagesTests(TestCase):
         self.user.is_superuser = True
         self.user.save(update_fields=['is_superuser'])
         self.client.force_login(self.user)
-        paths = [reverse(name) for name in ('home', 'about', 'profile',
-                                            'edit_settings', 'activity_users')]
+        paths = [reverse(name) for name in ('home', 'about', 'profile', 'activity_users')]
         paths.append(reverse('by_date', args=['2026-09']))
         for path in paths:
             with self.subTest(page=path):

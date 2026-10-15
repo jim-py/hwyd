@@ -179,3 +179,19 @@ bindAsyncForm(document.getElementById('deleteAllForm'), () => {
     window.dispatchEvent(new Event('habitus:rows-changed'));
     showToast('Все привычки и группы за выбранный месяц удалены.');
 });
+
+// A normal URL works through the month redirect and the login next parameter.
+const settingsDialog = document.getElementById('some-modal-id');
+const settingsButton = document.getElementById('buttonSettings');
+function openLinkedSettings() {
+    if (location.hash !== '#settings' || settingsDialog.open) return;
+    settingsButton.click();
+    settingsDialog.querySelector('.settings-dialog__close').focus({preventScroll: true});
+}
+window.addEventListener('hashchange', openLinkedSettings);
+settingsDialog.addEventListener('close', () => {
+    if (location.hash !== '#settings') return;
+    history.replaceState(history.state, '', location.pathname + location.search);
+    settingsButton.focus({preventScroll: true});
+});
+openLinkedSettings();

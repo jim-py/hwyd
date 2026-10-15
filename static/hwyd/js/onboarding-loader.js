@@ -7,6 +7,7 @@ async function loadGuide(slug) {
 }
 
 async function startOnboarding() {
+    if (location.hash === '#settings') return;
     const guides = window.PENDING_GUIDES || [];
 
     if (!guides.length) return;

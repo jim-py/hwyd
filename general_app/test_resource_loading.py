@@ -51,7 +51,7 @@ class ResourceLoadingTests(TestCase):
         for signed_in in (False, True):
             if signed_in:
                 self.client.force_login(self.user)
-            pages = ['home', 'about'] + (['profile', 'edit_settings', 'by_date', 'activity_users']
+            pages = ['home', 'about'] + (['profile', 'by_date', 'activity_users']
                                          if signed_in else ['entry'])
             for page in pages:
                 for mobile in (False, True):
@@ -70,7 +70,7 @@ class ResourceLoadingTests(TestCase):
 
     def test_general_pages_do_not_load_unused_vendor_javascript(self):
         self.client.force_login(self.user)
-        for page in ['home', 'about', 'profile', 'edit_settings', 'activity_users']:
+        for page in ['home', 'about', 'profile', 'activity_users']:
             with self.subTest(page=page):
                 scripts = self.graph(page).scripts
                 for script in scripts:

@@ -18,6 +18,7 @@ urlpatterns = [
     path('', start, name="index"),
     path('signout', user_logout, name="user_logout"),
     path('get_comments/<str:picked_date>', get_comments, name="get_comments"),
+    path('settings', edit_settings),  # Legacy address without a trailing slash.
     path('<str:picked_date>', by_date, name="by_date"),
     path('global_colors/<str:picked_date>', global_colors, name="global_colors"),
     path('create-last-activities/<str:picked_date>', create_last_activities, name="create_last_activities"),

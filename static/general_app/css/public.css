@@ -124,7 +124,7 @@ html[data-public-theme="dark"] {
 #preview-view-habitus:not(:checked) ~ #preview-habitus,
 #preview-view-week:not(:checked) ~ #preview-week { display: none; }
 .public-preview-caption { margin: 14px 5px 0; color: var(--public-muted); font-size: 11px; }
-/* Read-only copy of Habitus main.css/tableCells.css and its default preset.
+/* Isolated example of Habitus main.css/tableCells.css and its default preset.
    Scope every rule: the real tracker keeps its own controls and user palette. */
 .public-tracker-stage { background: #f0f0f0; color: #000; color-scheme: light; padding: 12px; }
 .public-tracker-table { width: max-content; margin: 0 auto; border-collapse: collapse; color: #000; font: 400 16px/1.5 Inter, sans-serif; text-align: start; }
@@ -141,6 +141,29 @@ html[data-public-theme="dark"] {
 .public-tracker-table .divClick { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid #ccc; border-radius: 3px; font-size: 9px; }
 .public-tracker-table .divClick.today { background: #fff; }
 .public-tracker-table .divClick.on { border-color: #555; background: #fff; color: #000; box-shadow: 0 1px 0 rgb(255 255 255 / 30%) inset, 0 1px 1px rgb(100 100 100 / 30%); }
+.public-tracker-table button.divClick { padding: 0; background: transparent; cursor: pointer; transition: background-color .25s ease-out; }
+.public-tracker-table button.divClick:is(.on, .today) { background: #fff; }
+.public-tracker-table button:disabled { cursor: default; opacity: 1; }
+.public-tracker-table button:not(:disabled):hover { border-color: #000; box-shadow: 0 0 3px -1px #000 inset; }
+.public-tracker-table .public-preview-group-toggle { box-sizing: border-box; width: calc(100% - 5px); height: 26px; font-family: inherit; text-align: left; cursor: pointer; }
+.public-preview-group-toggle span { overflow: hidden; text-overflow: ellipsis; }
+.public-preview-group-toggle::after { content: ''; flex-shrink: 0; width: 5px; height: 5px; margin-left: auto; border-right: 1px solid; border-bottom: 1px solid; transform: rotate(45deg); }
+.public-preview-group-toggle[aria-expanded="false"]::after { transform: rotate(-45deg); }
+.public-tracker-table [data-preview-habit] .paragraph { margin-left: 10px; }
+.public-tracker-table .progress { display: block; width: 24px; height: 24px; overflow: hidden; border: 1px solid #555; border-radius: 3px; background: #e9ecef; box-shadow: -1px 0 1px rgb(100 100 100 / 30%); }
+.public-tracker-table .progress.off { border-color: #ccc; box-shadow: none; }
+.public-tracker-table .progress-bar { display: flex; align-items: center; justify-content: center; height: 24px; border-radius: 2px; background: rgb(187, 201, 173); color: #333; font-size: 11px; box-shadow: -1px 0 0 rgb(255 255 255 / 30%) inset; transition: background-color .25s ease-out; }
+.public-tracker-table [aria-valuenow="33"] .progress-bar { background: rgb(229, 164, 129); }
+.public-tracker-table [aria-valuenow="67"] .progress-bar { background: rgb(248, 231, 187); }
+@media (max-width: 600px) {
+    .public-tracker-table .public-preview-day:not(.public-preview-mobile-day) { display: none; }
+    .public-tracker-stage { padding: 8px; }
+    .public-tracker-table { width: 100%; table-layout: fixed; }
+    .public-tracker-table .public-preview-day { width: 28px; }
+    .public-tracker-table .headParagraph.main { min-width: 0; overflow: hidden; white-space: nowrap; font-size: 12px; }
+    .public-tracker-table .paragraph { padding-inline: 6px; font-size: 12px; }
+    .public-tracker-table [data-preview-habit] .paragraph { margin-left: 6px; }
+}
 .public-table-scroll { overflow-x: auto; border-radius: 8px; }
 .public-habit-table { width: 100%; min-width: 470px; border-spacing: 5px; border-collapse: separate; font-size: 13px; text-align: center; }
 .public-habit-table th { font-weight: 500; padding: 6px 10px; }

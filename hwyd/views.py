@@ -848,7 +848,7 @@ def add_setting(request):
         # Создаем новую настройку
         name = request.POST.get('nameSetting', 'Новая настройка')
         create_setting(request.user, name)
-    return HttpResponseRedirect(reverse('edit_settings'))
+    return HttpResponseRedirect(reverse('index') + '#settings')
 
 
 def create_setting(user, name):
@@ -893,7 +893,7 @@ def delete_setting(request, setting_id):
             if next_setting:
                 next_setting.selected = True
                 next_setting.save()
-    return HttpResponseRedirect(reverse('edit_settings'))
+    return HttpResponseRedirect(reverse('index') + '#settings')
 
 
 @login_required(login_url='entry')
@@ -1012,49 +1012,50 @@ def export_data_as_json(request):
 @login_required(login_url='entry')
 @preview_read_only
 def edit_settings(request):
+    # The standalone editor is retired. Keep its address and legacy POST
+    # contract for existing clients; the tracker owns the settings interface.
+    destination = reverse('index') + '#settings'
+    if request.method in ('GET', 'HEAD'):
+        return redirect(destination)
     settings_list = Settings.objects.filter(user=request.user).order_by('name')
     current_setting = settings_list.filter(selected=True).first()
+    if request.method != 'POST' or current_setting is None:
+        return JsonResponse({'error': 'Нет выбранной настройки.'}, status=400)
     ensure_default_themes(request.user)
     theme = display_theme(request)
     color_form = theme_colors_form(instance=theme)
 
-    if request.method == 'POST' and current_setting:
-        data = request.POST.copy()
-        if request.POST.get('uiVisibilityVersion') not in ('3', '4'):
-            # Older settings pages did not contain the new checkbox.
-            if current_setting.showViewSwitch:
-                data['showViewSwitch'] = 'on'
-            else:
-                data.pop('showViewSwitch', None)
-        if request.POST.get('uiVisibilityVersion') != '4':
-            if current_setting.showThemeSchedule:
-                data['showThemeSchedule'] = 'on'
-            else:
-                data.pop('showThemeSchedule', None)
-        form = SettingsForm(data, instance=current_setting)
-        has_colors = any(field in data for field in THEME_COLOR_FIELDS)
-        with transaction.atomic():
-            lock_theme_owner(request.user.pk)
+    data = request.POST.copy()
+    if request.POST.get('uiVisibilityVersion') not in ('3', '4'):
+        # Older clients did not contain the new checkbox.
+        if current_setting.showViewSwitch:
+            data['showViewSwitch'] = 'on'
+        else:
+            data.pop('showViewSwitch', None)
+    if request.POST.get('uiVisibilityVersion') != '4':
+        if current_setting.showThemeSchedule:
+            data['showThemeSchedule'] = 'on'
+        else:
+            data.pop('showThemeSchedule', None)
+    form = SettingsForm(data, instance=current_setting)
+    has_colors = any(field in data for field in THEME_COLOR_FIELDS)
+    with transaction.atomic():
+        lock_theme_owner(request.user.pk)
+        if has_colors:
+            ensure_default_themes(request.user)
+            theme = display_theme(request)
+            color_form = theme_colors_form(data, instance=theme)
+        if form.is_valid() and (not has_colors or color_form.is_valid()):
+            form.save()
             if has_colors:
-                ensure_default_themes(request.user)
-                theme = display_theme(request)
-                color_form = theme_colors_form(data, instance=theme)
-            if form.is_valid() and (not has_colors or color_form.is_valid()):
-                form.save()
-                if has_colors:
-                    color_form.save()
-                    remember_manual_theme(request, theme)
-                return redirect('edit_settings')
-    else:
-        form = SettingsForm(instance=current_setting) if current_setting else None
+                color_form.save()
+                remember_manual_theme(request, theme)
+            return redirect(destination)
 
-    context = {
-        'settings_list': settings_list,
-        'current_setting': current_setting,
-        'form': form,
-        'settings_fields': [*color_form, *form] if form else [],
-    }
-    return render(request, 'hwyd/settings.html', context)
+    errors = dict(form.errors)
+    if has_colors:
+        errors.update(color_form.errors)
+    return JsonResponse({'error': 'Проверьте настройки.', 'errors': errors}, status=400)
 
 
 @login_required(login_url='entry')
@@ -1067,7 +1068,7 @@ def select_setting(request, pk):
 
     # Если уже выбрана — просто редирект
     if setting.selected:
-        return redirect('edit_settings')
+        return redirect(reverse('index') + '#settings')
 
     # Снимаем выделение со всех настроек пользователя
     Settings.objects.filter(user=request.user, selected=True).update(selected=False)
@@ -1076,4 +1077,4 @@ def select_setting(request, pk):
     setting.selected = True
     setting.save(update_fields=["selected"])
 
-    return redirect('edit_settings')
+    return redirect(reverse('index') + '#settings')

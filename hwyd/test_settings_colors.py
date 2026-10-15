@@ -42,9 +42,10 @@ class SettingsColorsTests(TestCase):
         self.assertEqual(page.context['theme_palette'], self.colors)
         self.assertNotContains(page, 'hwyd/js/theme-schedule.js')
         self.assertNotContains(page, 'id="themeScheduleButton"')
-        settings_page = self.client.get(reverse('edit_settings'))
-        fields = {field.name: field.value() for field in settings_page.context['settings_fields']}
-        self.assertEqual({field: fields[field] for field in THEME_COLOR_FIELDS}, self.colors)
+        settings_page = self.client.get(reverse('edit_settings'), follow=True, HTTP_HOST='testserver')
+        self.assertEqual(settings_page.context['theme_palette'], self.colors)
+        for value in self.colors.values():
+            self.assertContains(settings_page, f'value="{value}"')
         for name, method in [('theme_schedule_list', 'get'), ('theme_schedule_apply', 'post')]:
             state = getattr(self.client, method)(reverse(name)).json()
             self.assertEqual(state['colors'], self.colors)
@@ -76,7 +77,9 @@ class SettingsColorsTests(TestCase):
         self.assertEqual(self.preset.fontFamily, 'Georgia')
         self.assertEqual({field: getattr(self.preset, field) for field in THEME_COLOR_FIELDS}, colors)
         data.update(backgroundColor='invalid', fontFamily='Arial')
-        self.assertEqual(self.client.post(reverse('edit_settings'), data).status_code, 200)
+        invalid = self.client.post(reverse('edit_settings'), data)
+        self.assertEqual(invalid.status_code, 400)
+        self.assertIn('backgroundColor', invalid.json()['errors'])
         self.preset.refresh_from_db()
         self.assertEqual(self.preset.fontFamily, 'Georgia')
         self.assertEqual(self.preset.backgroundColor, '#678abc')
@@ -103,7 +106,7 @@ class SettingsColorsTests(TestCase):
     def test_runtime_does_not_access_scheduled_theme_table(self):
         with patch.object(ScheduledTheme.objects, 'filter', side_effect=AssertionError('Unexpected schedule query')):
             self.assertEqual(self.client.get(self.page, HTTP_HOST='testserver').status_code, 200)
-            self.assertEqual(self.client.get(reverse('edit_settings')).status_code, 200)
+            self.assertEqual(self.client.get(reverse('edit_settings'), follow=True, HTTP_HOST='testserver').status_code, 200)
             self.assertEqual(self.client.post(reverse('global_colors', args=['2026-10']), self.colors).status_code, 302)
             self.assertEqual(self.client.post(reverse('theme_schedule_apply')).status_code, 200)
             self.assertEqual(self.client.post(reverse('theme_schedule_create')).status_code, 503)

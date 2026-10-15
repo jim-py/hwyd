@@ -11,6 +11,10 @@
 <meta property="og:description" content="Ваша таблица привычек: ежедневные отметки, группы, заметки и обзор прогресса.">
 <meta property="og:url" content="{{ canonical_url }}">
 {% endblock %}
+{% block page_head %}
+{{ block.super }}
+<script defer src="{% static 'general_app/js/home-preview.js' %}?v=20261015-interactive"></script>
+{% endblock %}
 {% block public_content %}
 <div class="public-container">
     <section class="public-hero" aria-labelledby="home-title">
@@ -67,7 +71,7 @@
             </ol>
             <div class="public-actions">
                 {% if user.is_authenticated %}<a class="public-button" href="{% url 'index' %}">К моим привычкам</a>{% else %}{% url 'index' as tracker_url %}<a class="public-button" href="{% url 'entry' %}?type=register&amp;next={{ tracker_url|urlencode }}">Создать аккаунт</a>{% endif %}
-                {% url 'edit_settings' as guide_url %}<a href="{% if user.is_authenticated %}{{ guide_url }}{% else %}{% url 'entry' %}?type=login&amp;next={{ guide_url|urlencode }}{% endif %}">Настройки → Обучение</a>
+                {% url 'index' as tracker_url %}{% with guide_url=tracker_url|add:'#settings' %}<a href="{% if user.is_authenticated %}{{ guide_url }}{% else %}{% url 'entry' %}?type=login&amp;next={{ guide_url|urlencode }}{% endif %}">Настройки → Обучение</a>{% endwith %}
             </div>
         </div>
     </section>

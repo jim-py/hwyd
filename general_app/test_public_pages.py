@@ -86,6 +86,10 @@ class PublicPagesTests(TestCase):
                 self.assertEqual([day['weekend'] for day in days],
                                  [today.replace(day=n).weekday() >= 5 for n in range(1, total + 1)])
                 self.assertEqual([habit['name'] for habit in context['preview_habits']], ['Читать', 'Гулять', 'Зарядка'])
+                self.assertEqual(context['preview_group']['name'], 'Здоровье')
+                for index, cell in enumerate(context['preview_group']['cells']):
+                    done = sum(habit['cells'][index]['done'] for habit in context['preview_habits'])
+                    self.assertEqual(cell['percent'], round(done / 3 * 100))
                 for habit in context['preview_habits']:
                     self.assertEqual(len(habit['cells']), total)
                     self.assertTrue(any(cell['done'] for cell in habit['cells']))
@@ -156,7 +160,10 @@ class PublicPagesTests(TestCase):
                 self.assertEqual(buttons[0]['type'], 'button')
                 self.assertEqual(len([li for li in elements.tags('li') if 'data-public-theme-item' in li and 'hidden' in li]), 1)
                 scripts = [script['src'] for script in elements.tags('script') if script.get('src')]
-                self.assertEqual(scripts, ['/static/general_app/js/public-theme.js?v=20261015'])
+                expected = ['/static/general_app/js/public-theme.js?v=20261015']
+                if path == '/':
+                    expected.append('/static/general_app/js/home-preview.js?v=20261015-interactive')
+                self.assertEqual(scripts, expected)
                 self.assertContains(response, 'data-public-theme="auto"', status_code=status)
                 self.assertContains(response, 'productivum.publicTheme', status_code=status)
                 html = response.content.decode()
@@ -279,7 +286,7 @@ class PublicPagesTests(TestCase):
 
     def test_shared_navbar_keeps_guest_and_member_links_and_adds_home(self):
         for signed_in, sections in ((False, ['home', 'register', 'login', 'about']),
-                                   (True, ['habitus', 'profile', 'home', 'about'])):
+                                   (True, ['home', 'habitus', 'profile', 'about'])):
             if signed_in:
                 self.client.force_login(self.user)
             response = self.client.get('/')
@@ -293,7 +300,7 @@ class PublicPagesTests(TestCase):
         tracker = self.client.get(reverse('by_date', args=['2026-10']), HTTP_HOST='testserver')
         elements = PageElements(tracker)
         self.assertEqual([a['data-section'] for a in elements.tags('a') if 'data-section' in a],
-                         ['habitus', 'profile', 'home', 'about'])
+                         ['home', 'habitus', 'profile', 'about'])
         self.assertContains(tracker, 'id="buttonSettings" type="button"')
         self.assertContains(tracker, "document.getElementById('some-modal-id').showModal();")
         self.assertNotContains(tracker, 'data-public-theme-control')

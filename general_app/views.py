@@ -169,9 +169,12 @@ class HomeView(TemplateView):
         context['canonical_url'] = origin + reverse('home')
         today = timezone.localdate()
         month = today.replace(day=1)
+        total_days = monthrange(today.year, today.month)[1]
+        mobile_start = max(1, min(today.day - 3, total_days - 4))
         days = [
-            {'number': day, 'weekend': month.replace(day=day).weekday() >= 5, 'today': day == today.day}
-            for day in range(1, monthrange(today.year, today.month)[1] + 1)
+            {'number': day, 'weekend': month.replace(day=day).weekday() >= 5, 'today': day == today.day,
+             'mobile_visible': mobile_start <= day < mobile_start + 5}
+            for day in range(1, total_days + 1)
         ]
         context['preview_month'] = month
         context['preview_days'] = days
@@ -180,6 +183,12 @@ class HomeView(TemplateView):
                                      for day in days]}
             for row, name in enumerate(('Читать', 'Гулять', 'Зарядка'))
         ]
+        context['preview_group'] = {
+            'name': 'Здоровье',
+            'cells': [dict(day, percent=round(sum(habit['cells'][index]['done']
+                                                 for habit in context['preview_habits']) / len(context['preview_habits']) * 100))
+                      for index, day in enumerate(days)],
+        }
         return context
 
 

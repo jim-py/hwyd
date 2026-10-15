@@ -601,7 +601,7 @@ class SettingsInterfaceTests(TestCase):
         response = self.client.get(self.url)
         navbar = response.content.decode().split('<nav class="nav-menu">')[1].split('</nav>')[0]
         self.assertIn('id="buttonSettings"', navbar)
-        for name in ('home', 'about', 'profile', 'edit_settings'):
+        for name in ('home', 'about', 'profile'):
             with self.subTest(page=name):
                 response = self.client.get(reverse(name))
                 self.assertEqual(response.status_code, 200)

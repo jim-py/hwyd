@@ -206,11 +206,11 @@ window.PENDING_GUIDES = {{ pending_guides|safe }};
 </script>
 {% endif %}
 <script type="module"
-        src="{% static 'hwyd/js/onboarding-loader.js' %}?v=20261008-admin">
+        src="{% static 'hwyd/js/onboarding-loader.js' %}?v=20261015-settings">
 </script>
 
 {% include 'hwyd/scripts.html' %}
-<script type="module" src="{% static 'hwyd/js/toolbar.js' %}?v=20261005-roles"></script>
+<script type="module" src="{% static 'hwyd/js/toolbar.js' %}?v=20261015-settings"></script>
 {% if settings.showViewSwitch %}
 <script type="module" src="{% static 'hwyd/js/year-calendar.js' %}"></script>
 {% endif %}

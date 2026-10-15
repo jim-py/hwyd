@@ -270,7 +270,7 @@ class ThemeScheduleTests(TestCase):
     def test_empty_page_bootstraps_two_valid_themes_once_per_owner(self):
         self.theme(user=self.other, name='Other existing theme')
         for page in ('by_date', 'edit_settings', 'by_date'):
-            response = self.client.get(reverse(page, args=['2026-10'] if page == 'by_date' else []), HTTP_HOST='testserver')
+            response = self.client.get(reverse(page, args=['2026-10'] if page == 'by_date' else []), follow=True, HTTP_HOST='testserver')
             self.assertEqual(response.status_code, 200)
             themes = list(ScheduledTheme.objects.filter(user=self.user))
             self.assertEqual([(t.name, t.activation_time, t.is_enabled) for t in themes],
@@ -287,7 +287,7 @@ class ThemeScheduleTests(TestCase):
 
     def test_settings_page_also_bootstraps_without_an_interface_preset(self):
         Settings.objects.filter(user=self.user).delete()
-        self.assertEqual(self.client.get(reverse('edit_settings')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('edit_settings'), follow=True, HTTP_HOST='testserver').status_code, 200)
         self.assertEqual(ScheduledTheme.objects.filter(user=self.user).count(), 2)
 
     def test_existing_disabled_custom_theme_is_not_bootstrapped_or_overwritten(self):
@@ -310,9 +310,10 @@ class ThemeScheduleTests(TestCase):
             self.assertEqual(page.context['theme_schedule_state']['active_id'], theme.pk)
             for field, value in colors.items():
                 self.assertContains(page, f'value="{value}"')
-            page = self.client.get(reverse('edit_settings'))
-            fields = {field.name: field.value() for field in page.context['settings_fields']}
-            self.assertEqual({field: fields[field] for field in THEME_COLOR_FIELDS}, colors)
+            page = self.client.get(reverse('edit_settings'), follow=True, HTTP_HOST='testserver')
+            self.assertEqual(page.context['theme_palette'], colors)
+            for value in colors.values():
+                self.assertContains(page, f'value="{value}"')
             state = self.client.get(reverse('theme_schedule_list')).json()
             self.assertEqual(state['colors'], colors)
 
@@ -348,7 +349,8 @@ class ThemeScheduleTests(TestCase):
         self.assertEqual({field: getattr(self.preset, field) for field in THEME_COLOR_FIELDS}, self.colors)
         data.update(backgroundColor='invalid', fontFamily='Arial')
         response = self.client.post(reverse('edit_settings'), data)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('backgroundColor', response.json()['errors'])
         self.preset.refresh_from_db()
         theme.refresh_from_db()
         self.assertEqual(self.preset.fontFamily, 'Georgia')
