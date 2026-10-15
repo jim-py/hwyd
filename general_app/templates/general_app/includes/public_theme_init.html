@@ -1,0 +1,11 @@
+<script>
+{
+    // Apply only the public preference before CSS and the first paint.
+    let mode = 'auto';
+    try {
+        const saved = localStorage.getItem('productivum.publicTheme');
+        if (['auto', 'light', 'dark'].includes(saved)) mode = saved;
+    } catch (_) { /* System CSS remains usable without browser storage. */ }
+    document.documentElement.dataset.publicTheme = mode;
+}
+</script>

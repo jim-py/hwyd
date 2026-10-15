@@ -1,4 +1,4 @@
-{% extends 'general_app/base.html' %}
+{% extends 'general_app/public_base.html' %}
 {% load static %}
 
 {% block title %}About me{% endblock %}
@@ -7,11 +7,11 @@
 <link rel="stylesheet" href="{% static 'general_app/css/about-main.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block public_content %}
 <div class="profile-page__container container">
     <div class="row justify-content-center">
         <div class="col-md-8 profile-page__header">
-            <img src="{% static 'general_app/images/iam.jpg' %}" alt="Я" class="profile-page__image" width="200" height="200">
+            <img src="{% static 'general_app/images/iam.jpg' %}" alt="Дмитрий, автор Habitus" class="profile-page__image" width="200" height="200">
             <h1 class="profile-page__name">Дмитрий</h1>
             <p class="profile-page__skills lead">
                 <span class="profile-page__skill">1С</span>
@@ -60,7 +60,7 @@
             <div class="profile-page__card-body card-body">
                 <h3 class="profile-page__card-title card-title">Про Productivum</h3>
                 <p class="profile-page__card-text card-text">
-                    Экосистема Productivum начиналась с трекера привычек, который ныне называется
+                    Проект Productivum начинался с трекера привычек, который ныне называется
                     <a href="{% url 'index' %}">Habitus</a>. Основная идея была взята с сайта <a
                         href="https://hwyd.me">hwyd.me</a>.
                     Я же от себя добавил большое количество кастомизаций и возможность объединять привычки в группы.

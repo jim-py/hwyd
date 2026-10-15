@@ -89,3 +89,14 @@
 .nav-menu__link i {
     pointer-events: none;
 }
+
+/* Preserve the existing navbar geometry when glass is unavailable or reduced. */
+@supports not ((backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px))) {
+    .nav-menu { background: #fff; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    .nav-menu { background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .nav-menu__item, .nav-menu__link { transition: none; }
+}

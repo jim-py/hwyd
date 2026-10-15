@@ -1,71 +1,69 @@
-{% extends 'general_app/base.html' %}
+{% extends 'general_app/public_base.html' %}
 {% load static %}
-
-{% block title %}Productivum{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'general_app/css/font.css' %}">
-<link rel="stylesheet" href="{% static 'general_app/css/home.css' %}">
-<link rel="stylesheet" href="{% static 'general_app/css/home-overrides.css' %}">
+{% block title %}Habitus — трекер привычек по дням | Productivum{% endblock %}
+{% block metadata %}
+<meta name="description" content="Habitus — трекер привычек Productivum. Отмечайте выполнение по дням, объединяйте привычки в группы, добавляйте заметки и смотрите календарь месяца и года.">
+<link rel="canonical" href="{{ canonical_url }}">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="Productivum · Habitus">
+<meta property="og:title" content="Habitus — трекер привычек по дням">
+<meta property="og:description" content="Ваша таблица привычек: ежедневные отметки, группы, заметки и обзор прогресса.">
+<meta property="og:url" content="{{ canonical_url }}">
 {% endblock %}
-
-{% block content %}
-<main>
-    <section class="intro">
-        <h1>Добро пожаловать в нашу экосистему приложений!</h1>
-        <p>Управляйте своими задачами, привычками и бюджетом в одном месте.</p>
-    </section>
-    <section class="section features">
-        <article class="feature" id="hwyd">
-            <h2>Habitus</h2>
-            <p>
-            <div class="text-feature">Трекер привычек
-                <div class="custom-hr"></div>
-                Создавайте и отслеживайте свои привычки для достижения целей.
-            </div>
-        </article>
-        <article class="feature-locked" id="time-tracker">
-            <h2>Tempus</h2>
-            <p>
-            <div class="text-feature">Трекер времени
-                <div class="custom-hr"></div>
-                Фиксируйте время, затраченное на выполнение задач.
-            </div>
-        </article>
-        <article class="feature-locked" id="knowledgebase">
-            <h2>Mentis</h2>
-            <div class="text-feature">База знаний
-                <div class="custom-hr"></div>
-                Идеальный ресурс для исследования, обучения и углубления знаний.
-            </div>
-        </article>
-    </section>
-    <section class="section company-section">
-        <h2>О компании Productivum</h2>
-        <div class="company-content">
-            <img src="{% static 'general_app/images/image.png' %}" alt="Фото Философа" class="philosopher-photo" width="856" height="1152">
-            <div class="company-text">
-                <p>Компания Productivum укрепляет мост между древней мудростью и современной технологией, вдохновляясь
-                    бесценными идеями великих мыслителей.</p>
-                <p>Мы стремимся к гармонии в цифровом мире, где скорость и эффективность уравновешиваются обдуманностью
-                    и стратегическим мышлением.</p>
-                <p>Продуктивность — это искусство максимизации вашего потенциала. Наши решения помогают культивировать
-                    самодисциплину и рациональность, ради достижения высоких результатов в работе и личной жизни.</p>
-                <p>Присоединяйтесь к диалогу разумов с Productivum, и пусть каждый ваш день будет наполнен озарениями и
-                    открытиями.</p>
+{% block public_content %}
+<div class="public-container">
+    <section class="public-hero" aria-labelledby="home-title">
+        <p class="public-brand"><img src="{% static 'site/images/favicon.png' %}" alt="" width="28" height="28">Productivum · Habitus</p>
+        <h1 id="home-title">Привычки, день за днём.</h1>
+        <p class="public-lead">Habitus — ваша таблица привычек. Отмечайте выполнение, объединяйте привычки в группы и смотрите на месяц целиком.</p>
+        <div class="public-actions">
+            {% if user.is_authenticated %}<a class="public-button" href="{% url 'index' %}">Открыть мой трекер <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% else %}{% url 'index' as tracker_url %}<a class="public-button" href="{% url 'entry' %}?type=register&amp;next={{ tracker_url|urlencode }}">Начать отслеживать <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
+            <a class="public-button public-button-secondary" href="#features">Как это работает</a>
+        </div>
+        <p class="public-small">Для сохранения привычек и отметок нужен аккаунт.</p>
+        <div class="public-preview">
+            <div class="public-preview-heading"><span>Небольшие шаги, день за днём</span><span>Пример недели</span></div>
+            <div class="public-table-scroll" role="region" aria-label="Пример таблицы привычек, прокрутка по горизонтали" tabindex="0">
+                <table class="public-habit-table">
+                    <caption>Иллюстрация с условными привычками и отметками.</caption>
+                    <thead><tr><th scope="col">Привычки</th><th scope="col">Пн</th><th scope="col">Вт</th><th scope="col">Ср</th><th scope="col">Чт</th><th scope="col">Пт</th><th scope="col">Сб</th><th scope="col">Вс</th></tr></thead>
+                    <tbody>
+                        <tr><th scope="row">Читать</th><td class="is-done" aria-label="Отмечено">✓</td><td class="is-done" aria-label="Отмечено">✓</td><td aria-label="Не отмечено">·</td><td class="is-done" aria-label="Отмечено">✓</td><td aria-label="Не отмечено">·</td><td aria-label="Не отмечено">·</td><td aria-label="Не отмечено">·</td></tr>
+                        <tr><th scope="row">Гулять</th><td class="is-done" aria-label="Отмечено">✓</td><td aria-label="Не отмечено">·</td><td class="is-done" aria-label="Отмечено">✓</td><td class="is-done" aria-label="Отмечено">✓</td><td class="is-done" aria-label="Отмечено">✓</td><td aria-label="Не отмечено">·</td><td aria-label="Не отмечено">·</td></tr>
+                        <tr><th scope="row">Зарядка</th><td aria-label="Не отмечено">·</td><td class="is-done" aria-label="Отмечено">✓</td><td class="is-done" aria-label="Отмечено">✓</td><td aria-label="Не отмечено">·</td><td class="is-done" aria-label="Отмечено">✓</td><td aria-label="Не отмечено">·</td><td aria-label="Не отмечено">·</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </section>
-</main>
-<footer class="footer-site">
-    <p>&copy; {% now "Y" %} - Productivum</p>
-</footer>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.getElementById('hwyd').addEventListener('click', function () {
-        window.location.href = '{% url 'index' %}';
-    });
-</script>
+    <section class="public-section" id="features" aria-labelledby="features-title">
+        <div class="public-section-heading"><h2 id="features-title">Одна таблица. Ваш ритм.</h2><p>Для тех, кто хочет видеть свои привычки и возвращаться к ним каждый день.</p></div>
+        <div class="public-feature-grid">
+            <article><i class="fa-solid fa-check" aria-hidden="true"></i><h3>Отмечайте по дням</h3><p>Добавляйте привычки в месячную таблицу и отмечайте выполнение. Весь месяц остаётся перед глазами.</p></article>
+            <article><i class="fa-solid fa-layer-group" aria-hidden="true"></i><h3>Группы и заметки</h3><p>Объединяйте связанные привычки, добавляйте описания и комментарии к дням. Сворачивайте группы, когда они не нужны на экране.</p></article>
+            <article><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><h3>Месяц и год</h3><p>Переключайтесь на годовой календарь, возвращайтесь к прошлым месяцам и переносите привычки в новый месяц.</p></article>
+        </div>
+    </section>
+    <section class="public-section" aria-labelledby="start-title">
+        <div class="public-start">
+            <div class="public-section-heading"><h2 id="start-title">Начните с одной привычки.</h2><p>Таблицу можно настроить под себя: выбрать цвета, шрифт и видимые элементы.</p></div>
+            <ol class="public-steps">
+                <li><h3>Создайте аккаунт</h3><p>Он нужен для сохранения привычек, отметок и настроек.</p></li>
+                <li><h3>Добавьте привычку</h3><p>Откройте Habitus, выберите месяц и создайте первую строку в таблице.</p></li>
+                <li><h3>Отмечайте выполнение</h3><p>Возвращайтесь к своим привычкам и оставляйте заметки, когда нужен контекст.</p></li>
+            </ol>
+            <div class="public-actions">
+                {% if user.is_authenticated %}<a class="public-button" href="{% url 'index' %}">К моим привычкам</a>{% else %}{% url 'index' as tracker_url %}<a class="public-button" href="{% url 'entry' %}?type=register&amp;next={{ tracker_url|urlencode }}">Создать аккаунт</a>{% endif %}
+                {% url 'edit_settings' as guide_url %}<a href="{% if user.is_authenticated %}{{ guide_url }}{% else %}{% url 'entry' %}?type=login&amp;next={{ guide_url|urlencode }}{% endif %}">Настройки → Обучение</a>
+            </div>
+        </div>
+    </section>
+    <section class="public-section public-faq" aria-labelledby="faq-title">
+        <div class="public-section-heading"><h2 id="faq-title">Перед первой отметкой</h2></div>
+        <details><summary>Нужна ли регистрация?</summary><p>Да. Привычки, отметки и настройки сохраняются в вашем аккаунте. Главную и <a href="{% url 'about' %}">страницу о проекте</a> можно читать без входа.</p></details>
+        <details><summary>Где найти руководство?</summary><p>В настройках трекера есть раздел «Обучение». Встроенный обзор объясняет кнопки и его можно пройти повторно.</p></details>
+        <details><summary>Что показывает календарь года?</summary><p>Долю выполненных привычек среди доступных на каждый день. Выберите день, чтобы перейти к таблице его месяца.</p></details>
+    </section>
+</div>
 {% endblock %}

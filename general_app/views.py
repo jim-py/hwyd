@@ -3,7 +3,10 @@ from django.views import View
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.views import LogoutView as DefaultLogoutView
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
+from urllib.parse import urlsplit
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
@@ -95,12 +98,12 @@ class LoginRegisterView(View):
                 "login_form": login_form,
                 "register_form": register_form,
                 "type_form": type_form,
-                "next": request.GET.get("next", "/home/"),
+                "next": request.GET.get("next", reverse('home')),
             },
         )
 
     def post(self, request):
-        next_url = request.GET.get("next", "/home/")
+        next_url = request.GET.get("next", reverse('home'))
         login_form, register_form = None, None
         errors = None
         type_form = "login"
@@ -147,6 +150,7 @@ class LoginRegisterView(View):
                 "register_form": register_form,
                 "errors": errors,
                 "type_form": type_form,
+                "next": next_url,
             },
         )
 
@@ -156,6 +160,12 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        origin = settings.PUBLIC_SITE_ORIGIN.rstrip('/')
+        parts = urlsplit(origin)
+        if (parts.scheme not in ('https', 'http') or not parts.netloc or parts.path
+                or parts.query or parts.fragment or parts.username is not None or parts.password is not None):
+            raise ImproperlyConfigured('PUBLIC_SITE_ORIGIN must be an HTTP(S) origin without a path or credentials.')
+        context['canonical_url'] = origin + reverse('home')
         return context
 
 

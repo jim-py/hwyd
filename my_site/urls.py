@@ -20,9 +20,12 @@ from django.views.generic import TemplateView
 
 from django.conf import settings
 from django.conf.urls.static import static
+from general_app.views import HomeView
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/home/')),
+    path('', HomeView.as_view(), name='home'),
+    path('home', RedirectView.as_view(pattern_name='home', permanent=True, query_string=True)),
+    path('home/', RedirectView.as_view(pattern_name='home', permanent=True, query_string=True)),
 
     path('admin/', admin.site.urls),
     path('home/', include('general_app.urls')),

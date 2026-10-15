@@ -1,11 +1,12 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru"{% block html_attributes %}{% endblock %}>
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=yes">
     <title>{% block title %}Productivum{% endblock %}</title>
+    {% block page_head %}{% endblock %}
 
     <!-- Общие стили -->
     <link rel="shortcut icon" type="image/png" href="{% static 'site/images/favicon.png' %}" />
@@ -18,9 +19,10 @@
 
     <link rel="stylesheet" href="{% static 'general_app/css/base.css' %}">
     {% include 'includes/typography.html' %}
+    {% block page_styles %}{% endblock %}
 </head>
 
-<body>
+<body{% block body_attributes %}{% endblock %}>
     {% block navbar %}
     {% include 'includes/navbar.html' %}
     {% endblock %}

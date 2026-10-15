@@ -1,7 +1,8 @@
-{% extends 'general_app/base.html' %}
+{% extends 'general_app/public_base.html' %}
 {% load static %}
 
-{% block content %}
+{% block title %}{% if type_form == 'register' %}Регистрация{% else %}Вход{% endif %} — Habitus{% endblock %}
+{% block public_content %}
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-12 col-md-8 col-lg-6">
@@ -17,7 +18,7 @@
                         {% endfor %}
                         {% endfor %}
                     </ul>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-public-dismiss hidden aria-label="Закрыть сообщение"></button>
                 </div>
             </div>
             {% endif %}
@@ -27,47 +28,49 @@
                 {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
                     {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-public-dismiss hidden aria-label="Закрыть сообщение"></button>
                 </div>
                 {% endfor %}
             </div>
             {% endif %}
 
             <!-- Карточка Входа -->
+            {% if type_form != 'register' %}
             <div id="login-section" class="card shadow-sm border-1 mb-4">
                 <div class="card-body p-4">
-                    <h2 class="card-title text-center mb-4">Вход</h2>
-                    <form method="post" action="{% url 'entry' %}?next={{ next }}">
+                    <h1 class="card-title text-center mb-4">Вход</h1>
+                    <form method="post" action="{% url 'entry' %}?type=login&amp;next={{ next|urlencode }}">
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="login-username">Имя пользователя:</label>
-                            <input type="text" id="login-username" name="username" class="form-control" required>
+                            <input type="text" id="login-username" autocomplete="username" value="{{ login_form.username.value|default_if_none:'' }}"{% if errors %} aria-invalid="true" aria-describedby="alerts-container"{% endif %} name="username" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label for="login-password">Пароль:</label>
-                            <input type="password" id="login-password" name="password" class="form-control" required>
+                            <input type="password" id="login-password" autocomplete="current-password"{% if errors %} aria-invalid="true" aria-describedby="alerts-container"{% endif %} name="password" class="form-control" required>
                         </div>
                         <button type="submit" name="login" class="btn btn-primary w-100 mt-3">Войти</button>
                     </form>
                 </div>
             </div>
 
+            {% else %}
             <!-- Карточка Регистрации -->
             <div id="register-section" class="card shadow-sm border-1 mb-4">
                 <div class="card-body p-4">
-                    <h2 class="card-title text-center mb-4">Регистрация</h2>
-                    <form method="post" action="{% url 'entry' %}?next={{ next }}">
+                    <h1 class="card-title text-center mb-4">Регистрация</h1>
+                    <form method="post" action="{% url 'entry' %}?type=register&amp;next={{ next|urlencode }}">
                         {% csrf_token %}
 
                         <!-- Имя и Фамилия -->
                         <div class="row mb-3">
                             <div class="col-12 col-sm mb-3 mb-sm-0">
                                 <label for="first-name">Имя: <span class="text-muted">(необязательно)</span></label>
-                                <input type="text" id="first-name" name="first_name" class="form-control">
+                                <input type="text" id="first-name" autocomplete="given-name" value="{{ request.POST.first_name }}" name="first_name" class="form-control">
                             </div>
                             <div class="col-12 col-sm">
                                 <label for="last-name">Фамилия: <span class="text-muted">(необязательно)</span></label>
-                                <input type="text" id="last-name" name="last_name" class="form-control">
+                                <input type="text" id="last-name" autocomplete="family-name" value="{{ request.POST.last_name }}" name="last_name" class="form-control">
                             </div>
                         </div>
 
@@ -75,11 +78,11 @@
                         <div class="row mb-3">
                             <div class="col-12 col-sm mb-3 mb-sm-0">
                                 <label for="register-email">Email:</label>
-                                <input type="email" id="register-email" name="email" class="form-control" required>
+                                <input type="email" id="register-email" autocomplete="email" value="{{ request.POST.email }}" name="email" class="form-control" required>
                             </div>
                             <div class="col-12 col-sm">
                                 <label for="register-username">Имя пользователя:</label>
-                                <input type="text" id="register-username" name="username" class="form-control" required>
+                                <input type="text" id="register-username" autocomplete="username" value="{{ register_form.username.value|default_if_none:'' }}"{% if register_form.username.errors %} aria-invalid="true" aria-describedby="alerts-container"{% endif %} name="username" class="form-control" required>
                             </div>
                         </div>
 
@@ -87,12 +90,12 @@
                         <div class="row mb-3">
                             <div class="col-12 col-sm mb-3 mb-sm-0">
                                 <label for="register-password">Пароль:</label>
-                                <input type="password" id="register-password" name="password1" class="form-control"
+                                <input type="password" id="register-password" autocomplete="new-password" name="password1" class="form-control"
                                     required>
                             </div>
                             <div class="col-12 col-sm">
                                 <label for="register-confirm-password">Подтвердите пароль:</label>
-                                <input type="password" id="register-confirm-password" name="password2"
+                                <input type="password" id="register-confirm-password" autocomplete="new-password"{% if register_form.password2.errors %} aria-invalid="true" aria-describedby="alerts-container"{% endif %} name="password2"
                                     class="form-control" required>
                             </div>
                         </div>
@@ -102,16 +105,9 @@
                     </form>
                 </div>
             </div>
-
-
+            {% endif %}
+            <p class="public-form-switch">{% if type_form == 'register' %}Уже есть аккаунт? <a href="{% url 'entry' %}?type=login&amp;next={{ next|urlencode }}">Вход</a>{% else %}Нет аккаунта? <a href="{% url 'entry' %}?type=register&amp;next={{ next|urlencode }}">Регистрация</a>{% endif %}</p>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.getElementById("login-section").style.display = {% if type_form == 'register' %}"none"{% else %}"block"{% endif %};
-    document.getElementById("register-section").style.display = {% if type_form == 'register' %}"block"{% else %}"none"{% endif %};
-</script>
 {% endblock %}

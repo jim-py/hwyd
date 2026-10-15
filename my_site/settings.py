@@ -1,4 +1,5 @@
 from pathlib import Path
+from os import environ
 from django.utils.translation import gettext_lazy as _
 
 # =========================================================
@@ -16,6 +17,9 @@ DEBUG = not HOSTING
 SECRET_KEY = '2v^46_-9jw*x(weg8j9n-3ad%p0&h^avvfy3c(wj$jnyx)3i!&'
 
 LOGOUT_REDIRECT_URL = '/'
+
+# Confirmed public origin; never derive search metadata from a request Host.
+PUBLIC_SITE_ORIGIN = environ.get('PUBLIC_SITE_ORIGIN', 'https://productivum.ru').strip().rstrip('/')
 
 MAINTENANCE_MODE = False
 

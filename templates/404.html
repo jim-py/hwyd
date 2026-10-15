@@ -1,22 +1,11 @@
-{% extends 'general_app/base.html' %}
-{% load static %}
-
-{% block title %}404{% endblock %}
-{% block navbar %}{% endblock %}
-
-{% block content %}
-<div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="card shadow-sm text-center p-4 p-md-5 w-70">
-        <h1 class="display-1 fw-bold mb-3">Ой!</h1>
-        <h2 class="h3 mb-3">404 - Страница не найдена</h2>
-        <div class="d-flex justify-content-center mb-4">
-            <img src="{% static 'site/images/favicon.png' %}" alt="Habitus" class="error-logo" width="50" height="50">
-        </div>
-        <p class="mb-2 fs-6 fs-md-5">Кажется, мы не можем найти то, что вы ищете.</p>
-        <p class="fs-6 fs-md-5 mb-0">
-            Возможно, она была перемещена, или вы ввели неверный адрес. Попробуйте вернуться на 
-            <a href="{% url 'home' %}" class="text-decoration-none fw-bold text-danger">главную страницу</a>.
-        </p>
-    </div>
-</div>
+{% extends 'general_app/public_base.html' %}
+{% block title %}404 — Страница не найдена | Habitus{% endblock %}
+{% block metadata %}<meta name="robots" content="noindex">{% endblock %}
+{% block public_content %}
+<section class="public-error public-container" aria-labelledby="error-title">
+    <div class="public-error-art" aria-hidden="true"><span>4</span><svg viewBox="0 0 100 110" fill="none"><rect x="9" y="15" width="82" height="84" rx="18" stroke="currentColor" stroke-width="2"></rect><path d="M9 38h82M31 6v18M69 6v18" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path><path d="m32 66 11 11 25-26" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 7"></path></svg><span>4</span></div>
+    <h1 id="error-title">Страница не найдена</h1>
+    <p class="public-lead">Кажется, эта страница пропустила день.<br>Вернёмся туда, где всё на своих местах.</p>
+    <div class="public-actions"><a class="public-button" href="{% url 'home' %}"><i class="fa-solid fa-house" aria-hidden="true"></i> На главную</a>{% if user.is_authenticated %}<a href="{% url 'index' %}">К моим привычкам</a>{% endif %}</div>
+</section>
 {% endblock %}
