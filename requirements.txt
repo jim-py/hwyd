@@ -18,6 +18,7 @@ cryptography==50.0.2
 Django==6.0.9
 django-celery-beat==2.9.0
 django-debug-toolbar==8.0.0
+django-environ==0.14.0
 django-extensions==4.1
 django-timezone-field==7.2.2
 django-user-agents==0.4.0

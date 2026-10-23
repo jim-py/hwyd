@@ -1,5 +1,6 @@
 from pathlib import Path
 from os import environ
+import environ as django_environ
 from django.utils.translation import gettext_lazy as _
 
 # =========================================================
@@ -7,14 +8,16 @@ from django.utils.translation import gettext_lazy as _
 # =========================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 DIR_PROD = '/home/a0853298/proj/myproject/'
 
-HOSTING = 'Productivum' not in str(BASE_DIR)
+# Загрузка .env
+env = django_environ.Env()
+django_environ.Env.read_env(BASE_DIR / '.env')
 
+# Настройки окружения
+HOSTING = env('DJANGO_ENV', default='production') == 'production'
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = not HOSTING
-
-SECRET_KEY = '2v^46_-9jw*x(weg8j9n-3ad%p0&h^avvfy3c(wj$jnyx)3i!&'
 
 LOGOUT_REDIRECT_URL = '/'
 
