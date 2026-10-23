@@ -24,7 +24,6 @@ django-user-agents==0.4.0
 django-webpush==0.3.6
 django-widget-tweaks==1.5.1
 frozenlist==1.8.0
-gyp==0.1
 http_ece==1.2.1
 idna==3.20
 imageio-ffmpeg==0.6.0
