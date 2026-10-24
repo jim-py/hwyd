@@ -1,5 +1,5 @@
 import { post } from './api.js';
-import { createVisibilityControls } from './visibility.js';
+import { createVisibilityControls } from './visibility.js?v=20261024-vanishing';
 import { showToast } from './toast.js';
 import { enableDialogDrag } from './dialog-drag.js?v=20261004-4';
 import { loadTop } from './top.js?v=20261005-roles';
@@ -174,7 +174,8 @@ bindAsyncForm(document.getElementById('deleteAllForm'), () => {
     document.querySelectorAll('#myTable tbody tr').forEach(row => row.remove());
     document.getElementById('deleteAll').style.display = 'none';
     document.getElementById('openAll').style.display = 'none';
-    document.getElementById('createLastMonthActivitiesForm').style.display = 'inline';
+    const copyForm = document.getElementById('createLastMonthActivitiesForm');
+    if (copyForm) copyForm.style.display = 'inline';
     visibility.refresh();
     window.dispatchEvent(new Event('habitus:rows-changed'));
     showToast('Все привычки и группы за выбранный месяц удалены.');

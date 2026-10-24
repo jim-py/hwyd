@@ -24,6 +24,7 @@ from django_user_agents.utils import get_user_agent
 from .forms import LoginForm, RegisterForm, SettingsForm, FeedbackForm, HabitDescriptionForm, theme_colors_form
 from .models import Activities, ActivitiesConnection, Settings, CustomFieldsUser, UserActivityLog
 from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS, THEME_COLOR_FIELDS
+from .preferences import VANISHING_CHOICES, normalize_vanishing
 from .streaks import streak_position, streak_top
 from .timezones import browser_timezone
 from .year_stats import MAX_YEAR, MIN_YEAR, year_completion
@@ -200,7 +201,7 @@ def by_date(request, picked_date):
 
         if request.POST.get('selectFont') in FONT_FAMILIES:
             settings.fontFamily = request.POST['selectFont']
-        settings.vanishing = request.POST['selectFade']
+        settings.vanishing = normalize_vanishing(request.POST['selectFade'])
         settings.save()
         return redirect(redirect_url, picked_date)
 
@@ -469,8 +470,12 @@ def by_date(request, picked_date):
         # ========================
 
         guides = get_pending_guides(viewed_user, read_only=preview)
+        _, _, previous_activities = previous_month_source(viewed_user, year, month)
 
         context = {'range_activities': activities, 'range_days': range_days, 'weekends': weekends,
+                   'has_previous_month_habits': previous_activities.filter(isGroup=False).exists(),
+                   'has_completed_habits': any(not a.isGroup and a.todayCheck == 'True' for a in activities),
+                   'vanishing_mode': normalize_vanishing(setting.vanishing), 'vanishing_choices': VANISHING_CHOICES,
                    'cellsToClick': activated_cells, 'date': picked_date, 'onOffDays': [i for i in range(-1, days)][:-1],
                    'settings': setting, 'progress': progress_activities, 'today': today, 'month_name': month_name,
                    'year': year, 'groups_ids': groups_ids, 'days': days, 'groupsToClick': activated_groups,
@@ -551,6 +556,16 @@ def start(request):
     return redirect(url)
 
 
+def previous_month_source(user, year, month):
+    """Return the previous calendar month and its copy source for one owner."""
+    if month == 1:
+        previous_year, previous_month = year - 1, 12
+    else:
+        previous_year, previous_month = year, month - 1
+    activities = Activities.objects.filter(user=user, date=f'{previous_year}-{previous_month:0>2}')
+    return previous_year, previous_month, activities
+
+
 @login_required(login_url='entry')
 @preview_read_only
 def create_last_activities(request, picked_date):
@@ -565,12 +580,7 @@ def create_last_activities(request, picked_date):
     year, month = list(map(int, picked_date.split('-')))
     days = monthrange(year, month)[1]
 
-    # Корректно выбирает прошлый месяц
-    if month == 1:
-        previous_year, previous_month = year - 1, 12
-    else:
-        previous_year, previous_month = year, month - 1
-    activities = Activities.objects.filter(user=request.user, date=f'{previous_year}-{previous_month:0>2}')
+    previous_year, previous_month, activities = previous_month_source(request.user, year, month)
     previous_days = monthrange(previous_year, previous_month)[1]
     previous_first_weekday = weekday(previous_year, previous_month, 1)
     first_weekday = weekday(year, month, 1)
@@ -878,6 +888,7 @@ def default_setting(user, name):
         showOpenAllGroups=True,
         showTabs=True,
         selected=True,
+        vanishing='off',
         name=name
     )
 

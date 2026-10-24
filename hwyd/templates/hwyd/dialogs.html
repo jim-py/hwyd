@@ -86,9 +86,9 @@
                 <div class="settings-section__stacked">
                     <label for="selectFade">Пропадание при выполнении привычки</label>
                     <select name="selectFade" id="selectFade">
-                        <option {% if settings.vanishing == 'off' %}selected{% endif %} value="off">Выключено</option>
-                        <option {% if settings.vanishing == 'sharp' %}selected{% endif %} value="sharp">Резко</option>
-                        <option {% if settings.vanishing == 'smooth' %}selected{% endif %} value="smooth">Плавно</option>
+                        {% for value, label in vanishing_choices %}
+                        <option {% if vanishing_mode == value %}selected{% endif %} value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -137,7 +137,7 @@
         <i class="fa-solid fa-eye-slash"></i>
     </button> {% endcomment %}
 
-    <button id="hideCompleteActivities" type="button"{% if not settings.showCompletedButton %} hidden{% endif %} title="Показать выполненные" aria-label="Показать выполненные">
+    <button id="hideCompleteActivities" type="button"{% if not settings.showCompletedButton or not has_completed_habits %} hidden{% endif %} data-enabled="{{ settings.showCompletedButton|yesno:'true,false' }}" data-context-available="{{ has_completed_habits|yesno:'true,false' }}" title="Показать выполненные" aria-label="Показать выполненные">
         <i class="fa-solid fa-eye"></i>
     </button>
 
@@ -145,7 +145,7 @@
         <i class="fa-solid fa-trash"></i>
     </button>
 
-    <button id="openAll" type="button" class="button-6" aria-label="Раскрыть все группы" style="display:{% if range_activities and settings.showOpenAllGroups %}flex;{% else %}none;{% endif %}" title="Раскрыть все группы">
+    <button id="openAll" type="button" class="button-6" data-enabled="{{ settings.showOpenAllGroups|yesno:'true,false' }}" data-context-available="{{ groups_ids|yesno:'true,false' }}" aria-label="Раскрыть все группы" style="display:{% if groups_ids and settings.showOpenAllGroups %}flex;{% else %}none;{% endif %}" title="Раскрыть все группы">
         <i class="fa-solid fa-folder-open"></i>
     </button>
 
@@ -154,12 +154,14 @@
     </button>
 
 
+    {% if has_previous_month_habits %}
     <form id="createLastMonthActivitiesForm" action="{% url 'create_last_activities' date %}{{ view_as_query }}" method="post" style="display:{% if not range_activities %}inline;{% else %}none;{% endif %}">
         {% csrf_token %}
         <button id="btnActLastMonth"{% if is_view_as %} disabled{% endif %} type="submit" class="calendar-button" title="Копировать привычки прошлого месяца">
             <i class="fa-solid fa-clock-rotate-left"></i>
         </button>
     </form>
+    {% endif %}
 
     <button type="button"
             id="createActivityButton"{% if is_view_as %} disabled{% endif %}

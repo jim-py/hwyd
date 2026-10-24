@@ -86,8 +86,9 @@
     }
 
     for (let elem of document.querySelectorAll('div.divClick')) {
-        elem.addEventListener('click', function () {
-            if (document.body.dataset.viewAs) return;
+        elem.addEventListener('click', function toggleMark(event, rollback = false) {
+            if (document.body.dataset.viewAs || (!rollback && this.dataset.markPending)) return;
+            if (!rollback) this.dataset.markPending = 'true';
             const object = $(this);
             object.toggleClass('on');
             {# } else {#}
@@ -100,6 +101,7 @@
             {#element.style.color = "rgb(" + brightness + ", " + brightness + ", " + brightness + ")";#}
 
             {% if settings.onSounds %}
+            if (!rollback) {
                 let music
                 if (object.hasClass('on')) {
                     music = new Audio("{% static 'hwyd/audio/on.MP3' %}");
@@ -108,12 +110,14 @@
                 }
                 music.volume = 0.5;
                 music.play();
+            }
             {% endif %}
             let group_id = $(this.parentNode.parentNode)[0].className.match(/[0-9-]+/g)[0].split('-')[0]
-            if (group_id) {
+            const groupRow = group_id && document.querySelector('tr.isGroup' + group_id);
+            if (groupRow) {
                 let day = Number(this.id.split('-')[1]) + 1, newWidth, progress
                 let groups_progress_add = {% progress_cell_add %};
-                progress = document.querySelector('tr.isGroup' + group_id).querySelector(`td[data-day="${day - 1}"] .progress`)
+                progress = groupRow.querySelector(`td[data-day="${day - 1}"] .progress`)
                 let progress_bar = progress.children[0]
 
                 {% if settings.showTabs %}
@@ -221,11 +225,13 @@
                 {% endif %}
             }
 
-            vibrateOrHaptic();
+            if (!rollback) vibrateOrHaptic();
             window.dispatchEvent(new CustomEvent('habitus:activity-marked', { detail: {
-                row: this.closest('tr'), day: Number(this.id.split('-')[1]), completed: this.classList.contains('on')
+                row: this.closest('tr'), day: Number(this.id.split('-')[1]), completed: this.classList.contains('on'),
+                error: rollback ? 'Не удалось сохранить отметку. Попробуйте ещё раз.' : null
             }}));
 
+            if (rollback) return;
             $.ajax({
                 type: 'POST',
                 url: '{% url 'check_cell' date %}{{ view_as_query }}',
@@ -236,7 +242,11 @@
                     }
             }).done(function () {
                 window.dispatchEvent(new Event('habitus:activities-saved'));
-            })
+            }).fail(function () {
+                toggleMark.call(elem, null, true);
+            }).always(function () {
+                delete elem.dataset.markPending;
+            });
         })
         elem.oncontextmenu = function (e) {
             e.preventDefault();

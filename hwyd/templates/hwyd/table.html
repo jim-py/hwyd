@@ -8,7 +8,8 @@
         <table id="myTable" class="table"
     {% endif %}
         inert aria-busy="true"
-        data-hide-completed="{% if settings.vanishing != 'off' %}true{% else %}false{% endif %}"
+        data-vanishing="{{ vanishing_mode }}"
+        data-hide-completed="{% if vanishing_mode != 'off' %}true{% else %}false{% endif %}"
         data-current-day="{{ today|add:-1 }}" data-manual-groups="{{ settings.enableOpenCloseGroups|yesno:'true,false' }}"
         data-open-group-url="{% url 'open_group' %}" data-open-all-url="{% url 'open_all' date %}">
     <thead>
@@ -39,7 +40,7 @@
             data-group-id="{{ activity|get_group_id:connections|default_if_none:'' }}"
             data-completed="{% if activity.todayCheck == 'True' %}true{% else %}false{% endif %}"
             {% if activity.isGroup %}data-group-collapsed="{{ activity.isOpen|yesno:'true,false' }}"{% endif %}
-            {% if not activity.isGroup and activity|group_is_open:group_open or not activity.isGroup and settings.vanishing != 'off' and activity.todayCheck == 'True' %}hidden{% endif %}
+            {% if not activity.isGroup and activity|group_is_open:group_open or not activity.isGroup and vanishing_mode != 'off' and activity.todayCheck == 'True' %}hidden{% endif %}
             class="{% if activity.isGroup %}isGroup{{ activity.pk }}{% else %}group{{ activity|get_group_id:connections }}-{{ activity.pk }}{% endif %}">
             {% if settings.showDeleteActivity %}
                 <td class="activity-delete-cell">

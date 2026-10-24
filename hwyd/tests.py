@@ -9,6 +9,7 @@ from .preferences import UI_VISIBILITY_FIELDS
 from .models import UserActivityLog
 from .streaks import streak_position, streak_top, users_with_login_streak
 from datetime import date, datetime, timedelta, timezone as utc_timezone
+from html.parser import HTMLParser
 from unittest.mock import patch
 from django.utils import timezone
 from django.test import override_settings
@@ -214,6 +215,7 @@ class CopyPreviousMonthTests(TestCase):
 
     def setUp(self):
         self.client.force_login(self.user)
+        self.client.defaults['HTTP_HOST'] = 'testserver'
 
     def activity(self, month, name='Habit', disabled_weekdays=(), disabled_dates=(), user=None, group=False):
         year, month_number = map(int, month.split('-'))
@@ -229,9 +231,92 @@ class CopyPreviousMonthTests(TestCase):
             beginDay=3, endDay=len(flags) - 3, cellsComments='✓*Old comment|' * len(flags),
             onOffCells=' '.join(flags) + ' ', hide=True)
 
+    def assert_copy_visible(self, response, expected):
+        self.assertEqual(response.status_code, 200)
+        controls = {}
+
+        class Parser(HTMLParser):
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if attrs.get('id') in ('createLastMonthActivitiesForm', 'btnActLastMonth'):
+                    controls[attrs['id']] = attrs
+
+        Parser().feed(response.content.decode())
+        form = controls.get('createLastMonthActivitiesForm')
+        visible = bool(form and 'btnActLastMonth' in controls and form.get('style') != 'display:none;')
+        self.assertEqual(visible, expected)
+        return controls
+
+    def page(self, month='2026-10', **params):
+        return self.client.get(reverse('by_date', args=[month]), params)
+
     def copy(self, month):
-        response = self.client.post(reverse('create_last_activities', args=[month]))
+        controls = self.assert_copy_visible(self.page(month), True)
+        button = controls['btnActLastMonth']
+        self.assertEqual((button['type'], button['class'], button['title']),
+                         ('submit', 'calendar-button', 'Копировать привычки прошлого месяца'))
+        form = controls['createLastMonthActivitiesForm']
+        self.assertEqual(form['method'], 'post')
+        self.assertEqual(form['action'], reverse('create_last_activities', args=[month]))
+        response = self.client.post(form['action'])
         self.assertRedirects(response, reverse('by_date', args=[month]), fetch_redirect_response=False)
+
+    def test_button_ignores_empty_foreign_and_non_previous_months(self):
+        self.assert_copy_visible(self.page(), False)
+        self.activity('2026-09', user=self.other)
+        self.activity('2026-08', name='Older habit')
+        self.activity('2026-11', name='Future habit')
+        self.assert_copy_visible(self.page(), False)
+        self.activity('2026-10', name='Current habit')
+        self.assert_copy_visible(self.page(), False)
+
+    def test_button_counts_unmarked_hidden_habits_on_desktop_and_mobile(self):
+        habit = self.activity('2026-09')
+        habit.marks = 'False ' * 30
+        habit.save(update_fields=['marks'])
+        for agent in ('Mozilla/5.0 Desktop', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile Safari/604.1'):
+            with self.subTest(agent=agent):
+                response = self.client.get(reverse('by_date', args=['2026-10']), HTTP_USER_AGENT=agent)
+                self.assert_copy_visible(response, True)
+        self.activity('2026-09', name='Second habit')
+        self.assert_copy_visible(self.page(), True)
+
+    def test_empty_groups_do_not_count_as_habits(self):
+        self.activity('2026-09', name='Empty group', group=True)
+        self.assert_copy_visible(self.page(), False)
+
+    def test_populated_destination_still_hides_button(self):
+        self.activity('2026-09')
+        self.activity('2026-10', name='Existing habit')
+        self.assert_copy_visible(self.page(), False)
+
+    def test_january_uses_december_of_previous_year(self):
+        self.activity('2027-12', name='Wrong year')
+        self.assert_copy_visible(self.page('2027-01'), False)
+        self.activity('2026-12', name='Previous December')
+        self.assert_copy_visible(self.page('2027-01'), True)
+        self.copy('2027-01')
+        self.assertEqual(list(Activities.objects.filter(user=self.user, date='2027-01')
+                              .values_list('name', flat=True)), ['Previous December'])
+
+    def test_month_selection_rechecks_source_after_redirect(self):
+        self.activity('2026-09')
+        self.assert_copy_visible(self.page(), True)
+        for month, expected in (('2026-11', False), ('2026-10', True)):
+            response = self.client.post(reverse('by_date', args=['2026-10']),
+                                        {'chooseDate': month}, follow=True)
+            self.assert_copy_visible(response, expected)
+
+    def test_preview_uses_viewed_owner_and_keeps_copy_disabled(self):
+        self.user.is_superuser = True
+        self.user.save(update_fields=['is_superuser'])
+        self.activity('2026-09')
+        self.assert_copy_visible(self.page(view_as=self.other.pk), False)
+        self.activity('2026-09', user=self.other)
+        controls = self.assert_copy_visible(self.page(view_as=self.other.pk), True)
+        self.assertIn('disabled', controls['btnActLastMonth'])
+        self.assertEqual(controls['createLastMonthActivitiesForm']['action'],
+                         reverse('create_last_activities', args=['2026-10']) + f'?view_as={self.other.pk}')
 
     def test_disabled_weekdays_follow_destination_calendar_across_month_lengths_and_years(self):
         cases = (
@@ -299,6 +384,79 @@ class ToolbarTests(TestCase):
             backgroundColor='#ffffff', marks='False ' * 31, number=0,
             isGroup=group, isOpen=collapsed, beginDay=0, endDay=30,
             cellsComments='*|' * 31, onOffCells='True ' * 31, hide=False)
+
+    def toolbar_controls(self, month='2026-10', **params):
+        with patch('hwyd.views.datetime') as clock:
+            clock.now.return_value = datetime(2026, 10, 24, 12)
+            response = self.client.get(reverse('by_date', args=[month]), params, HTTP_HOST='testserver')
+        self.assertEqual(response.status_code, 200)
+        controls = {}
+
+        class Parser(HTMLParser):
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if attrs.get('id') in ('openAll', 'hideCompleteActivities'):
+                    controls[attrs['id']] = attrs
+
+        Parser().feed(response.content.decode())
+        return {name: 'hidden' not in attrs and attrs.get('style') != 'display:none;'
+                for name, attrs in controls.items()}
+
+    def test_toolbar_visibility_conditions_are_independent_and_owner_scoped(self):
+        self.activity('Foreign group', user=self.other, group=True)
+        foreign = self.activity('Foreign completed', user=self.other)
+        foreign.marks = 'True ' * 31
+        foreign.save(update_fields=['marks'])
+        self.activity('Previous group', month='2026-09', group=True)
+        self.assertEqual(self.toolbar_controls(), {'openAll': False, 'hideCompleteActivities': False})
+        habit = self.activity('Habit')
+        habit.marks = 'True ' + 'False ' * 30  # A past day does not count as today.
+        habit.save(update_fields=['marks'])
+        self.assertEqual(self.toolbar_controls(), {'openAll': False, 'hideCompleteActivities': False})
+        group = self.activity('Empty collapsed group', group=True, collapsed=True)
+        self.assertEqual(self.toolbar_controls(), {'openAll': True, 'hideCompleteActivities': False})
+        marks = habit.marks.split()
+        marks[23] = 'True'
+        habit.marks = ' '.join(marks)
+        habit.save(update_fields=['marks'])
+        self.assertEqual(self.toolbar_controls(), {'openAll': True, 'hideCompleteActivities': True})
+        group.delete()
+        self.assertEqual(self.toolbar_controls(), {'openAll': False, 'hideCompleteActivities': True})
+        self.assertEqual(self.toolbar_controls('2026-09'), {'openAll': True, 'hideCompleteActivities': False})
+
+    def test_completed_group_does_not_count_but_hidden_completed_member_does(self):
+        group = self.activity('Collapsed group', group=True, collapsed=True)
+        group.marks = 'True ' * 31
+        group.save(update_fields=['marks'])
+        self.assertFalse(self.toolbar_controls()['hideCompleteActivities'])
+        habit = self.activity('Completed member')
+        habit.marks = 'True ' * 31
+        habit.save(update_fields=['marks'])
+        ActivitiesConnection.objects.create(user=self.user, group=group, activity=habit)
+        Settings.objects.filter(user=self.user).update(vanishing='on')
+        self.assertEqual(self.toolbar_controls(), {'openAll': True, 'hideCompleteActivities': True})
+        Settings.objects.filter(user=self.user).update(showCompletedButton=False, showOpenAllGroups=False)
+        self.assertEqual(self.toolbar_controls(), {'openAll': False, 'hideCompleteActivities': False})
+
+    def test_mark_api_updates_initial_visibility_for_current_day(self):
+        self.activity('Habit')
+        url = reverse('check_cell', args=['2026-10'])
+        self.assertFalse(self.toolbar_controls()['hideCompleteActivities'])
+        self.assertEqual(self.client.post(url, {'checkboxToCheck': '0-23'}).status_code, 200)
+        self.assertTrue(self.toolbar_controls()['hideCompleteActivities'])
+        self.assertEqual(self.client.post(url, {'checkboxToCheck': '0-23'}).status_code, 200)
+        self.assertFalse(self.toolbar_controls()['hideCompleteActivities'])
+
+    def test_toolbar_preview_uses_viewed_users_context(self):
+        self.user.is_superuser = True
+        self.user.save(update_fields=['is_superuser'])
+        self.activity('Target group', user=self.other, group=True)
+        habit = self.activity('Target completed', user=self.other)
+        habit.marks = 'True ' * 31
+        habit.save(update_fields=['marks'])
+        self.assertEqual(self.toolbar_controls(), {'openAll': False, 'hideCompleteActivities': False})
+        self.assertEqual(self.toolbar_controls(view_as=self.other.pk),
+                         {'openAll': True, 'hideCompleteActivities': True})
 
     def test_feedback_persists_categories_text_and_session_user(self):
         for category in Feedback.Category.values:
@@ -439,6 +597,54 @@ class SettingsInterfaceTests(TestCase):
         self.client.force_login(self.user)
         self.url = reverse('by_date', args=['2026-10'])
         self.client.defaults['HTTP_HOST'] = 'testserver'
+
+    def test_vanishing_modes_and_legacy_values_render_consistently(self):
+        habit = Activities.objects.create(
+            user=self.user, name='Completed today', date='2026-10',
+            color='#000000', backgroundColor='#ffffff', marks='True ' * 31,
+            number=0, isGroup=False, isOpen=False, beginDay=0, endDay=30,
+            cellsComments='*|' * 31, onOffCells='True ' * 31, hide=False)
+        for stored, expected in (('', 'off'), ('none', 'off'), ('off', 'off'),
+                                 ('sharp', 'sharp'), ('smooth', 'smooth'),
+                                 ('fade', 'smooth'), ('slide', 'smooth')):
+            with self.subTest(stored=stored):
+                Settings.objects.filter(user=self.user).update(vanishing=stored)
+                with patch('hwyd.views.datetime') as clock:
+                    clock.now.return_value = datetime(2026, 10, 24, 12)
+                    response = self.client.get(self.url)
+                controls = {}
+
+                class Parser(HTMLParser):
+                    def handle_starttag(self, tag, attrs):
+                        attrs = dict(attrs)
+                        if attrs.get('id') == 'myTable':
+                            controls['table'] = attrs
+                        if tag == 'tr' and attrs.get('data-activity-id') == str(habit.pk):
+                            controls['row'] = attrs
+                        if tag == 'option' and 'selected' in attrs and attrs.get('value') in ('off', 'sharp', 'smooth'):
+                            controls['selected'] = attrs['value']
+
+                Parser().feed(response.content.decode())
+                self.assertEqual(controls['table']['data-vanishing'], expected)
+                self.assertEqual(controls['table']['data-hide-completed'], str(expected != 'off').lower())
+                self.assertEqual('hidden' in controls['row'], expected != 'off')
+                self.assertEqual(controls['selected'], expected)
+
+    def test_vanishing_save_uses_same_modes_in_current_and_legacy_forms(self):
+        from django.forms.models import model_to_dict
+
+        for submitted, expected in (('off', 'off'), ('sharp', 'sharp'), ('smooth', 'smooth'),
+                                    ('none', 'off'), ('fade', 'smooth'), ('slide', 'smooth')):
+            with self.subTest(submitted=submitted):
+                payload = self.settings_payload()
+                payload['selectFade'] = submitted
+                self.assertEqual(self.client.post(self.url, payload).status_code, 302)
+                preset = Settings.objects.get(user=self.user)
+                self.assertEqual(preset.vanishing, expected)
+                data = {**model_to_dict(preset), 'vanishing': submitted, 'uiVisibilityVersion': '4'}
+                self.assertEqual(self.client.post(reverse('edit_settings'), data).status_code, 302)
+                preset.refresh_from_db()
+                self.assertEqual(preset.vanishing, expected)
 
     def settings_payload(self):
         return {'data': ','.join(['true'] * 10), 'nameSetting': 'Interface',

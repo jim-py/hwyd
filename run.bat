@@ -20,6 +20,13 @@ if not exist "%VENV_PYTHON%" (
     exit /b 1
 )
 
+"%VENV_PYTHON%" manage.py collectstatic --noinput
+if errorlevel 1 (
+    echo [ERROR] Static files collection failed.
+    popd
+    exit /b 1
+)
+
 "%VENV_PYTHON%" manage.py runserver
 set "RESULT=%ERRORLEVEL%"
 popd

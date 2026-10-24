@@ -3,7 +3,7 @@ export function forceShowHiddenButtons(selectors) {
 
     selectors.forEach(selector => {
         const el = document.querySelector(selector);
-        if (!el) return;
+        if (!el || el.dataset.contextAvailable === 'false') return;
 
         const computed = getComputedStyle(el);
 

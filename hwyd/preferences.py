@@ -21,3 +21,15 @@ UI_VISIBILITY_FIELDS = (
     'showStreak', 'showTop', 'showFeedback', 'showCompletedButton', 'showChat',
     'showActivityIcons', 'showViewSwitch', 'showThemeSchedule',
 )
+
+VANISHING_CHOICES = (
+    ('off', 'Выключено'),
+    ('sharp', 'Резко'),
+    ('smooth', 'Плавно'),
+)
+
+
+def normalize_vanishing(value):
+    """Read legacy preferences without treating an empty preset as hiding."""
+    value = {'none': 'off', 'fade': 'smooth', 'slide': 'smooth'}.get(value, value)
+    return value if value in ('off', 'sharp', 'smooth') else 'off'

@@ -5,13 +5,54 @@ export function createVisibilityControls(table, post, showToast) {
     const eye = document.getElementById('hideCompleteActivities');
     const openAll = document.getElementById('openAll');
     let hideCompleted = table.dataset.hideCompleted === 'true';
+    const vanishing = table.dataset.vanishing;
+    const fades = new Map();
     let pending = false;
     const rows = () => [...table.querySelectorAll('tbody tr[data-activity-id]')];
     const groups = () => rows().filter(row => row.dataset.isGroup === 'true');
 
-    function render() {
-        const groupMap = new Map(groups().map(row => [row.dataset.activityId, row]));
-        for (const row of rows()) {
+    function cancelFade(row) {
+        const animation = fades.get(row);
+        fades.delete(row);
+        animation?.cancel();
+    }
+
+    function setCompletedHidden(row, hidden, animate) {
+        if (!hidden) {
+            cancelFade(row);
+            row.hidden = false;
+            return;
+        }
+        if (row.hidden || fades.has(row)) return;
+        if (!animate || !row.animate || window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) {
+            row.hidden = true;
+            return;
+        }
+        const animation = row.animate([
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-3px)' },
+        ], { duration: 220, easing: 'cubic-bezier(0.2, 0, 0, 1)' });
+        fades.set(row, animation);
+        animation.onfinish = () => {
+            if (fades.get(row) !== animation) return;
+            fades.delete(row);
+            row.hidden = true;
+            animation.cancel();
+        };
+    }
+
+    function render(animateRow = null) {
+        const currentRows = rows();
+        for (const row of fades.keys()) if (!currentRows.includes(row)) cancelFade(row);
+        const groupRows = currentRows.filter(row => row.dataset.isGroup === 'true');
+        const groupMap = new Map(groupRows.map(row => [row.dataset.activityId, row]));
+        const hasCompleted = currentRows.some(row => row.dataset.isGroup !== 'true' && row.dataset.completed === 'true');
+        eye.dataset.contextAvailable = String(hasCompleted);
+        eye.hidden = eye.dataset.enabled === 'false' || !hasCompleted;
+        openAll.dataset.contextAvailable = String(groupRows.length > 0);
+        openAll.hidden = openAll.dataset.enabled === 'false' || groupRows.length === 0;
+        openAll.style.display = openAll.hidden ? 'none' : 'flex';
+        for (const row of currentRows) {
             if (row.dataset.isGroup === 'true') {
                 const collapsed = row.dataset.groupCollapsed === 'true';
                 const header = row.querySelector('td.header');
@@ -23,20 +64,25 @@ export function createVisibilityControls(table, post, showToast) {
                 continue;
             }
             const group = groupMap.get(row.dataset.groupId);
-            row.hidden = group?.dataset.groupCollapsed === 'true' ||
-                (hideCompleted && row.dataset.completed === 'true');
+            if (group?.dataset.groupCollapsed === 'true') {
+                cancelFade(row);
+                row.hidden = true;
+            } else {
+                setCompletedHidden(row, hideCompleted && row.dataset.completed === 'true',
+                    vanishing === 'smooth' && row === animateRow);
+            }
         }
         const eyeLabel = hideCompleted ? 'Показать выполненные' : 'Скрыть выполненные';
         eye.title = eyeLabel;
         eye.setAttribute('aria-label', eyeLabel);
         eye.setAttribute('aria-pressed', String(!hideCompleted));
         eye.querySelector('i').className = `fa-solid ${hideCompleted ? 'fa-eye' : 'fa-eye-slash'}`;
-        const expand = groups().some(row => row.dataset.groupCollapsed === 'true');
+        const expand = groupRows.some(row => row.dataset.groupCollapsed === 'true');
         const groupLabel = expand ? 'Раскрыть все группы' : 'Свернуть все группы';
         openAll.title = groupLabel;
         openAll.setAttribute('aria-label', groupLabel);
         openAll.querySelector('i').className = `fa-solid ${expand ? 'fa-folder-open' : 'fa-folder'}`;
-        openAll.disabled = pending || groups().length === 0;
+        openAll.disabled = pending || groupRows.length === 0;
     }
 
     async function saveGroups(url, data, update) {
@@ -84,9 +130,10 @@ export function createVisibilityControls(table, post, showToast) {
         });
     });
     window.addEventListener('habitus:activity-marked', event => {
-        if (event.detail.day !== Number(table.dataset.currentDay)) return;
+        if (event.detail.error) showToast(event.detail.error, 'error');
+        if (event.detail.day !== Number(table.dataset.currentDay) || !rows().includes(event.detail.row)) return;
         event.detail.row.dataset.completed = String(event.detail.completed);
-        render();
+        render(event.detail.completed && !event.detail.error ? event.detail.row : null);
     });
     window.addEventListener('habitus:rows-changed', render);
     render();

@@ -1,6 +1,7 @@
 from django import forms
 from .models import Settings, Feedback, ScheduledTheme
 from .preferences import FONT_FAMILIES, UI_VISIBILITY_FIELDS, THEME_COLOR_FIELDS, validate_theme_color
+from .preferences import VANISHING_CHOICES, normalize_vanishing
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
@@ -96,6 +97,9 @@ class ScheduledThemeForm(forms.ModelForm):
 
 
 class SettingsForm(forms.ModelForm):
+    def clean_vanishing(self):
+        return normalize_vanishing(self.cleaned_data['vanishing'])
+
     class Meta:
         model = Settings
         labels = {'showCompletedButton': 'Показывать кнопку выполненных привычек'}
@@ -122,11 +126,7 @@ class SettingsForm(forms.ModelForm):
                 attrs={"class": "form-select", "style": "font-family: inherit;"},
             ),
             "vanishing": forms.Select(
-                choices=[
-                    ("fade", "Плавное исчезновение"),
-                    ("slide", "Скольжение"),
-                    ("none", "Без эффекта"),
-                ],
+                choices=VANISHING_CHOICES,
                 attrs={"class": "form-select"},
             ),
         }
