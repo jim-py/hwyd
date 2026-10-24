@@ -22,7 +22,7 @@
                 {% endfor %}
             </select>
         </div> -->
-        <section class="settings-section" aria-labelledby="settings-interface-title">
+        <section class="settings-section settings-interface" aria-labelledby="settings-interface-title">
             <div class="settings-section__heading">
                 <h4 id="settings-interface-title">Элементы интерфейса</h4>
                 <label class="settings-section__toggle">
@@ -30,12 +30,21 @@
                     <input type="checkbox" data-settings-toggle aria-label="Включить всё в разделе «Элементы интерфейса»">
                 </label>
             </div>
-            <div class="settings-dialog__options">
+            <div class="settings-dialog__options settings-interface__grid">
                 {% for field in interface_settings %}
-                <div>
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% if field.name == 'showThemeSchedule' %}
+                {# Temporarily absent from the grid; preserve the stored preference on submit. #}
+                <input type="hidden" name="{{ field.name }}" value="{{ field.value|yesno:'on,off' }}">
+                {% else %}
+                <label class="settings-tile" for="{{ field.id_for_label }}" title="{{ field.label }}">
+                    <span class="settings-tile__preview settings-tile__preview--{{ field.name }}" aria-hidden="true">
+                        {% include 'hwyd/settings_interface_preview.html' with field_name=field.name %}
+                    </span>
+                    <span class="settings-tile__name">{{ field.label }}</span>
+                    <span class="settings-tile__caption" aria-hidden="true">{% include 'hwyd/settings_interface_caption.html' with field_name=field.name %}</span>
                     {{ field }}
-                </div>
+                </label>
+                {% endif %}
                 {% endfor %}
             </div>
         </section>
@@ -49,48 +58,75 @@
                 </label>
             </div>
             <div class="settings-dialog__options">
-                <div>
-                    <label for="selectFont">Шрифт сайта</label>
-                    <select id="selectFont" name="selectFont">
-                        {% for font in font_families %}
-                        <option value="{{ font }}"{% if settings.fontFamily == font %} selected{% endif %}>{{ font }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="settings-behavior__grid">
+                    <label class="settings-tile" for="onSounds" title="Звуки">
+                        <span class="settings-tile__preview" aria-hidden="true">{% include 'hwyd/settings_interface_preview.html' with field_name='onSounds' %}</span>
+                        <span class="settings-tile__name">Звуки</span>
+                        <span class="settings-tile__caption" aria-hidden="true">Звуки</span>
+                        <input name="onSounds" id="onSounds" type="checkbox"{% if settings.onSounds %} checked{% endif %}>
+                    </label>
+                    <label class="settings-tile" for="showTabs" title="Проценты">
+                        <span class="settings-tile__preview" aria-hidden="true">{% include 'hwyd/settings_interface_preview.html' with field_name='showTabs' %}</span>
+                        <span class="settings-tile__name">Проценты</span>
+                        <span class="settings-tile__caption" aria-hidden="true">Проценты</span>
+                        <input name="showTabs" id="showTabs" type="checkbox"{% if settings.showTabs %} checked{% endif %}>
+                    </label>
+                    <label class="settings-tile" for="showActivityDayLight" title="Выделение привычки и дня">
+                        <span class="settings-tile__preview" aria-hidden="true">{% include 'hwyd/settings_interface_preview.html' with field_name='showActivityDayLight' %}</span>
+                        <span class="settings-tile__name">Выделение привычки и дня</span>
+                        <span class="settings-tile__caption" aria-hidden="true">Привычка и день</span>
+                        <input name="showActivityDayLight" id="showActivityDayLight" type="checkbox"{% if settings.showActivityDayLight %} checked{% endif %}>
+                    </label>
+                    <label class="settings-tile" for="showRowColumnLight" title="Выделение строки и столбца">
+                        <span class="settings-tile__preview" aria-hidden="true">{% include 'hwyd/settings_interface_preview.html' with field_name='showRowColumnLight' %}</span>
+                        <span class="settings-tile__name">Выделение строки и столбца</span>
+                        <span class="settings-tile__caption" aria-hidden="true">Строка и столбец</span>
+                        <input name="showRowColumnLight" id="showRowColumnLight" type="checkbox"{% if settings.showRowColumnLight %} checked{% endif %}>
+                    </label>
                 </div>
-                <div>
-                    <label for="enableSortTable">Перетаскивание строк</label>
-                    <input name="radioSettings" id="enableSortTable" type="radio" value="sort"
-                           {% if settings.enableSortTable %}checked{% endif %}>
-                </div>
-                <div>
-                    <label for="enableOpenCloseGroups">Открытие/закрытие групп по названию</label>
-                    <input name="radioSettings" id="enableOpenCloseGroups" type="radio" value="group"
-                           {% if settings.enableOpenCloseGroups %}checked{% endif %}>
-                </div>
-                <div>
-                    <label for="onSounds">Звуки</label>
-                    <input name="onSounds" id="onSounds" type="checkbox"{% if settings.onSounds %} checked{% endif %}>
-                </div>
-                <div>
-                    <label for="showTabs">Проценты</label>
-                    <input name="showTabs" id="showTabs" type="checkbox"{% if settings.showTabs %} checked{% endif %}>
-                </div>
-                <div>
-                    <label for="showActivityDayLight">Выделение привычки и дня</label>
-                    <input name="showActivityDayLight" id="showActivityDayLight" type="checkbox"{% if settings.showActivityDayLight %} checked{% endif %}>
-                </div>
-                <div>
-                    <label for="showRowColumnLight">Выделение строки и столбца</label>
-                    <input name="showRowColumnLight" id="showRowColumnLight" type="checkbox"{% if settings.showRowColumnLight %} checked{% endif %}>
-                </div>
-                <div class="settings-section__stacked">
-                    <label for="selectFade">Пропадание при выполнении привычки</label>
-                    <select name="selectFade" id="selectFade">
+            </div>
+        </section>
+
+        <section class="settings-section settings-other" aria-labelledby="settings-other-title">
+            <h4 id="settings-other-title">Прочее</h4>
+            <div class="settings-dialog__options">
+                <fieldset class="settings-choice-group">
+                    <legend>Пропадание при выполнении привычки</legend>
+                    <div class="settings-choices settings-choices--vanishing">
                         {% for value, label in vanishing_choices %}
-                        <option {% if vanishing_mode == value %}selected{% endif %} value="{{ value }}">{{ label }}</option>
+                        <label class="settings-choice" for="vanishing-{{ value }}" title="{{ label }}">
+                            <input type="radio" name="selectFade" id="vanishing-{{ value }}" value="{{ value }}" aria-label="{{ label }}"{% if vanishing_mode == value %} checked{% endif %}>
+                            <span aria-hidden="true">{% if value == 'off' %}Выкл.{% else %}{{ label }}{% endif %}</span>
+                        </label>
                         {% endfor %}
-                    </select>
-                </div>
+                    </div>
+                </fieldset>
+                <fieldset class="settings-choice-group">
+                    <legend>Управление строками</legend>
+                    <div class="settings-choices">
+                        <label class="settings-choice settings-choice--mode" for="enableSortTable">
+                            <input name="radioSettings" id="enableSortTable" type="radio" value="sort"{% if settings.enableSortTable %} checked{% endif %}>
+                            <i class="fa-solid fa-arrows-up-down" aria-hidden="true"></i>
+                            <span>Перетаскивание строк</span>
+                        </label>
+                        <label class="settings-choice settings-choice--mode" for="enableOpenCloseGroups">
+                            <input name="radioSettings" id="enableOpenCloseGroups" type="radio" value="group"{% if settings.enableOpenCloseGroups %} checked{% endif %}>
+                            <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
+                            <span>Открытие/закрытие групп по названию</span>
+                        </label>
+                    </div>
+                </fieldset>
+                <fieldset class="settings-choice-group">
+                    <legend>Шрифт сайта</legend>
+                    <div class="settings-choices settings-choices--fonts">
+                        {% for font in font_families %}
+                        <label class="settings-choice" for="settings-font-{{ forloop.counter }}" style="font-family: '{{ font }}', sans-serif;">
+                            <input type="radio" name="selectFont" id="settings-font-{{ forloop.counter }}" value="{{ font }}"{% if settings.fontFamily == font %} checked{% endif %}>
+                            <span>{{ font }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
             </div>
         </section>
         <input type="hidden" name="uiVisibilityVersion" value="4">

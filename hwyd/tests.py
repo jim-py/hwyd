@@ -632,7 +632,7 @@ class SettingsInterfaceTests(TestCase):
                             controls['table'] = attrs
                         if tag == 'tr' and attrs.get('data-activity-id') == str(habit.pk):
                             controls['row'] = attrs
-                        if tag == 'option' and 'selected' in attrs and attrs.get('value') in ('off', 'sharp', 'smooth'):
+                        if tag == 'input' and attrs.get('name') == 'selectFade' and 'checked' in attrs:
                             controls['selected'] = attrs['value']
 
                 Parser().feed(response.content.decode())
@@ -673,6 +673,27 @@ class SettingsInterfaceTests(TestCase):
         self.assertContains(response, 'id="buttonSettings"', count=1)
         self.assertContains(response, 'Элементы интерфейса')
         self.assertContains(response, 'Поведение и отображение')
+
+    def test_hidden_theme_schedule_preference_is_preserved_by_grid_submission(self):
+        for enabled in (False, True):
+            with self.subTest(enabled=enabled):
+                Settings.objects.filter(user=self.user).update(showThemeSchedule=enabled)
+                response = self.client.get(self.url)
+                fields = []
+
+                class Parser(HTMLParser):
+                    def handle_starttag(self, tag, attrs):
+                        attrs = dict(attrs)
+                        if tag == 'input' and attrs.get('name') == 'showThemeSchedule':
+                            fields.append(attrs)
+
+                Parser().feed(response.content.decode())
+                self.assertEqual(len(fields), 1)
+                self.assertEqual(fields[0]['type'], 'hidden')
+                payload = self.settings_payload()
+                payload['showThemeSchedule'] = fields[0]['value']
+                self.assertEqual(self.client.post(self.url, payload).status_code, 302)
+                self.assertEqual(Settings.objects.get(user=self.user).showThemeSchedule, enabled)
 
     def test_visibility_persists_off_and_on_through_existing_save(self):
         for enabled in (False, True):

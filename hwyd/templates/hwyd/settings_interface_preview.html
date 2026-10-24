@@ -1,0 +1,54 @@
+{% if field_name == 'showCalendar' %}
+    <i class="fa-solid fa-calendar"></i>
+{% elif field_name == 'showCreateActivity' %}
+    <i class="fa-solid fa-plus"></i>
+{% elif field_name == 'showCreateActivityGroup' %}
+    <i class="fa-solid fa-layer-group"></i>
+{% elif field_name == 'showDeleteActivity' %}
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">
+        <path d="m4 4 16 16M20 4 4 20"/>
+    </svg>
+{% elif field_name == 'showDeleteAllActivities' %}
+    <i class="fa-solid fa-trash"></i>
+{% elif field_name == 'showOpenAllGroups' %}
+    <i class="fa-solid fa-folder-open"></i>
+{% elif field_name == 'showStreak' %}
+    <i class="fa-solid {{ streak_icon }}"></i><span>{{ login_streak }}</span>
+{% elif field_name == 'showTop' %}
+    <i class="fa-solid fa-trophy"></i>
+{% elif field_name == 'showFeedback' %}
+    <i class="fa-solid fa-comment-dots"></i>
+{% elif field_name == 'showCompletedButton' %}
+    <i class="fa-solid fa-eye"></i>
+{% elif field_name == 'showChat' %}
+    <i class="fa-solid fa-comments"></i>
+{% elif field_name == 'showActivityIcons' %}
+    <svg width="12" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M8 5H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+        <rect x="8" y="2" width="8" height="6" rx="2"/>
+        <path d="M8 13h8M8 17h5"/>
+    </svg>
+    <svg width="12" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M3 7V5a2 2 0 0 1 2-2h5l3 3h6a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>
+        <path d="M3 9h18"/>
+    </svg>
+{% elif field_name == 'showViewSwitch' %}
+    <i class="fa-solid fa-table-cells"></i><i class="fa-regular fa-calendar"></i>
+{% elif field_name == 'showThemeSchedule' %}
+    <i class="fa-solid fa-clock"></i>
+{% elif field_name == 'onSounds' %}
+    <i class="fa-solid fa-volume-high"></i>
+{% elif field_name == 'showTabs' %}
+    <span class="settings-tile__percent">67%</span>
+{% elif field_name == 'showActivityDayLight' %}
+    <svg viewBox="0 0 32 28" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true" focusable="false">
+        <path d="M1 1h30v26H1zM1 8h30M1 17h30M11 1v26M21 1v26"/>
+        <path d="M1 8h10v9H1zM11 1h10v7H11z" fill="currentColor" opacity=".35"/>
+        <path d="M11 8h10v9H11z" fill="currentColor" opacity=".7"/>
+    </svg>
+{% elif field_name == 'showRowColumnLight' %}
+    <svg viewBox="0 0 32 28" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true" focusable="false">
+        <path d="M11 1h10v26H11zM1 8h30v9H1z" fill="currentColor" opacity=".35"/>
+        <path d="M1 1h30v26H1zM1 8h30M1 17h30M11 1v26M21 1v26"/>
+    </svg>
+{% endif %}

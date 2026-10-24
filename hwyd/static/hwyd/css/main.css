@@ -274,6 +274,113 @@ form[id=settingsGlobal] > div > div {
 .settings-section input[type=checkbox] { width: 16px; height: 16px; margin: 0; }
 .settings-section .settings-section__stacked { align-items: stretch; flex-direction: column; }
 
+#settingsGlobal .settings-interface .settings-interface__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+#settingsGlobal .settings-behavior__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+#settingsGlobal .settings-tile {
+    position: relative;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 104px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px;
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;
+    background: #fff;
+    color: #334155;
+    cursor: pointer;
+}
+#settingsGlobal .settings-tile:has(input:checked),
+#settingsGlobal .settings-choice:has(input:checked),
+#settingsGlobal .settings-section__toggle:has(input:checked) { background: #4071f4; border-color: #4071f4; color: #fff; }
+#settingsGlobal .settings-tile:has(input:focus-visible),
+#settingsGlobal .settings-choice:has(input:focus-visible),
+#settingsGlobal .settings-section__toggle:has(input:focus-visible) { outline: 2px solid #0f172a; outline-offset: 3px; }
+#settingsGlobal .settings-tile__name,
+#settingsGlobal .settings-tile input[type=checkbox],
+#settingsGlobal .settings-choice input[type=radio],
+#settingsGlobal .settings-section__toggle input[type=checkbox] { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#settingsGlobal .settings-section__toggle { position: relative; padding: 5px 8px; border: 1px solid #d8d8d8; border-radius: 6px; background: #fff; color: #334155; }
+#settingsGlobal .settings-tile__preview {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 48px;
+    height: 48px;
+    color: inherit;
+    font-size: 24px;
+    pointer-events: none;
+    user-select: none;
+}
+#settingsGlobal .settings-tile__preview svg { width: 30px; height: 30px; }
+#settingsGlobal .settings-tile__preview--showActivityIcons svg { width: 20px; height: 24px; }
+#settingsGlobal .settings-tile__preview--showStreak { font-size: 22px; }
+#settingsGlobal .settings-tile__preview--showStreak span { font-size: 14px; }
+#settingsGlobal .settings-tile__preview--showViewSwitch { font-size: 18px; }
+#settingsGlobal .settings-tile__percent { font-size: 20px; font-weight: 600; }
+#settingsGlobal .settings-tile__caption {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5em;
+    max-width: 100%;
+    font-size: 11px;
+    line-height: 1.25;
+    font-weight: 500;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+#settingsGlobal .settings-other .settings-dialog__options { gap: 20px; }
+#settingsGlobal .settings-choice-group { min-width: 0; margin: 0; padding: 0; border: 0; }
+#settingsGlobal .settings-choice-group legend { padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
+#settingsGlobal .settings-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+#settingsGlobal .settings-choices--vanishing { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#settingsGlobal .settings-choice {
+    position: relative;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 8px;
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;
+    background: #fff;
+    color: #334155;
+    font-size: 14px;
+    line-height: 1.35;
+    text-align: center;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+#settingsGlobal .settings-choice--mode { min-height: 104px; flex-direction: column; gap: 8px; }
+#settingsGlobal .settings-choice--mode i { font-size: 22px; }
+
+@media (max-width: 480px) {
+    #settingsGlobal .settings-interface .settings-interface__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    #settingsGlobal .settings-behavior__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 360px) {
+    #settingsGlobal .settings-choices--vanishing .settings-choice { padding-inline: 4px; font-size: 12px; }
+    #settingsGlobal .settings-choice--mode { padding-inline: 4px; font-size: 12px; }
+}
+
 #settingsGlobal label {
     min-width: 0;
 }
