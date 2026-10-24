@@ -373,7 +373,7 @@ class ToolbarTests(TestCase):
         cls.user = get_user_model().objects.create_user(username='toolbar-user')
         cls.other = get_user_model().objects.create_user(username='toolbar-other')
         create_setting(cls.user, 'Toolbar')
-        Settings.objects.filter(user=cls.user).update(vanishing='off')
+        Settings.objects.filter(user=cls.user).update(vanishing='sharp')
 
     def setUp(self):
         self.client.force_login(self.user)
@@ -433,7 +433,7 @@ class ToolbarTests(TestCase):
         habit.marks = 'True ' * 31
         habit.save(update_fields=['marks'])
         ActivitiesConnection.objects.create(user=self.user, group=group, activity=habit)
-        Settings.objects.filter(user=self.user).update(vanishing='on')
+        Settings.objects.filter(user=self.user).update(vanishing='sharp')
         self.assertEqual(self.toolbar_controls(), {'openAll': True, 'hideCompleteActivities': True})
         Settings.objects.filter(user=self.user).update(showCompletedButton=False, showOpenAllGroups=False)
         self.assertEqual(self.toolbar_controls(), {'openAll': False, 'hideCompleteActivities': False})
@@ -450,6 +450,8 @@ class ToolbarTests(TestCase):
     def test_toolbar_preview_uses_viewed_users_context(self):
         self.user.is_superuser = True
         self.user.save(update_fields=['is_superuser'])
+        create_setting(self.other, 'Target')
+        Settings.objects.filter(user=self.other).update(vanishing='sharp')
         self.activity('Target group', user=self.other, group=True)
         habit = self.activity('Target completed', user=self.other)
         habit.marks = 'True ' * 31
@@ -457,6 +459,15 @@ class ToolbarTests(TestCase):
         self.assertEqual(self.toolbar_controls(), {'openAll': False, 'hideCompleteActivities': False})
         self.assertEqual(self.toolbar_controls(view_as=self.other.pk),
                          {'openAll': True, 'hideCompleteActivities': True})
+
+    def test_completed_control_requires_vanishing_mode(self):
+        habit = self.activity('Completed')
+        habit.marks = 'True ' * 31
+        habit.save(update_fields=['marks'])
+        for mode, visible in (('off', False), ('none', False), ('', False), ('sharp', True), ('smooth', True)):
+            with self.subTest(mode=mode):
+                Settings.objects.filter(user=self.user).update(vanishing=mode)
+                self.assertEqual(self.toolbar_controls()['hideCompleteActivities'], visible)
 
     def test_feedback_persists_categories_text_and_session_user(self):
         for category in Feedback.Category.values:

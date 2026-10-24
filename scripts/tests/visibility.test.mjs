@@ -143,7 +143,7 @@ test('row changes recompute availability and stale or other-day mark events are 
 
 test('failed optimistic marks restore both completion visibility and the filter state', () => {
     const habit = row(1);
-    const view = controls([habit], { hideCompleted: false });
+    const view = controls([habit], { hideCompleted: false, vanishing: 'sharp' });
     view.mark(habit, true);
     view.mark(habit, false, 23, 'Ошибка сохранения');
     assert.equal(view.eye.hidden, true);
@@ -185,17 +185,30 @@ test('the toolbar guide cannot reveal controls without matching context data', (
     assert.equal(button.style.display, 'none');
 });
 
-test('off keeps a newly completed habit visible and reveals the eye immediately', () => {
+test('off keeps the eye hidden and the habit visible after completion and refreshes', () => {
     const habit = row(1, { animated: true });
     const view = controls([habit], { vanishing: 'off', hideCompleted: false });
     assert.equal(view.eye.hidden, true);
     view.mark(habit, true);
-    assert.equal(view.eye.hidden, false);
+    assert.equal(view.eye.hidden, true);
+    assert.equal(view.eye.dataset.contextAvailable, 'false');
+    view.refresh();
+    view.changed();
+    assert.equal(view.eye.hidden, true);
+    view.eye.click();
     assert.equal(habit.hidden, false);
     assert.equal(habit.animations.length, 0);
     view.mark(habit, false);
     assert.equal(view.eye.hidden, true);
     assert.equal(habit.hidden, false);
+});
+
+test('an already completed habit enables the eye only in sharp and smooth modes', () => {
+    for (const vanishing of ['off', 'sharp', 'smooth']) {
+        const view = controls([row(1, { completed: true })], { vanishing, hideCompleted: vanishing !== 'off' });
+        assert.equal(view.eye.hidden, vanishing === 'off');
+        assert.equal(view.eye.dataset.contextAvailable, String(vanishing !== 'off'));
+    }
 });
 
 test('sharp hides immediately without an animation or delay', () => {

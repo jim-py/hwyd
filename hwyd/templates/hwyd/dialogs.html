@@ -137,7 +137,7 @@
         <i class="fa-solid fa-eye-slash"></i>
     </button> {% endcomment %}
 
-    <button id="hideCompleteActivities" type="button"{% if not settings.showCompletedButton or not has_completed_habits %} hidden{% endif %} data-enabled="{{ settings.showCompletedButton|yesno:'true,false' }}" data-context-available="{{ has_completed_habits|yesno:'true,false' }}" title="Показать выполненные" aria-label="Показать выполненные">
+    <button id="hideCompleteActivities" type="button"{% if not settings.showCompletedButton or not has_completed_habits or vanishing_mode == 'off' %} hidden{% endif %} data-enabled="{{ settings.showCompletedButton|yesno:'true,false' }}" data-context-available="{% if has_completed_habits and vanishing_mode != 'off' %}true{% else %}false{% endif %}" title="Показать выполненные" aria-label="Показать выполненные">
         <i class="fa-solid fa-eye"></i>
     </button>
 

@@ -6,6 +6,7 @@ export function createVisibilityControls(table, post, showToast) {
     const openAll = document.getElementById('openAll');
     let hideCompleted = table.dataset.hideCompleted === 'true';
     const vanishing = table.dataset.vanishing;
+    const canFilterCompleted = vanishing === 'sharp' || vanishing === 'smooth';
     const fades = new Map();
     let pending = false;
     const rows = () => [...table.querySelectorAll('tbody tr[data-activity-id]')];
@@ -46,7 +47,7 @@ export function createVisibilityControls(table, post, showToast) {
         for (const row of fades.keys()) if (!currentRows.includes(row)) cancelFade(row);
         const groupRows = currentRows.filter(row => row.dataset.isGroup === 'true');
         const groupMap = new Map(groupRows.map(row => [row.dataset.activityId, row]));
-        const hasCompleted = currentRows.some(row => row.dataset.isGroup !== 'true' && row.dataset.completed === 'true');
+        const hasCompleted = canFilterCompleted && currentRows.some(row => row.dataset.isGroup !== 'true' && row.dataset.completed === 'true');
         eye.dataset.contextAvailable = String(hasCompleted);
         eye.hidden = eye.dataset.enabled === 'false' || !hasCompleted;
         openAll.dataset.contextAvailable = String(groupRows.length > 0);
@@ -108,6 +109,7 @@ export function createVisibilityControls(table, post, showToast) {
     }
 
     eye.addEventListener('click', () => {
+        if (!canFilterCompleted) return;
         hideCompleted = !hideCompleted;
         render();
     });
