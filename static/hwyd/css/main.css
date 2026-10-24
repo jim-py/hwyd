@@ -295,23 +295,24 @@ form[id=settingsGlobal] > div > div {
     justify-content: center;
     gap: 4px;
     padding: 10px;
-    border: 1px solid #d8d8d8;
-    border-radius: 8px;
-    background: #fff;
-    color: #334155;
+    border: 1px solid var(--control-line);
+    border-radius: 14px;
+    background: var(--control-surface);
+    color: var(--control-text);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
     cursor: pointer;
 }
 #settingsGlobal .settings-tile:has(input:checked),
 #settingsGlobal .settings-choice:has(input:checked),
-#settingsGlobal .settings-section__toggle:has(input:checked) { background: #4071f4; border-color: #4071f4; color: #fff; }
+#settingsGlobal .settings-section__toggle:has(input:checked) { background: var(--control-active-bg); border-color: var(--control-active-line); color: var(--control-active-text); }
 #settingsGlobal .settings-tile:has(input:focus-visible),
 #settingsGlobal .settings-choice:has(input:focus-visible),
-#settingsGlobal .settings-section__toggle:has(input:focus-visible) { outline: 2px solid #0f172a; outline-offset: 3px; }
+#settingsGlobal .settings-section__toggle:has(input:focus-visible) { outline: 3px solid var(--control-focus); outline-offset: 3px; }
 #settingsGlobal .settings-tile__name,
 #settingsGlobal .settings-tile input[type=checkbox],
 #settingsGlobal .settings-choice input[type=radio],
 #settingsGlobal .settings-section__toggle input[type=checkbox] { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-#settingsGlobal .settings-section__toggle { position: relative; padding: 5px 8px; border: 1px solid #d8d8d8; border-radius: 6px; background: #fff; color: #334155; }
+#settingsGlobal .settings-section__toggle { position: relative; padding: 7px 10px; border: 1px solid var(--control-line); border-radius: 10px; background: var(--control-surface); color: var(--control-text); box-shadow: 0 1px 2px rgb(0 0 0 / 5%); }
 #settingsGlobal .settings-tile__preview {
     box-sizing: border-box;
     display: inline-flex;
@@ -358,10 +359,11 @@ form[id=settingsGlobal] > div > div {
     align-items: center;
     justify-content: center;
     padding: 10px 8px;
-    border: 1px solid #d8d8d8;
-    border-radius: 8px;
-    background: #fff;
-    color: #334155;
+    border: 1px solid var(--control-line);
+    border-radius: 14px;
+    background: var(--control-surface);
+    color: var(--control-text);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
     font-size: 14px;
     line-height: 1.35;
     text-align: center;
@@ -370,6 +372,41 @@ form[id=settingsGlobal] > div > div {
 }
 #settingsGlobal .settings-choice--mode { min-height: 104px; flex-direction: column; gap: 8px; }
 #settingsGlobal .settings-choice--mode i { font-size: 22px; }
+
+#settingsGlobal .settings-tile:hover,
+#settingsGlobal .settings-choice:hover,
+#settingsGlobal .settings-section__toggle:hover { background: var(--control-hover-bg); border-color: var(--control-active-line); color: var(--control-hover-text); }
+#settingsGlobal .settings-tile:has(input:checked):hover,
+#settingsGlobal .settings-choice:has(input:checked):hover,
+#settingsGlobal .settings-section__toggle:has(input:checked):hover { background: #dce6f0; border-color: #a8bcd2; color: #354e6b; }
+
+#some-modal-id .button-save,
+#some-modal-id .button-6,
+#some-modal-id .settings-dialog__close {
+    box-sizing: border-box;
+    border: 1px solid var(--control-line);
+    border-radius: 14px;
+    background: var(--control-surface);
+    color: var(--control-text);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+#some-modal-id .button-6 { min-height: 38px; height: auto; padding: 8px 12px; font: inherit; font-size: 13px; font-weight: 500; }
+#some-modal-id .settings-dialog__close { width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 12px; }
+#some-modal-id .button-6:not(:disabled):hover,
+#some-modal-id .settings-dialog__close:hover { background: var(--control-hover-bg); border-color: var(--control-active-line); color: var(--control-hover-text); transform: none; }
+#some-modal-id .button-save { background: #526b88; border-color: #526b88; color: #fff; font-size: 16px; font-weight: 600; }
+#some-modal-id .button-save:not(:disabled):hover { background: #435c78; border-color: #435c78; }
+#some-modal-id .button-save:focus-visible,
+#some-modal-id .button-6:focus-visible,
+#some-modal-id .settings-dialog__close:focus-visible { outline: 3px solid var(--control-focus); outline-offset: 3px; }
+#some-modal-id button:disabled { opacity: .45; cursor: default; }
+
+@media (prefers-reduced-motion: reduce) {
+    #some-modal-id .button-save,
+    #some-modal-id .button-6,
+    #some-modal-id .settings-dialog__close { transition: none; }
+}
 
 @media (max-width: 480px) {
     #settingsGlobal .settings-interface .settings-interface__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }

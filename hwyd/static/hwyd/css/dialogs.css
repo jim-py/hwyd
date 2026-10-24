@@ -1,92 +1,125 @@
+#divButtons.toolbar,
+#some-modal-id {
+    --control-surface: #fff;
+    --control-text: #536176;
+    --control-line: #d6deea;
+    --control-hover-bg: #f1f4f8;
+    --control-hover-text: #3f5269;
+    --control-active-bg: #e8eff6;
+    --control-active-line: #b9cadd;
+    --control-active-text: #405b78;
+    --control-focus: #7890ad;
+}
+
 .toolbar {
     display: flex;
-    gap: 14px; /* больше воздуха между кнопками */
-    margin-bottom: 10px;
+    gap: 10px;
+    margin-bottom: 14px;
     flex-direction: row-reverse;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
 }
 
-.toolbar button,
-.calendar-button {
-    width: 2.5rem;
-    height: 2.5rem;
-    border: none;
-    border-radius: 20%;
-
-    background: #ffffff;
-    color: #444;
-
+#divButtons.toolbar button {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border: 1px solid var(--control-line);
+    border-radius: 14px;
+    background: var(--control-surface);
+    color: var(--control-text);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    box-shadow: 0px 1px 2px 1px rgba(34, 60, 80, 0.1);
-
+    box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
     transition:
-        background-color 0.2s ease,
-        color 0.2s ease,
-        box-shadow 0.2s ease,
-        transform 0.12s ease;
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        transform 160ms ease;
 }
 
-.toolbar button i {
+#divButtons.toolbar button i {
     font-size: 18px;
+    pointer-events: none;
 }
 
-.toolbar [hidden] { display: none; }
+#divButtons.toolbar [hidden] { display: none; }
 
-.toolbar button:hover,
-.calendar-button:hover {
-    background: #f3f5f8;
-    color: #000;
-    box-shadow: 0px 1px 3px 2px rgba(34, 60, 80, 0.1);
+#divButtons.toolbar button:not(:disabled):hover {
+    background: var(--control-hover-bg);
+    border-color: var(--control-active-line);
+    color: var(--control-hover-text);
+    transform: none;
 }
 
-.toolbar button:active,
-.calendar-button:active {
+#divButtons.toolbar button:not(:disabled):active {
     transform: translateY(1px);
-    box-shadow:
-        0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.toolbar button:focus-visible,
-.calendar-button:focus-visible {
-    outline: 2px solid #4a90e2;
+#divButtons.toolbar button:focus-visible {
+    outline: 3px solid var(--control-focus);
     outline-offset: 3px;
 }
 
-/* Специальные цвета для новых кнопок */
-#deleteAll {
-    background-color: #ffdfdf;
-    color: #a00;
+#divButtons.toolbar button:disabled {
+    opacity: .45;
+    cursor: default;
+    transform: none;
 }
 
-#deleteAll:hover {
-    background-color: #fbbcbc;
-    color: #700;
+#divButtons.toolbar #createActivityButton {
+    background: var(--control-active-bg);
+    border-color: var(--control-active-line);
+    color: var(--control-active-text);
 }
 
-#openAll {
-    background-color: #dffffa;
-    color: #055;
+#divButtons.toolbar #createActivityButton:not(:disabled):hover {
+    background: #dce6f0;
+    border-color: #a8bcd2;
+    color: #354e6b;
 }
 
-#openAll:hover {
-    background-color: #bce7f7;
-    color: #033;
+#divButtons.toolbar #deleteAll:not(:disabled):hover {
+    background: #fff0f3;
+    border-color: #edc6cf;
+    color: #a1273a;
 }
 
-/* Специальный цвет для кнопки создания активностей */
-#btnActLastMonth {
-    background-color: #e6f4ff;
-    color: #045;
+#divButtons.toolbar #loginStreak,
+#divButtons.toolbar #topStreak {
+    width: auto;
+    min-width: 46px;
+    padding: 0 14px;
+    gap: 8px;
+    font-variant-numeric: tabular-nums;
 }
 
-#btnActLastMonth:hover {
-    background-color: #cfe8ff;
-    color: #023;
+#divButtons.toolbar #loginStreak .streak-count {
+    min-width: 16px;
+    text-align: center;
+}
+
+#divButtons.toolbar #loginStreak i,
+#divButtons.toolbar #topStreak i,
+#settingsGlobal .settings-tile__preview--showStreak i,
+#settingsGlobal .settings-tile__preview--showTop i { color: #b45309; }
+
+@media (max-width: 430px) {
+    .toolbar { gap: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #divButtons.toolbar button { transition: none; }
+    #divButtons.toolbar button:not(:disabled):active { transform: none; }
 }
 
 .jsonBtn {
@@ -94,43 +127,6 @@
     color: black;
     padding: 2px 5px;
 }
-
-#loginStreak {
-    width: auto;
-    padding: 0 10px;
-    gap: 6px;
-
-    background: #fff4e5;
-    color: #b45309;
-
-    font-weight: 600;
-}
-
-#loginStreak:hover {
-    background: #ffe7cc;
-    color: #7c2d12;
-}
-
-#loginStreak .streak-count {
-    font-size: 14px;
-    min-width: 16px;
-    text-align: center;
-}
-
-#loginStreak:hover i {
-    transform: scale(1.15);
-}
-
-#topStreak {
-    width: auto;
-    padding: 0 10px;
-    gap: 6px;
-    background: #fff4e5;
-    color: #b45309;
-    font-size: 14px;
-    font-weight: 600;
-}
-#topStreak:hover { background: #ffe7cc; color: #7c2d12; }
 .streak-top { list-style: none; margin: 12px 0; padding: 0; }
 .streak-top__row { display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-radius: 8px; }
 .streak-top__row--own { background: #eef2ff; color: #2856bf; }
