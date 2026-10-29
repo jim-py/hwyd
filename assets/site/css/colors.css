@@ -1,0 +1,14 @@
+/* Existing modal/control colors. These dialogs keep their light surfaces
+   independently of the public page's light/dark theme. */
+:root {
+    --color-surface: #fff;
+    --color-text-secondary: #536176;
+    --color-control-border: #d6deea;
+    --color-hover: #f1f4f8;
+    --color-hover-text: #3f5269;
+    --color-selected: #e8eff6;
+    --color-selected-border: #b9cadd;
+    --color-on-selected: #405b78;
+    --color-focus: #7890ad;
+    --color-shadow: rgb(0 0 0 / 5%);
+}

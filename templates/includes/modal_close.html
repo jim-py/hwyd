@@ -1,0 +1,4 @@
+{% load static %}
+<button type="button" class="modal-close{% if extra_class %} {{ extra_class }}{% endif %}"{% if button_id %} id="{{ button_id }}"{% endif %} aria-label="{{ label|default:'Закрыть окно' }}"{% if dialog_close %} data-dialog-close{% endif %}{% if onclick %} onclick="{{ onclick }}"{% endif %}>
+    <img src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt="">
+</button>

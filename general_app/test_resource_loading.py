@@ -4,7 +4,7 @@ from urllib.parse import urlsplit
 
 from django.contrib.auth import get_user_model
 from django.contrib.staticfiles import finders
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from hwyd.models import Settings
@@ -63,6 +63,8 @@ class ResourceLoadingTests(TestCase):
                         icons = [path for path in paths if 'font-awesome/' in path]
                         self.assertEqual(icons, ['/static/hwyd/vendor/font-awesome/7.3.1/css/all.min.css'])
                         self.assertIn('/static/site/css/navbar.css', paths)
+                        self.assertIn('/static/site/css/modal-close.css', paths)
+                        self.assertIn('/static/site/css/colors.css', paths)
                         self.assertIn('/static/site/vendor/google-fonts/fonts.css', paths)
                         for path in paths:
                             with open(finders.find(path.removeprefix('/static/')), encoding='utf-8') as css:
@@ -98,4 +100,51 @@ class ResourceLoadingTests(TestCase):
         graph = self.graph('by_date')
         paths = [path for path, _ in graph.styles] + [s['src'] for s in graph.scripts]
         self.assertFalse(any('year-calendar' in path or 'streak-firework' in path for path in paths))
+
+    @override_settings(USE_SCHEDULED_THEME_COLORS=True)
+    def test_modal_close_buttons_preserve_context_and_existing_close_hooks(self):
+        self.client.force_login(self.user)
+        buttons = {}
+
+        class Parser(HTMLParser):
+            dialog = None
+            button = None
+
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if tag == 'dialog':
+                    self.dialog = attrs['id']
+                if tag == 'button' and 'modal-close' in attrs.get('class', '').split():
+                    self.button = attrs
+                    buttons[self.dialog or 'notification'] = attrs
+                if tag == 'img' and self.button is not None:
+                    self.button['image'] = attrs
+
+            def handle_endtag(self, tag):
+                if tag == 'button':
+                    self.button = None
+                if tag == 'dialog':
+                    self.dialog = None
+
+        page = self.client.get(reverse('by_date', args=['2026-10']), HTTP_HOST='testserver')
+        self.assertEqual(page.status_code, 200)
+        Parser().feed(page.content.decode())
+        delegated = {'createActivityModal', 'createActivityGroupModal', 'calendarModal',
+                     'deleteAllModal', 'feedbackModal', 'topModal', 'themeScheduleModal'}
+        self.assertEqual(set(buttons), delegated | {'some-modal-id', 'dialog', 'dialogHead',
+                                                  'dialogCell', 'chatDialog', 'chatPhotoViewer', 'notification'})
+        labels = []
+        for name, button in buttons.items():
+            with self.subTest(dialog=name):
+                self.assertEqual(button['type'], 'button')
+                labels.append(button['aria-label'])
+                self.assertTrue(button['aria-label'].startswith('Закрыть'))
+                self.assertEqual(button['image'], {'src': '/static/site/images/cansel.svg',
+                                                  'width': '25', 'height': '25', 'alt': ''})
+                self.assertEqual('data-dialog-close' in button, name in delegated)
+        self.assertEqual(len(labels), len(set(labels)))
+        self.assertIn('closeSettingsActivity', buttons['dialog']['onclick'])
+        self.assertIn('requestSubmit()', buttons['chatDialog']['onclick'])
+        self.assertEqual(buttons['chatPhotoViewer']['id'], 'chatPhotoViewerClose')
+        self.assertEqual(buttons['notification']['id'], 'notif-close')
 

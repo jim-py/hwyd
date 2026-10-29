@@ -5,9 +5,7 @@
     <div class="modal__header">
         <h3 id="chatTitle" class="dialog__title">Общий чат</h3>
         <form method="dialog">
-            <button type="submit" class="chat-close" aria-label="Закрыть чат">
-                <img src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt="">
-            </button>
+            {% include 'includes/modal_close.html' with label='Закрыть чат' extra_class='chat-close' onclick="this.closest('form').requestSubmit();" only %}
         </form>
     </div>
     <div id="chatMessages" class="chat-messages" role="log" aria-live="polite" aria-label="Сообщения общего чата" tabindex="0">
@@ -69,7 +67,7 @@
 <dialog id="chatPhotoViewer" class="chat-photo-viewer" aria-labelledby="chatPhotoViewerTitle">
     <div class="chat-photo-viewer__header">
         <h3 id="chatPhotoViewerTitle">Фотография</h3>
-        <button id="chatPhotoViewerClose" type="button" aria-label="Закрыть фотографию">×</button>
+        {% include 'includes/modal_close.html' with label='Закрыть фотографию' button_id='chatPhotoViewerClose' only %}
     </div>
     <img id="chatPhotoFull" alt="Фотография из сообщения">
     <p id="chatPhotoViewerError" role="status" hidden>Не удалось загрузить вложение. Попробуйте открыть файл.</p>

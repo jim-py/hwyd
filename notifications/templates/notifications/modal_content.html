@@ -4,9 +4,7 @@
   <div class="notif-modal__dialog">
     <header class="notif-modal__header">
       <h3 id="notif-title">{{ unread_notification.title|default:"Уведомление" }}</h3>
-      <button type="button" id="notif-close" class="notif-close" aria-label="Закрыть уведомление">
-        <img src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt="">
-      </button>
+      {% include 'includes/modal_close.html' with label='Закрыть уведомление' button_id='notif-close' extra_class='notif-close' only %}
     </header>
     <div class="notif-modal__body">
       {{ unread_notification.message|safe }}

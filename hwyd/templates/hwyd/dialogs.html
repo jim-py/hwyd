@@ -3,9 +3,7 @@
 <dialog class="dialog modalActivity settings-dialog" id="some-modal-id" aria-labelledby="settings-dialog-title">
     <div class="modal__header">
         <h3 class="dialog__title" id="settings-dialog-title">Настройки</h3>
-        <button type="button" class="settings-dialog__close" aria-label="Закрыть настройки" onclick="this.closest('dialog').close();">
-            <img src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt="">
-        </button>
+        {% include 'includes/modal_close.html' with label='Закрыть настройки' extra_class='settings-dialog__close' onclick="this.closest('dialog').close();" only %}
     </div>
     <hr color="#c7c7c7"  class="dialog-divider">
 
@@ -274,7 +272,7 @@ function vibrateOrHaptic() {
 <dialog id="dialog" class="modalActivity activity-dialog">
     <div class="modal__header">
         <h3 class="dialog__title elementActivitySettings"></h3>
-        <img onclick="$('#closeSettingsActivity').click();" src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt=""  class="dialog-close-image">
+        {% include 'includes/modal_close.html' with label='Закрыть настройки привычки или группы' onclick="document.getElementById('closeSettingsActivity').click();" only %}
     </div>
     <hr color="#c7c7c7"  class="dialog-divider">
     <form id="formActivitySettings" class="activity-dialog__body" action="{% url 'by_date' date %}{{ view_as_query }}" method="post">
@@ -369,9 +367,7 @@ function vibrateOrHaptic() {
 <dialog id="dialogHead" class="modalColors modalActivity activity-dialog activity-dialog--colors" aria-labelledby="color-dialog-title">
     <div class="modal__header">
         <h3 id="color-dialog-title" class="dialog__title dialogHeadSettings">Глобальные настройки цвета</h3>
-        <button type="button" class="settings-dialog__close" aria-label="Закрыть настройки цвета" onclick="this.closest('dialog').close();">
-            <img src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt="">
-        </button>
+        {% include 'includes/modal_close.html' with label='Закрыть настройки цвета' extra_class='settings-dialog__close' onclick="this.closest('dialog').close();" only %}
     </div>
     <hr color="#c7c7c7" class="dialog-divider">
     <form id="formColorSettings" class="activity-dialog__body" action="{% url 'global_colors' date %}{{ view_as_query }}" method="post">
@@ -412,9 +408,7 @@ function vibrateOrHaptic() {
 <dialog id="dialogCell" class="modalActivity activity-dialog" aria-labelledby="cell-dialog-title">
     <div class="modal__header">
         <h3 id="cell-dialog-title" class="dialog__title dialogHeadSettings">Текст клетки</h3>
-        <button type="button" class="settings-dialog__close" aria-label="Закрыть текст клетки" onclick="this.closest('dialog').close();">
-            <img src="{% static 'site/images/cansel.svg' %}" width="25" height="25" alt="">
-        </button>
+        {% include 'includes/modal_close.html' with label='Закрыть текст клетки' extra_class='settings-dialog__close' onclick="this.closest('dialog').close();" only %}
     </div>
     <hr color="#c7c7c7" class="dialog-divider">
     <form id="formCellCommentSettings" class="activity-dialog__body" action="{% url 'by_date' date %}{{ view_as_query }}" method="post">

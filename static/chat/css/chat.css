@@ -67,22 +67,6 @@
 .chat-resize-handle[data-chat-resize=sw] { bottom: 0; left: 0; cursor: nesw-resize; }
 .chat-resize-handle[data-chat-resize=se] { bottom: 0; right: 0; cursor: nwse-resize; }
 
-.chat-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border: 0;
-    border-radius: 8px;
-    padding: 0;
-    background: transparent;
-    cursor: pointer;
-}
-
-.chat-close:hover { background: var(--chat-history); }
-.chat-close:active { background: var(--chat-own); }
-
 .chat-messages {
     flex: 1;
     min-height: 0;
@@ -196,7 +180,7 @@
 .chat-dialog [hidden], .chat-unread-dot[hidden] { display: none; }
 .chat-error { color: #a00; margin: 0 0 7px; font-size: 13px; }
 .chat-dialog button:disabled { opacity: 0.6; cursor: wait; }
-.chat-dialog button:focus-visible, .chat-dialog textarea:focus-visible, .chat-messages:focus-visible {
+.chat-dialog button:not(.modal-close):focus-visible, .chat-dialog textarea:focus-visible, .chat-messages:focus-visible {
     outline: 2px solid var(--chat-accent);
     outline-offset: 2px;
 }
@@ -266,11 +250,10 @@ body.chat-fullscreen-open { overflow: hidden; }
 .chat-photo-viewer::backdrop { background: rgba(0,0,0,.6); }
 .chat-photo-viewer__header { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
 .chat-photo-viewer__header h3 { margin: 0; font-size: 18px; }
-.chat-photo-viewer__header button { width: 36px; height: 36px; border: 0; border-radius: 6px; background: #e5e9f0; cursor: pointer; font-size: 24px; }
 .chat-photo-viewer > img { flex: 1; min-height: 0; min-width: 0; width: 100%; height: 100%; object-fit: contain; }
 .chat-photo-viewer a { flex-shrink: 0; color: #2856bf; text-align: center; }
 .chat-photo-viewer [hidden] { display: none; }
-.chat-photo-viewer button:focus-visible, .chat-photo-viewer a:focus-visible { outline: 2px solid #4071f4; outline-offset: 2px; }
+.chat-photo-viewer button:not(.modal-close):focus-visible, .chat-photo-viewer a:focus-visible { outline: 2px solid #4071f4; outline-offset: 2px; }
 
 .chat-message__reply { margin: 3px 0 5px; padding: 3px 6px; border-left: 3px solid var(--chat-accent); background: rgba(255,255,255,0.5); font-size: 12px; }
 .chat-message__reply > strong, .chat-message__reply > span { display: block; }

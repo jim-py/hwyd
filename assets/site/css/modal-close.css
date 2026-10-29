@@ -1,0 +1,30 @@
+/* Presentation only; the caller retains its own close handler and positioning. */
+button.modal-close {
+    box-sizing: border-box;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--color-control-border);
+    border-radius: 12px;
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    box-shadow: 0 1px 2px var(--color-shadow);
+    cursor: pointer;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+button.modal-close img { display: block; width: 25px; height: 25px; }
+button.modal-close:hover {
+    background: var(--color-hover);
+    border-color: var(--color-selected-border);
+    color: var(--color-hover-text);
+    transform: none;
+}
+button.modal-close:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+button.modal-close:disabled { opacity: .45; cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+    button.modal-close { transition: none; }
+}

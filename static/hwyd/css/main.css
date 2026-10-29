@@ -214,14 +214,6 @@ h3.dialog__title {
     cursor: default;
 }
 
-.settings-dialog__close {
-    display: flex;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-}
-
 #settingsGlobal {
     min-height: 0;
     overflow-y: auto;
@@ -381,8 +373,7 @@ form[id=settingsGlobal] > div > div {
 #settingsGlobal .settings-section__toggle:has(input:checked):hover { background: #dce6f0; border-color: #a8bcd2; color: #354e6b; }
 
 #some-modal-id .button-save,
-#some-modal-id .button-6,
-#some-modal-id .settings-dialog__close {
+#some-modal-id .button-6 {
     box-sizing: border-box;
     border: 1px solid var(--control-line);
     border-radius: 14px;
@@ -392,20 +383,16 @@ form[id=settingsGlobal] > div > div {
     transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 #some-modal-id .button-6 { min-height: 38px; height: auto; padding: 8px 12px; font: inherit; font-size: 13px; font-weight: 500; }
-#some-modal-id .settings-dialog__close { width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 12px; }
-#some-modal-id .button-6:not(:disabled):hover,
-#some-modal-id .settings-dialog__close:hover { background: var(--control-hover-bg); border-color: var(--control-active-line); color: var(--control-hover-text); transform: none; }
+#some-modal-id .button-6:not(:disabled):hover { background: var(--control-hover-bg); border-color: var(--control-active-line); color: var(--control-hover-text); transform: none; }
 #some-modal-id .button-save { background: #526b88; border-color: #526b88; color: #fff; font-size: 16px; font-weight: 600; }
 #some-modal-id .button-save:not(:disabled):hover { background: #435c78; border-color: #435c78; }
 #some-modal-id .button-save:focus-visible,
-#some-modal-id .button-6:focus-visible,
-#some-modal-id .settings-dialog__close:focus-visible { outline: 3px solid var(--control-focus); outline-offset: 3px; }
+#some-modal-id .button-6:focus-visible { outline: 3px solid var(--control-focus); outline-offset: 3px; }
 #some-modal-id button:disabled { opacity: .45; cursor: default; }
 
 @media (prefers-reduced-motion: reduce) {
     #some-modal-id .button-save,
-    #some-modal-id .button-6,
-    #some-modal-id .settings-dialog__close { transition: none; }
+    #some-modal-id .button-6 { transition: none; }
 }
 
 @media (max-width: 480px) {

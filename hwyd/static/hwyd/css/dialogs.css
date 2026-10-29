@@ -1,14 +1,14 @@
 #divButtons.toolbar,
 #some-modal-id {
-    --control-surface: #fff;
-    --control-text: #536176;
-    --control-line: #d6deea;
-    --control-hover-bg: #f1f4f8;
-    --control-hover-text: #3f5269;
-    --control-active-bg: #e8eff6;
-    --control-active-line: #b9cadd;
-    --control-active-text: #405b78;
-    --control-focus: #7890ad;
+    --control-surface: var(--color-surface);
+    --control-text: var(--color-text-secondary);
+    --control-line: var(--color-control-border);
+    --control-hover-bg: var(--color-hover);
+    --control-hover-text: var(--color-hover-text);
+    --control-active-bg: var(--color-selected);
+    --control-active-line: var(--color-selected-border);
+    --control-active-text: var(--color-on-selected);
+    --control-focus: var(--color-focus);
 }
 
 .toolbar {
@@ -153,7 +153,6 @@ hr.dialog-divider { margin: 0; }
 #selectFont option.font-preview--inter { font-family: 'Inter', serif }
 #selectFont option.font-preview--ubuntu { font-family: 'Ubuntu', serif }
 #selectFont option.font-preview--comic-sans-ms { font-family: 'Comic Sans MS', serif }
-#dialog .dialog-close-image { float:right; }
 dialog .dialog-spacer { margin-bottom: 7px; }
 #formActivitySettings hr.activity-divider { margin: 20px; }
 .activity-dialog .activity-color-row { display: flex; justify-content: space-between }
@@ -192,9 +191,11 @@ dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
     overflow-wrap: anywhere;
 }
 
-.activity-dialog .settings-dialog__close {
+.activity-dialog .modal-close {
     flex-shrink: 0;
     align-self: flex-start;
+    /* Keep the old 25px icon's occupied height in this header. */
+    margin-block: -5.5px;
 }
 
 .activity-dialog__body {
@@ -273,7 +274,7 @@ dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
 }
 
 .toolbar-dialog .dialog__title { margin: 0; font-size: 18px; }
-.toolbar-dialog .settings-dialog__close { width: 32px; height: 32px; align-items: center; justify-content: center; }
+.toolbar-dialog .modal-close { align-self: center; margin-block: -2px; }
 .toolbar-dialog .dialog-divider { border: 0; border-top: 1px solid #e0e0e0; }
 .toolbar-dialog__field { display: flex; flex-direction: column; gap: 8px; }
 .toolbar-dialog__field[hidden] { display: none; }
@@ -305,7 +306,7 @@ dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
 .toolbar-dialog .toolbar-dialog__button--danger { background: #ffdfdf; border-color: #dba9a9; color: #a00; }
 .toolbar-dialog .toolbar-dialog__button--danger:hover { background: #fbbcbc; }
 .toolbar-dialog button:disabled { opacity: 0.5; cursor: default; transform: none; }
-.toolbar-dialog button:focus-visible { outline: 2px solid #4071f4; outline-offset: 2px; }
+.toolbar-dialog button:not(.modal-close):focus-visible { outline: 2px solid #4071f4; outline-offset: 2px; }
 .toolbar-modal-open { overflow: hidden; }
 .habitus-toast {
     --toast-accent: #248463;
@@ -348,7 +349,7 @@ dialog button.button-6.dialog-button--save { background-color:#dfffdf; }
 
 @media (max-width: 1023px) {
     .toolbar-dialog .activity-dialog__body { padding: 16px; }
-    .toolbar-dialog .settings-dialog__close { width: 40px; height: 40px; }
+    .toolbar-dialog .modal-close { margin-block: 2px; }
     .toolbar-dialog .toolbar-dialog__button,
     .month-picker__grid button,
     .month-picker__year .button-6 { min-height: 44px; }
