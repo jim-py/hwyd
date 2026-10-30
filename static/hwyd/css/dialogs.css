@@ -155,8 +155,7 @@ hr.dialog-divider { margin: 0; }
 #selectFont option.font-preview--comic-sans-ms { font-family: 'Comic Sans MS', serif }
 dialog .dialog-spacer { margin-bottom: 7px; }
 #formActivitySettings hr.activity-divider { margin: 20px; }
-.activity-dialog .activity-color-row { display: flex; justify-content: space-between }
-#formActivitySettings input.activity-color-input { margin-right: 20px; }
+.activity-dialog .activity-color-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .onOffDaysDiv .calendar-week-row { display: flex }
 .activity-dialog-footer { padding: 15px }
 dialog button.button-6.dialog-button--close { background-color:#ffdfdf; }

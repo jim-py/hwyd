@@ -1,4 +1,5 @@
 {% load static %}
+<script type="module" src="{% static 'site/js/color-picker-init.js' %}?v=20261030-picker"></script>
 <script type="module" src="{% static 'hwyd/js/habit-descriptions.js' %}"></script>
 <script type="module" src="{% static 'hwyd/js/cell-comment-tooltips.js' %}"></script>
 <script type="module" src="{% static 'hwyd/js/theme-colors.js' %}"></script>
@@ -305,10 +306,12 @@
     document.addEventListener('DOMContentLoaded', function () {
         const selector = '.table th p';
         $('.table td').hover(function () {
-            let columnIndex = $(this).index();
-            if (columnIndex !== 0) {
-                $(selector).eq(columnIndex).css('box-shadow', '0 0 3px -1px rgb(0, 0, 0) inset');
-                $(selector).eq(columnIndex).css('border', '1px solid black');
+            // Match table cells, including the optional empty deletion header.
+            const headerCell = this.closest('table').tHead.rows[0].cells[this.cellIndex];
+            const day = headerCell?.querySelector('p.headParagraph.minor');
+            if (day) {
+                $(day).css('box-shadow', '0 0 3px -1px rgb(0, 0, 0) inset');
+                $(day).css('border', '1px solid black');
             }
         }, function () {
             $(selector).css('box-shadow', '');
@@ -343,31 +346,6 @@
     }
 </script>
 
-{# ОБРАБОТКА ВВЕДЁННОГО ЦВЕТА АКТИВНОСТИ И ТЕКСТА В НАСТРОЙКАХ АКТИВНОСТИ #}
-<script>
-    // Функция для обработки
-    function handleColorInputChange(inputId, outputId) {
-        document.querySelector(inputId).addEventListener('input', function (e) {
-            const evt = document.createEvent('HTMLEvents');
-            evt.initEvent("input", true, true);
-
-            // Проверяем, соответствует ли введенное значение шестнадцатеричному коду цвета
-            if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
-                document.querySelector(outputId).value = e.target.value;
-                document.querySelector(outputId).dispatchEvent(evt);
-            }
-        });
-    }
-
-    // Обрабатываем изменения цвета фона и текста активности
-    handleColorInputChange('input#colorBackgroundFormText', 'input#colorBackgroundForm');
-    handleColorInputChange('input#colorTextFormText', 'input#colorTextForm');
-</script>
-
-
-
-
-
 {# ПРАВЫЙ КЛИК НА АКТИВНОСТЬ, ЗАПОЛНЕНИЕ ПОЛЕЙ МОДАЛЬНОГО ОКНА #}
 {% comment %} Отформатировал {% endcomment %}
 {{ jsonActivities|json_script:'activitiesInitial' }}
@@ -400,10 +378,8 @@
         descriptionField: document.getElementById("activityDescriptionField"),
 
         colorBg: document.getElementById("colorBackgroundForm"),
-        colorBgText: document.getElementById("colorBackgroundFormText"),
 
         colorText: document.getElementById("colorTextForm"),
-        colorTextText: document.getElementById("colorTextFormText"),
 
         beginDay: document.getElementById("beginDay"),
         endDay: document.getElementById("endDay"),
@@ -470,10 +446,8 @@
         UI.description.setCustomValidity('');
 
         UI.colorBg.value = activity.backgroundColor;
-        UI.colorBgText.value = activity.backgroundColor;
 
         UI.colorText.value = activity.color;
-        UI.colorTextText.value = activity.color;
 
         UI.beginDay.value = activity.beginDay + 1;
         UI.endDay.value = activity.endDay + 1;
@@ -708,7 +682,6 @@
     for (let elem of document.querySelectorAll('input.colorBackgroundForm')) {
         elem.addEventListener("input", function (event) {
             event.target.data.style.backgroundColor = event.target.value;
-            document.querySelector('input#colorBackgroundFormText').value = event.target.value;
         });  //Изменение цвета активности
         {% if not settings.showTabs %}
         elem.addEventListener("input", function (event) {

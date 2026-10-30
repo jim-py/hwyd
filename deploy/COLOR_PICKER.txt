@@ -1,0 +1,63 @@
+Reusable opaque color picker
+===========================
+
+Resources (Django static): site/css/colors.css, site/css/color-picker.css,
+site/js/color-picker-init.js (type="module"). Habitus loads them once.
+Pickr was a visual reference only: https://github.com/simonwep/pickr
+No library, CDN, frontend build, or opacity support is used.
+
+Example markup:
+    <label for="accent">Accent</label>
+    <input type="color" id="accent" name="accent" value="#3a7bc2">
+
+For a dynamic fragment, import from site/js/color-picker.js using a relative
+static URL and call initColorPickers(fragment) after inserting it. Calling it
+again returns the same instances. Call destroyColorPickers(fragment) before
+removing a fragment. This removes listeners, the scoped attribute observer,
+the popover and value accessor, and restores native visibility/focus attributes.
+There is no observer of the whole DOM.
+
+The original input retains its type, ID, name, labels, form, constraints and
+disabled state. Only its enhanced representation is visible. Browsers without
+Popover/Pointer Events support, or without JavaScript, keep the native control.
+The popover is a descendant of its owning dialog and uses the browser top layer
+to escape overflow. At most one picker is open. Escape closes it before the
+parent dialog. Outside clicks on empty space restore trigger focus; focusable
+click targets preserve the user's next focus destination. Tab at the panel's
+outer edges closes it and returns to the trigger; another Tab continues the form.
+
+Values are normalized to lowercase #rrggbb. HEX accepts six digits, optionally
+with # and surrounding whitespace. Intermediate/invalid HEX stays in an unnamed
+editor with an error and never replaces the last valid input/form value.
+Enter in HEX never submits the form. Closing discards an invalid text draft.
+
+Choosing a different valid color emits one bubbling input event per changed
+value for existing live previews. change fires once at the end of a pointer,
+keyboard or text edit, only if its final color differs from the committed one.
+Pointer cancellation keeps and commits the last previewed color. There are no
+component network requests and no new Save/Apply step. Existing forms own saving.
+
+Assignments to input.value are forwarded to the native value setter and update
+the UI silently, including existing habit/group opening and theme switching.
+External input/change events, attribute changes and form.reset() also synchronize
+silently. syncColorPickers(root) is available for custom integrations (for example
+code bypassing the ordinary value setter). Synchronization never dispatches events.
+
+Keyboard: Tab reaches the SV surface, hue slider and HEX. On SV, Left/Right change
+saturation, Up/Down change brightness; Shift uses 10% steps; Home/End set saturation
+to 0/100%, PageDown/PageUp set brightness to 0/100%. Hue uses native range keys.
+
+Integration inventory (2026-10-30):
+- hwyd/templates/hwyd/dialogs.html: colorBackgroundForm, colorTextForm and all
+  five formColorSettings inputs. The two old companion HEX inputs were replaced
+  by the common editor. Original color input IDs/names and preview handlers remain.
+- hwyd/forms.py ThemeColorsForm / ScheduledThemeColorsForm produce the same native
+  fields; their legacy editor now redirects to Habitus. No additional live page
+  renders these widgets. No custom admin color widgets were found.
+- theme-schedule.js reuses formColorSettings via applyThemeColors; it generates
+  display swatches, not color inputs. No dynamically generated color inputs were
+  found. Future fragments use the explicit lifecycle above.
+
+UI colors use colors.css tokens. White/black SV endpoints and hue spectrum stops
+are color-space data. The existing repository has no deploy/COLOR_SYSTEM.txt or
+scripts/check_colors.mjs; those files are not substituted with invented checks.

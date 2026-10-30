@@ -101,6 +101,30 @@ class ResourceLoadingTests(TestCase):
         paths = [path for path, _ in graph.styles] + [s['src'] for s in graph.scripts]
         self.assertFalse(any('year-calendar' in path or 'streak-firework' in path for path in paths))
 
+    def test_tracker_color_fields_keep_native_form_fallback_and_share_local_picker(self):
+        self.client.force_login(self.user)
+        for mobile in (False, True):
+            page = self.client.get(reverse('by_date', args=['2026-10']), HTTP_HOST='testserver',
+                                   HTTP_USER_AGENT='Mobile' if mobile else 'Mozilla/5.0')
+            fields = {}
+
+            class Parser(HTMLParser):
+                def handle_starttag(self, tag, attrs):
+                    attrs = dict(attrs)
+                    if tag == 'input' and attrs.get('type') == 'color':
+                        fields[attrs['id']] = attrs
+
+            Parser().feed(page.content.decode())
+            self.assertEqual(set(fields), {'colorBackgroundForm', 'colorTextForm',
+                                          'tableHeadColor*changeParagraph', 'tableHeadColorWeekend',
+                                          'tableHeadTextColor*changeParagraph', 'backgroundColor', 'rowColumnLight'})
+            self.assertTrue(all(field.get('name') and 'hidden' not in field for field in fields.values()))
+            graph = ResourceGraph(page.content.decode())
+            self.assertEqual([path for path, _ in graph.styles].count('/static/site/css/color-picker.css'), 1)
+            scripts = [script for script in graph.scripts if 'color-picker-init.js' in script['src']]
+            self.assertEqual(len(scripts), 1)
+            self.assertEqual(scripts[0]['type'], 'module')
+
     @override_settings(USE_SCHEDULED_THEME_COLORS=True)
     def test_modal_close_buttons_preserve_context_and_existing_close_hooks(self):
         self.client.force_login(self.user)
