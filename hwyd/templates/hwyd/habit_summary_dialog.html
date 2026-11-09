@@ -1,22 +1,49 @@
 <dialog id="habitSummaryModal" class="modalActivity activity-dialog toolbar-dialog habit-summary" aria-labelledby="habitSummaryTitle"
         data-month="{{ date }}" data-summary-url="{% url 'habit_summary' %}" data-desktop-drag data-mobile="{{ request.user_agent.is_mobile|yesno:'true,false' }}">
     {% include 'hwyd/toolbar_dialog_header.html' with title_id='habitSummaryTitle' title='Сводка привычек' %}
-    <div class="activity-dialog__body">
-        <p id="habitSummaryPeriod" class="toolbar-dialog__hint"></p>
-        <p id="habitSummaryStatus" role="status" aria-live="polite" aria-atomic="true"></p>
-        <dl id="habitSummaryStats" class="habit-summary__stats" aria-label="Показатели сайта" hidden>
-            <div><dt>Привычки</dt><dd id="habitSummaryCount"></dd></div>
-            <div><dt>Выполнено / доступно</dt><dd id="habitSummaryMarks"></dd></div>
-            <div><dt>Выполнение</dt><dd id="habitSummaryPercent"></dd></div>
-        </dl>
-        <div id="habitSummaryResult" hidden>
-            <h4>AI-сводка</h4>
-            <p id="habitSummaryText" class="habit-summary__text"></p>
-            <p id="habitSummaryTime" class="toolbar-dialog__hint"></p>
+    <div class="habit-summary__navigation">
+        <div class="habit-summary__tabs" role="tablist" aria-label="Раздел сводки">
+            <button id="habitSummaryTabAI" type="button" role="tab" aria-selected="true" aria-controls="habitSummaryPanelAI" data-initial-focus>AI</button>
+            <button id="habitSummaryTabStats" type="button" role="tab" aria-selected="false" aria-controls="habitSummaryPanelStats" tabindex="-1">Статистика</button>
         </div>
-        <p class="toolbar-dialog__hint">Показатели рассчитаны сайтом. Сводка относится к снимку на момент запроса; будущие дни исключены.</p>
+        <p id="habitSummaryPeriod" class="toolbar-dialog__hint"></p>
+    </div>
+    <div class="activity-dialog__body">
+        <section id="habitSummaryPanelAI" role="tabpanel" aria-labelledby="habitSummaryTabAI" tabindex="0">
+            <p id="habitSummaryStatus" class="habit-summary__status" role="status" aria-live="polite" aria-atomic="true"></p>
+            <p id="habitSummarySnapshotHint" class="toolbar-dialog__hint" hidden></p>
+            <div id="habitSummaryResult" hidden>
+                <h4>Твой прогресс</h4>
+                <p id="habitSummaryText" class="habit-summary__text"></p>
+            </div>
+            <div id="habitSummaryChanges" hidden>
+                <h4 id="habitSummaryChangesTitle">Что изменилось</h4>
+                <p id="habitSummaryComparisonPeriod" class="toolbar-dialog__hint" hidden></p>
+                <div id="habitSummaryImprovements" hidden><h5>Улучшения</h5><ul></ul></div>
+                <div id="habitSummaryDeclines" hidden><h5>Просадки</h5><ul></ul></div>
+                <div id="habitSummaryMost" hidden><h5>Чаще выполняется</h5><ul></ul></div>
+                <div id="habitSummaryLeast" hidden><h5>Реже выполняется</h5><ul></ul></div>
+            </div>
+            <div id="habitSummaryAdvice" class="habit-summary__advice" hidden>
+                <h4>Совет</h4>
+                <p id="habitSummaryAdviceText" class="habit-summary__text"></p>
+            </div>
+        </section>
+        <section id="habitSummaryPanelStats" role="tabpanel" aria-labelledby="habitSummaryTabStats" tabindex="0" hidden>
+            <p id="habitSummaryStatsStatus" class="habit-summary__status" role="status" aria-live="polite"></p>
+            <div id="habitSummaryStats" hidden>
+                <h4>Общий результат</h4>
+                <dl class="habit-summary__stats">
+                    <div><dt>Привычек</dt><dd id="habitSummaryCount"></dd></div>
+                    <div><dt>Выполнено / доступно</dt><dd id="habitSummaryMarks"></dd></div>
+                    <div><dt>Выполнение</dt><dd id="habitSummaryPercent"></dd></div>
+                </dl>
+                <h4>По привычкам</h4>
+                <ul id="habitSummaryHabits" class="habit-summary__habits"></ul>
+            </div>
+        </section>
     </div>
     <div class="activity-dialog-footer toolbar-dialog__footer">
-        <button id="habitSummaryRetry" type="button" class="button-6 toolbar-dialog__button toolbar-dialog__button--primary">Обновить</button>
+        <button id="habitSummaryRetry" type="button" class="button-6 toolbar-dialog__button">Обновить</button>
     </div>
 </dialog>

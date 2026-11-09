@@ -9,12 +9,13 @@ from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from .ai_service import (SYSTEM, NoRedirect, SummaryServiceError, generate_summary,
-                         request_body, retry_seconds)
+                         request_body, retry_seconds, structured_text)
 from .habit_summary import monthly_snapshot
 from .models import Activities
 
 AI_SETTINGS = dict(AI_SERVICE_BASE_URL='https://api.productivumtesting.ru',
-                   AI_SERVICE_KEY='local-test-key', AI_SERVICE_TIMEOUT='120', AI_SUMMARY_MAX_TOKENS='200')
+                   AI_SERVICE_KEY='local-test-key', AI_SERVICE_TIMEOUT='120', AI_SUMMARY_MAX_TOKENS='200',
+                   AI_SUMMARY_MESSAGE_BYTES='2048')
 NOW = datetime(2026, 11, 1, 0, 30, tzinfo=timezone.utc)
 
 
@@ -72,13 +73,72 @@ class SnapshotTests(TestCase):
             previous = current
         self.assertNotEqual(previous, self.snapshot(today=date(2026, 10, 5))[0]['snapshot'])
 
+    def test_individual_stats_use_the_same_totals_and_do_not_compare_short_periods(self):
+        self.habit(beginDay=1, endDay=3, marks='True True True True', onOffCells='True True False True')
+        stats, habits = self.snapshot()
+        self.assertEqual((habits[0]['completed'], habits[0]['available'], habits[0]['percent']), (2, 2, 100))
+        self.assertEqual(stats['habits'], habits)
+        self.assertIsNone(stats['comparison_period'])
+        self.assertIsNone(habits[0]['comparison'])
+        self.assertEqual(stats['regularity'], {'most_regular': [], 'least_regular': []})
+
+    def test_weekly_improvements_declines_and_actual_period_are_deterministic(self):
+        self.habit(name='Чтение', marks='False ' * 7 + 'True ' * 24)
+        self.habit(name='Прогулка', marks='True ' * 7 + 'False ' * 24)
+        stats, habits = self.snapshot(today=date(2026, 10, 14))
+        self.assertEqual(stats['completed'], 14)
+        self.assertEqual(stats['available'], 28)
+        self.assertEqual(habits[0]['comparison']['delta_pp'], 100)
+        self.assertEqual(habits[1]['comparison']['delta_pp'], -100)
+        self.assertEqual(stats['changes']['improvements'][0]['name'], 'Чтение')
+        self.assertEqual(stats['changes']['declines'][0]['name'], 'Прогулка')
+        self.assertEqual(stats['comparison_period'], dict(previous_start='2026-10-01', previous_end='2026-10-07',
+                         current_start='2026-10-08', current_end='2026-10-14', compared_count=2))
+
+    def test_disabled_weekdays_never_increase_weekly_denominator(self):
+        self.habit(onOffCells=('True ' * 5 + 'False ' * 2) * 2,
+                   marks='True ' * 7 + 'True ' * 3 + 'False ' * 4)
+        stats, habits = self.snapshot(today=date(2026, 10, 14))
+        comparison = habits[0]['comparison']
+        self.assertEqual((stats['completed'], stats['available']), (8, 10))
+        self.assertEqual((comparison['previous_percent'], comparison['current_percent'], comparison['delta_pp']),
+                         (100, 60, -40))
+
+    def test_changed_schedule_begin_and_end_make_weeks_incomparable(self):
+        self.habit(name='Новое расписание', onOffCells='False ' + 'True ' * 30)
+        self.habit(name='Началась позже', beginDay=7)
+        self.habit(name='Завершилась раньше', endDay=6)
+        stats, habits = self.snapshot(today=date(2026, 10, 14))
+        self.assertTrue(all(habit['comparison'] is None for habit in habits))
+        self.assertEqual(stats['comparison_period']['compared_count'], 0)
+        self.assertEqual(stats['changes'], {'improvements': [], 'declines': []})
+
+    def test_full_month_compares_only_last_two_weeks_and_deleted_habits_are_absent(self):
+        self.habit(marks='False ' * 24 + 'True ' * 7)
+        removed = self.habit()
+        removed.delete()
+        stats, habits = self.snapshot(today=date(2026, 11, 10))
+        self.assertEqual((stats['habit_count'], stats['completed'], stats['available']), (1, 7, 31))
+        self.assertEqual(habits[0]['comparison']['delta_pp'], 100)
+        self.assertEqual(stats['comparison_period']['previous_start'], '2026-10-18')
+        self.assertEqual(stats['comparison_period']['current_start'], '2026-10-25')
+
+    def test_regularity_compares_rates_not_absolute_marks(self):
+        self.habit(name='Короткая', beginDay=0, endDay=0)
+        self.habit(name='Длинная', endDay=6, marks='True ' * 3 + 'False ' * 28)
+        stats, _ = self.snapshot(today=date(2026, 10, 7))
+        self.assertEqual(stats['regularity']['most_regular'], [{'name': 'Короткая', 'percent': 100}])
+        self.assertEqual(stats['regularity']['least_regular'], [{'name': 'Длинная', 'percent': 42.9}])
+
 
 @override_settings(**AI_SETTINGS)
 class AdapterTests(SimpleTestCase):
     facts = dict(month='2026-10', start='2026-10-01', end='2026-10-31', through='2026-10-31',
                  habit_count=1000, completed=10000, available=20000, percent=50)
 
-    def response(self, content='Прогресс устойчивый.', finish='stop', status=200, content_type='application/json'):
+    def response(self, content=None, finish='stop', status=200, content_type='application/json'):
+        if content is None:
+            content = json.dumps({'summary': 'Чтение получается регулярнее.', 'advice': 'Выбери удобное время для прогулки.'})
         response = Mock()
         response.__enter__ = Mock(return_value=response)
         response.__exit__ = Mock(return_value=False)
@@ -101,20 +161,51 @@ class AdapterTests(SimpleTestCase):
         self.assertEqual(payload['details_total'], 1000)
         self.assertEqual(payload['details_included'], len(payload['details']))
         self.assertLess(payload['details_included'], 1000)
+        self.assertTrue(payload['partial'])
         self.assertEqual(set(data), {'stream', 'max_tokens', 'messages'})
 
-    def test_success_and_length_request_contract(self):
-        for finish in ('stop', 'length'):
-            transport = Mock(return_value=self.response(finish=finish))
-            self.assertEqual(generate_summary(self.facts, [], transport), ('Прогресс устойчивый.', finish))
-            transport.assert_called_once()
-            request = transport.call_args.args[0]
-            self.assertEqual(request.full_url, 'https://api.productivumtesting.ru/ai/v1/chat/completions')
-            self.assertEqual(request.method, 'POST')
-            self.assertEqual(request.get_header('Authorization'), 'Bearer local-test-key')
-            self.assertIsNone(request.get_header('Origin'))
-            self.assertEqual(transport.call_args.kwargs['timeout'], 120)
-            self.assertIsNone(NoRedirect().redirect_request(request, None, 302, '', {}, 'https://other.test'))
+    def test_success_request_contract(self):
+        transport = Mock(return_value=self.response())
+        self.assertEqual(generate_summary(self.facts, [], transport),
+                         {'summary': 'Чтение получается регулярнее.', 'advice': 'Выбери удобное время для прогулки.'})
+        transport.assert_called_once()
+        request = transport.call_args.args[0]
+        self.assertEqual(request.full_url, 'https://api.productivumtesting.ru/ai/v1/chat/completions')
+        self.assertEqual(request.method, 'POST')
+        self.assertEqual(request.get_header('Authorization'), 'Bearer local-test-key')
+        self.assertIsNone(request.get_header('Origin'))
+        self.assertEqual(transport.call_args.kwargs['timeout'], 120)
+        self.assertIsNone(NoRedirect().redirect_request(request, None, 302, '', {}, 'https://other.test'))
+
+    def test_length_is_rejected_even_if_json_looks_complete_without_retry(self):
+        transport = Mock(return_value=self.response(finish='length'))
+        with self.assertRaises(SummaryServiceError) as error:
+            generate_summary(self.facts, [], transport)
+        self.assertEqual(error.exception.code, 'incomplete')
+        transport.assert_called_once()
+
+    def test_required_json_fields_types_and_lengths(self):
+        for value in ({}, [], {'summary': 'abc'}, {'summary': '', 'advice': 'abc'},
+                      {'summary': [], 'advice': 'abc'}, {'summary': 'x' * 601, 'advice': 'abc'},
+                      {'summary': 'abc', 'advice': 'x' * 241}, {'summary': 'abc', 'advice': 'abc', 'extra': 1},
+                      {'summary': '<think>internal reasoning', 'advice': 'abc'}):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                structured_text(json.dumps(value), 'stop')
+        self.assertEqual(structured_text('```json\n{"summary":"abc","advice":"def"}\n```', 'stop'),
+                         {'summary': 'abc', 'advice': 'def'})
+
+    def test_budget_uses_informative_details_and_configured_contract_cap(self):
+        habits = [{'name': f'Обычная {i}', 'completed': 5, 'available': 10} for i in range(30)]
+        habits.append({'name': 'Лидер', 'completed': 10, 'available': 10})
+        habits.append({'name': 'Редкая', 'completed': 1, 'available': 10})
+        body = request_body(self.facts, habits, 200)
+        payload = json.loads(json.loads(body)['messages'][1]['content'])
+        self.assertEqual(payload['details'][0]['name'], 'Лидер')
+        self.assertGreater(payload['details_included'], 0)
+        self.assertTrue(payload['partial'])
+        for limit in (511, 2049, 'invalid'):
+            with override_settings(AI_SUMMARY_MESSAGE_BYTES=limit), self.assertRaises(SummaryServiceError):
+                request_body(self.facts, habits, 200)
 
     def test_missing_or_invalid_configuration_never_calls_transport(self):
         for setting in ({'AI_SERVICE_KEY': ''}, {'AI_SERVICE_TIMEOUT': 'nan'}, {'AI_SERVICE_TIMEOUT': '0'},
@@ -183,8 +274,8 @@ class EndpointTests(SnapshotTests):
         self.http = self.transport.start()
         self.addCleanup(self.transport.stop)
         self.http.return_value = AdapterTests().response()
-        self.clock = patch('hwyd.summary_views.timezone.now', return_value=NOW)
-        self.clock.start()
+        self.clock = patch('hwyd.summary_views.timezone')
+        self.clock.start().now.return_value = NOW
         self.addCleanup(self.clock.stop)
 
     def post(self, **data):
@@ -200,8 +291,21 @@ class EndpointTests(SnapshotTests):
         for excluded in ('FOREIGN', 'PRIVATE', self.user.username):
             self.assertNotIn(excluded, payload)
         self.assertEqual(result['state'], 'success')
+        self.assertEqual(set(result['ai']), {'summary', 'advice'})
+        self.assertEqual(result['stats']['habits'][0]['percent'], 100)
+        self.assertIn(result['ai']['summary'], result['text'])
         result = self.post(month='2026-11').json()
         self.assertEqual(result['state'], 'empty')
+
+    def test_stats_only_work_without_ai_config_and_do_not_call_transport(self):
+        self.habit()
+        with override_settings(AI_SERVICE_KEY=''):
+            response = self.post(generate=False)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['state'], 'stats')
+        self.assertEqual(len(response.json()['stats']['habits']), 1)
+        self.assertNotIn('ai', response.json())
+        self.http.assert_not_called()
 
     def test_anonymous_method_and_csrf(self):
         self.assertEqual(self.client.get(self.url).status_code, 405)
@@ -231,7 +335,8 @@ class EndpointTests(SnapshotTests):
         for extra in ({'userId': self.other.pk}, {'url': 'https://other.test'}, {'percent': 100}, {'habits': []}):
             self.assertEqual(self.post(**extra).status_code, 400)
         for payload in ([], None, {}, {'month': 1}, {'month': '2026-13'}, {'month': '2031-01'},
-                        {'month': '2026-1'}, {'month': '2026-10' + 'x' * 1024}):
+                        {'month': '2026-1'}, {'month': '2026-10' + 'x' * 1024},
+                        {'month': '2026-10', 'generate': 'false'}, {'month': '2026-10', 'generate': 1}):
             self.assertEqual(self.client.post(self.url, json.dumps(payload), content_type='application/json').status_code, 400)
         self.assertEqual(self.client.post(self.url, 'broken', content_type='application/json').status_code, 400)
         self.http.assert_not_called()

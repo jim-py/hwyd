@@ -25,14 +25,15 @@ def habit_summary(request):
         if request.content_type != 'application/json' or len(request.body) > 1024:
             raise ValueError
         data = json.loads(request.body)
-        if not isinstance(data, dict) or set(data) != {'month'}:
+        if (not isinstance(data, dict) or 'month' not in data or set(data) - {'month', 'generate'}
+                or not isinstance(data.get('generate', True), bool)):
             raise ValueError
         month = data['month']
         if (not isinstance(month, str) or not re.fullmatch(r'\d{4}-(0[1-9]|1[0-2])', month)
                 or not MIN_YEAR <= int(month[:4]) <= MAX_YEAR):
             raise ValueError
     except (ValueError, UnicodeError):
-        return JsonResponse({'error': 'Передайте только выбранный месяц в формате YYYY-MM.'}, status=400)
+        return JsonResponse({'error': 'Передайте месяц YYYY-MM и необязательный флаг generate.'}, status=400)
     tz = browser_timezone(request.session.get('user_timezone'))
     if tz is None:
         return JsonResponse({'error': 'Не удалось определить ваш часовой пояс. Обновите страницу.',
@@ -43,9 +44,13 @@ def habit_summary(request):
         return JsonResponse({**result, 'state': 'empty'})
     if not facts['available']:
         return JsonResponse({**result, 'state': 'no_days'})
+    if not data.get('generate', True):
+        return JsonResponse({**result, 'state': 'stats'})
     try:
-        text, finish = generate_summary(facts, habits)
-        result.update(text=text, truncated=finish == 'length', received_at=timezone.now().isoformat())
+        ai = generate_summary(facts, habits)
+        # Preserve the text field for older page clients; the new UI uses ai only.
+        result.update(ai=ai, text=ai['summary'] + '\n\n' + ai['advice'], truncated=False,
+                      received_at=timezone.now().isoformat())
     except SummaryServiceError as exc:
         result.update(state='unavailable' if exc.code in ('unavailable', 'transport', 'rate_limited') else 'error',
                       error=str(exc), retry_after=exc.retry_after)

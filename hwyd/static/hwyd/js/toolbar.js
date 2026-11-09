@@ -4,7 +4,7 @@ import { showToast } from './toast.js';
 import { enableDialogDrag } from './dialog-drag.js?v=20261004-4';
 import { loadTop } from './top.js?v=20261005-roles';
 import {isViewAs, viewAsURL} from './view-as.js';
-import {createHabitSummary} from './habit-summary.js';
+import {createHabitSummary} from './habit-summary.js?v=20261110-tabs';
 
 const habitSummary = createHabitSummary(document.getElementById('habitSummaryModal'));
 
