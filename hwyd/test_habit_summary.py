@@ -1,15 +1,16 @@
 import json
 from datetime import date, datetime, timezone
-from io import BytesIO
+from io import BytesIO, StringIO
 from unittest.mock import Mock, patch
 from urllib.error import HTTPError, URLError
 
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from .ai_service import (SYSTEM, NoRedirect, SummaryServiceError, generate_summary,
-                         request_body, retry_seconds, structured_text)
+                         request_body, retry_seconds, structured_text, GATEWAY_MESSAGE_BYTES)
 from .habit_summary import monthly_snapshot
 from .models import Activities
 
@@ -177,6 +178,112 @@ class AdapterTests(SimpleTestCase):
         self.assertEqual(transport.call_args.kwargs['timeout'], 120)
         self.assertIsNone(NoRedirect().redirect_request(request, None, 302, '', {}, 'https://other.test'))
 
+    def contract_gateway(self, request, *, timeout):
+        """Local validator of the supplied gateway contract; no sockets or DNS."""
+        self.assertEqual(request.full_url, 'https://api.productivumtesting.ru/ai/v1/chat/completions')
+        self.assertEqual(request.method, 'POST')
+        self.assertEqual(request.get_header('Content-type'), 'application/json')
+        self.assertIsNone(request.get_header('Origin'))
+        self.assertLessEqual(len(request.data), 32768)
+        data = json.loads(request.data)
+        self.assertEqual(set(data), {'stream', 'max_tokens', 'messages'})
+        self.assertIs(data['stream'], False)
+        self.assertIsInstance(data['max_tokens'], int)
+        self.assertTrue(1 <= data['max_tokens'] <= 350)
+        self.assertEqual([m['role'] for m in data['messages']], ['system', 'user'])
+        for message in data['messages']:
+            self.assertEqual(set(message), {'role', 'content'})
+            self.assertIsInstance(message['content'], str)
+        self.assertLessEqual(sum(len(m['content'].encode('utf-8')) for m in data['messages']), 2048)
+        payload = json.loads(data['messages'][1]['content'])
+        self.assertEqual(payload['habit_count'], self.facts['habit_count'])
+        return self.response()
+
+    def test_current_prompt_and_stats_fit_contract_with_useful_details(self):
+        facts = {**self.facts, 'comparison_period': {
+            'previous_start': '2026-10-18', 'previous_end': '2026-10-24',
+            'current_start': '2026-10-25', 'current_end': '2026-10-31', 'compared_count': 1}}
+        habits = [{'name': 'Чтение 📚', 'completed': 4, 'available': 10, 'percent': 40,
+                   'comparison': {'previous_percent': 0, 'current_percent': 100, 'delta_pp': 100}}]
+        transport = Mock(side_effect=self.contract_gateway)
+        with self.assertLogs('hwyd.ai_service', level='INFO') as logs:
+            result = generate_summary(facts, habits, transport)
+        self.assertEqual(set(result), {'summary', 'advice'})
+        transport.assert_called_once()
+        payload = json.loads(json.loads(transport.call_args.args[0].data)['messages'][1]['content'])
+        self.assertEqual(payload['details_included'], 1)
+        events = [record.ai_summary for record in logs.records]
+        self.assertEqual(events[-1]['event'], 'success')
+        self.assertEqual(events[-1]['upstream_status'], 200)
+        self.assertLessEqual(events[-1]['messages_bytes'], GATEWAY_MESSAGE_BYTES)
+
+    def test_oversized_system_reproduces_502_before_transport_with_safe_diagnostics(self):
+        # The reported version used a 2183-byte SYSTEM: it alone exceeded 2048.
+        oversized_system = 'Я' * 1091 + 'a'
+        self.assertEqual(len(oversized_system.encode('utf-8')), 2183)
+        transport = Mock()
+        with patch('hwyd.ai_service.SYSTEM', oversized_system), self.assertLogs('hwyd.ai_service', level='INFO') as logs:
+            with self.assertRaises(SummaryServiceError) as error:
+                generate_summary(self.facts, [], transport)
+        self.assertEqual((error.exception.status, error.exception.code), (502, 'payload'))
+        transport.assert_not_called()
+        event = logs.records[-1].ai_summary
+        self.assertEqual((event['phase'], event['upstream_status']), ('prepare', None))
+        self.assertGreater(event['messages_bytes'], 2048)
+
+    def test_logs_distinguish_gateway_status_from_local_status_without_sensitive_values(self):
+        facts = {**self.facts, 'completed': 314159, 'available': 271828, 'percent': 115.7}
+        habit = {'name': 'PRIVATE-HABIT-🧘', 'completed': 1, 'available': 2}
+        for status in (400, 401, 403, 413, 422, 429, 500, 502, 503, 504):
+            transport = Mock(side_effect=HTTPError('https://example.test', status, 'PRIVATE-ERROR', {},
+                                                   BytesIO(b'PRIVATE-RESPONSE')))
+            with self.subTest(status=status), self.assertLogs('hwyd.ai_service', level='INFO') as logs:
+                with self.assertRaises(SummaryServiceError):
+                    generate_summary(facts, [habit], transport)
+            event = logs.records[-1].ai_summary
+            self.assertEqual(event['upstream_status'], status)
+            self.assertEqual(event['phase'], 'http')
+            output = '\n'.join(logs.output)
+            for private in ('local-test-key', 'PRIVATE', '314159', '271828', '115.7', '2026-10'):
+                self.assertNotIn(private, output)
+            transport.assert_called_once()
+
+    def test_http_200_invalid_model_json_is_logged_as_response_error(self):
+        transport = Mock(return_value=self.response(content='plain model text'))
+        with self.assertLogs('hwyd.ai_service', level='INFO') as logs, self.assertRaises(SummaryServiceError):
+            generate_summary(self.facts, [], transport)
+        event = logs.records[-1].ai_summary
+        self.assertEqual((event['upstream_status'], event['phase'], event['code']),
+                         (200, 'response', 'invalid_response'))
+        self.assertEqual(event['validation'], 'model_json')
+        self.assertEqual(event['adapter_status'], 502)
+
+    def test_runtime_diagnostic_command_uses_no_transport_and_no_private_settings(self):
+        output = StringIO()
+        with patch('hwyd.ai_service.open_response') as transport:
+            call_command('diagnose_habit_summary', stdout=output)
+        result = json.loads(output.getvalue())
+        self.assertTrue(result['key_configured'])
+        self.assertTrue(result['origin_matches_contract'])
+        self.assertTrue(result['configuration_valid'])
+        self.assertTrue(result['synthetic_request_fits'])
+        self.assertFalse(result['network_used'])
+        self.assertEqual(result['scope'], 'this_management_process')
+        self.assertLessEqual(result['messages_bytes'], 2048)
+        self.assertNotIn('local-test-key', output.getvalue())
+        transport.assert_not_called()
+
+    def test_non_contract_message_budget_fails_before_transport_and_is_diagnosable(self):
+        transport = Mock()
+        for limit in (6144, 8192):
+            with override_settings(AI_SUMMARY_MESSAGE_BYTES=limit), self.assertLogs('hwyd.ai_service', level='INFO') as logs:
+                with self.assertRaises(SummaryServiceError):
+                    generate_summary(self.facts, [], transport)
+            event = logs.records[-1].ai_summary
+            self.assertEqual(event['configured_message_bytes'], limit)
+            self.assertIsNone(event['upstream_status'])
+            transport.assert_not_called()
+
     def test_length_is_rejected_even_if_json_looks_complete_without_retry(self):
         transport = Mock(return_value=self.response(finish='length'))
         with self.assertRaises(SummaryServiceError) as error:
@@ -296,6 +403,54 @@ class EndpointTests(SnapshotTests):
         self.assertIn(result['ai']['summary'], result['text'])
         result = self.post(month='2026-11').json()
         self.assertEqual(result['state'], 'empty')
+
+    def test_django_generation_succeeds_through_contract_checked_mock_gateway(self):
+        self.habit()
+        validator = AdapterTests()
+        validator.facts = {'habit_count': 1}
+        self.http.side_effect = validator.contract_gateway
+        with self.assertLogs('hwyd.ai_service', level='INFO') as logs:
+            response = self.post()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['state'], 'success')
+        self.assertEqual(set(response.json()['ai']), {'summary', 'advice'})
+        self.assertEqual(logs.records[-1].ai_summary['upstream_status'], 200)
+        self.http.assert_called_once()
+
+    def test_django_502_for_oversized_system_never_reaches_gateway(self):
+        self.habit()
+        with patch('hwyd.ai_service.SYSTEM', 'Я' * 1091 + 'a'), self.assertLogs('hwyd.ai_service', level='INFO') as logs:
+            response = self.post()
+        self.assertEqual(response.status_code, 502)
+        self.assertIsNone(logs.records[-1].ai_summary['upstream_status'])
+        self.assertEqual(logs.records[-1].ai_summary['code'], 'payload')
+        self.http.assert_not_called()
+
+    def test_gateway_validation_400_reproduces_reported_production_error_body(self):
+        self.habit()
+
+        def rejecting_gateway(request, *, timeout):
+            data = json.loads(request.data)
+            self.assertEqual(set(data), {'stream', 'max_tokens', 'messages'})
+            self.assertLessEqual(len(request.data), 32768)
+            self.assertGreater(sum(len(m['content'].encode('utf-8')) for m in data['messages']), 2048)
+            raise HTTPError(request.full_url, 400, 'Bad Request', {}, BytesIO(b'private validation details'))
+
+        self.http.side_effect = rejecting_gateway
+        # Reproduce the old over-budget request policy only inside this test.
+        # The known production JSON does not by itself establish the upstream code.
+        with patch('hwyd.ai_service.SYSTEM', 'Я' * 1091 + 'a'), \
+                patch('hwyd.ai_service.message_limit', return_value=6144), \
+                self.assertLogs('hwyd.ai_service', level='INFO') as logs:
+            response = self.post()
+        self.assertEqual(response.status_code, 502)
+        result = response.json()
+        self.assertEqual(result['state'], 'error')
+        self.assertEqual(result['error'], 'Не удалось получить AI-сводку. Повторите позже.')
+        self.assertIsNone(result['retry_after'])
+        self.assertEqual(logs.records[-1].ai_summary['upstream_status'], 400)
+        self.assertEqual(logs.records[-1].ai_summary['phase'], 'http')
+        self.http.assert_called_once()
 
     def test_stats_only_work_without_ai_config_and_do_not_call_transport(self):
         self.habit()

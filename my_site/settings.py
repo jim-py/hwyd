@@ -32,7 +32,16 @@ AI_SERVICE_BASE_URL = environ.get('AI_SERVICE_BASE_URL', 'https://api.productivu
 AI_SERVICE_KEY = environ.get('AI_SERVICE_KEY', '499b873d0e2214e759642944d3deebe1a2705bd78d23d4dca88369ab1555025d')
 AI_SERVICE_TIMEOUT = environ.get('AI_SERVICE_TIMEOUT', '120')
 AI_SUMMARY_MAX_TOKENS = environ.get('AI_SUMMARY_MAX_TOKENS', '200')
-AI_SUMMARY_MESSAGE_BYTES = environ.get('AI_SUMMARY_MESSAGE_BYTES', '6144')
+AI_SUMMARY_MESSAGE_BYTES = environ.get('AI_SUMMARY_MESSAGE_BYTES', '2048')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {'ai_summary_console': {'class': 'logging.StreamHandler'}},
+    'loggers': {
+        'hwyd.ai_service': {'handlers': ['ai_summary_console'], 'level': 'INFO', 'propagate': False},
+    },
+}
 
 
 # =========================================================
