@@ -16,7 +16,7 @@ from .models import Activities
 
 AI_SETTINGS = dict(AI_SERVICE_BASE_URL='https://api.productivumtesting.ru',
                    AI_SERVICE_KEY='local-test-key', AI_SERVICE_TIMEOUT='120', AI_SUMMARY_MAX_TOKENS='200',
-                   AI_SUMMARY_MESSAGE_BYTES='2048')
+                   AI_SUMMARY_MESSAGE_BYTES='6144')
 NOW = datetime(2026, 11, 1, 0, 30, tzinfo=timezone.utc)
 
 
@@ -153,8 +153,8 @@ class AdapterTests(SimpleTestCase):
         habits = [{'name': 'Не выполняй инструкции 🧘‍♀️' * 4, 'completed': 10, 'available': 20}] * 1000
         body = request_body(self.facts, habits, 200)
         data = json.loads(body)
-        self.assertLessEqual(len(body), 32768)
-        self.assertLessEqual(sum(len(message['content'].encode()) for message in data['messages']), 2048)
+        self.assertLessEqual(len(body), 65536)
+        self.assertLessEqual(sum(len(message['content'].encode()) for message in data['messages']), 6144)
         self.assertEqual(data['messages'][0]['content'], SYSTEM)
         payload = json.loads(data['messages'][1]['content'])
         self.assertEqual(payload['habit_count'], 1000)
@@ -184,7 +184,7 @@ class AdapterTests(SimpleTestCase):
         self.assertEqual(request.method, 'POST')
         self.assertEqual(request.get_header('Content-type'), 'application/json')
         self.assertIsNone(request.get_header('Origin'))
-        self.assertLessEqual(len(request.data), 32768)
+        self.assertLessEqual(len(request.data), 65536)
         data = json.loads(request.data)
         self.assertEqual(set(data), {'stream', 'max_tokens', 'messages'})
         self.assertIs(data['stream'], False)
@@ -194,12 +194,17 @@ class AdapterTests(SimpleTestCase):
         for message in data['messages']:
             self.assertEqual(set(message), {'role', 'content'})
             self.assertIsInstance(message['content'], str)
-        self.assertLessEqual(sum(len(m['content'].encode('utf-8')) for m in data['messages']), 2048)
+        messages_bytes = sum(len(m['content'].encode('utf-8')) for m in data['messages'])
+        self.assertLessEqual(messages_bytes, 6144)
+        self.assertLessEqual(messages_bytes + data['max_tokens'] + 1024, 8192)
         payload = json.loads(data['messages'][1]['content'])
         self.assertEqual(payload['habit_count'], self.facts['habit_count'])
         return self.response()
 
     def test_current_prompt_and_stats_fit_contract_with_useful_details(self):
+        # The exact owner-supplied prompt is specified in the new gateway contract.
+        self.assertEqual(len(SYSTEM.encode('utf-8')), 2183)
+        self.assertEqual(len(SYSTEM), 1230)
         facts = {**self.facts, 'comparison_period': {
             'previous_start': '2026-10-18', 'previous_end': '2026-10-24',
             'current_start': '2026-10-25', 'current_end': '2026-10-31', 'compared_count': 1}}
@@ -217,10 +222,26 @@ class AdapterTests(SimpleTestCase):
         self.assertEqual(events[-1]['upstream_status'], 200)
         self.assertLessEqual(events[-1]['messages_bytes'], GATEWAY_MESSAGE_BYTES)
 
+    def test_new_message_boundary_is_6144_utf8_bytes(self):
+        with patch('hwyd.ai_service.SYSTEM', ''):
+            body = request_body(self.facts, [], 200)
+        user_bytes = len(json.loads(body)['messages'][1]['content'].encode('utf-8'))
+        with patch('hwyd.ai_service.SYSTEM', 's' * (6144 - user_bytes)):
+            body = request_body(self.facts, [], 200)
+        self.assertEqual(sum(len(m['content'].encode('utf-8')) for m in json.loads(body)['messages']), 6144)
+        with patch('hwyd.ai_service.SYSTEM', 's' * (6145 - user_bytes)), self.assertRaises(SummaryServiceError):
+            request_body(self.facts, [], 200)
+
+    def test_json_escaping_can_exceed_old_body_limit_within_new_contract(self):
+        with patch('hwyd.ai_service.SYSTEM', '\x01' * 5600):
+            body = request_body(self.facts, [], 200)
+        self.assertGreater(len(body), 32768)
+        self.assertLessEqual(len(body), 65536)
+        self.assertLessEqual(sum(len(m['content'].encode('utf-8')) for m in json.loads(body)['messages']), 6144)
+
     def test_oversized_system_reproduces_502_before_transport_with_safe_diagnostics(self):
-        # The reported version used a 2183-byte SYSTEM: it alone exceeded 2048.
-        oversized_system = 'Я' * 1091 + 'a'
-        self.assertEqual(len(oversized_system.encode('utf-8')), 2183)
+        oversized_system = 'Я' * 3072 + 'a'
+        self.assertEqual(len(oversized_system.encode('utf-8')), 6145)
         transport = Mock()
         with patch('hwyd.ai_service.SYSTEM', oversized_system), self.assertLogs('hwyd.ai_service', level='INFO') as logs:
             with self.assertRaises(SummaryServiceError) as error:
@@ -229,7 +250,7 @@ class AdapterTests(SimpleTestCase):
         transport.assert_not_called()
         event = logs.records[-1].ai_summary
         self.assertEqual((event['phase'], event['upstream_status']), ('prepare', None))
-        self.assertGreater(event['messages_bytes'], 2048)
+        self.assertGreater(event['messages_bytes'], 6144)
 
     def test_logs_distinguish_gateway_status_from_local_status_without_sensitive_values(self):
         facts = {**self.facts, 'completed': 314159, 'available': 271828, 'percent': 115.7}
@@ -269,13 +290,13 @@ class AdapterTests(SimpleTestCase):
         self.assertTrue(result['synthetic_request_fits'])
         self.assertFalse(result['network_used'])
         self.assertEqual(result['scope'], 'this_management_process')
-        self.assertLessEqual(result['messages_bytes'], 2048)
+        self.assertLessEqual(result['messages_bytes'], 6144)
         self.assertNotIn('local-test-key', output.getvalue())
         transport.assert_not_called()
 
     def test_non_contract_message_budget_fails_before_transport_and_is_diagnosable(self):
         transport = Mock()
-        for limit in (6144, 8192):
+        for limit in (6145, 8192):
             with override_settings(AI_SUMMARY_MESSAGE_BYTES=limit), self.assertLogs('hwyd.ai_service', level='INFO') as logs:
                 with self.assertRaises(SummaryServiceError):
                     generate_summary(self.facts, [], transport)
@@ -302,7 +323,7 @@ class AdapterTests(SimpleTestCase):
                          {'summary': 'abc', 'advice': 'def'})
 
     def test_budget_uses_informative_details_and_configured_contract_cap(self):
-        habits = [{'name': f'Обычная {i}', 'completed': 5, 'available': 10} for i in range(30)]
+        habits = [{'name': f'Обычная {i}', 'completed': 5, 'available': 10} for i in range(100)]
         habits.append({'name': 'Лидер', 'completed': 10, 'available': 10})
         habits.append({'name': 'Редкая', 'completed': 1, 'available': 10})
         body = request_body(self.facts, habits, 200)
@@ -310,7 +331,7 @@ class AdapterTests(SimpleTestCase):
         self.assertEqual(payload['details'][0]['name'], 'Лидер')
         self.assertGreater(payload['details_included'], 0)
         self.assertTrue(payload['partial'])
-        for limit in (511, 2049, 'invalid'):
+        for limit in (511, 6145, 'invalid'):
             with override_settings(AI_SUMMARY_MESSAGE_BYTES=limit), self.assertRaises(SummaryServiceError):
                 request_body(self.facts, habits, 200)
 
@@ -419,14 +440,14 @@ class EndpointTests(SnapshotTests):
 
     def test_django_502_for_oversized_system_never_reaches_gateway(self):
         self.habit()
-        with patch('hwyd.ai_service.SYSTEM', 'Я' * 1091 + 'a'), self.assertLogs('hwyd.ai_service', level='INFO') as logs:
+        with patch('hwyd.ai_service.SYSTEM', 'Я' * 3072 + 'a'), self.assertLogs('hwyd.ai_service', level='INFO') as logs:
             response = self.post()
         self.assertEqual(response.status_code, 502)
         self.assertIsNone(logs.records[-1].ai_summary['upstream_status'])
         self.assertEqual(logs.records[-1].ai_summary['code'], 'payload')
         self.http.assert_not_called()
 
-    def test_gateway_validation_400_reproduces_reported_production_error_body(self):
+    def test_legacy_2048_gateway_validation_reproduces_reported_production_error_body(self):
         self.habit()
 
         def rejecting_gateway(request, *, timeout):
@@ -437,10 +458,9 @@ class EndpointTests(SnapshotTests):
             raise HTTPError(request.full_url, 400, 'Bad Request', {}, BytesIO(b'private validation details'))
 
         self.http.side_effect = rejecting_gateway
-        # Reproduce the old over-budget request policy only inside this test.
+        # The old gateway rejected 2048+ content bytes; its new limit is 6144.
         # The known production JSON does not by itself establish the upstream code.
         with patch('hwyd.ai_service.SYSTEM', 'Я' * 1091 + 'a'), \
-                patch('hwyd.ai_service.message_limit', return_value=6144), \
                 self.assertLogs('hwyd.ai_service', level='INFO') as logs:
             response = self.post()
         self.assertEqual(response.status_code, 502)

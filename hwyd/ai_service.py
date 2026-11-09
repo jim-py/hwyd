@@ -18,8 +18,8 @@ from django.conf import settings
 from .habit_summary import compact_json
 
 logger = logging.getLogger(__name__)
-GATEWAY_MESSAGE_BYTES = 2048
-GATEWAY_BODY_BYTES = 32768
+GATEWAY_MESSAGE_BYTES = 6144
+GATEWAY_BODY_BYTES = 65536
 SYSTEM = (
     'Ты — персональный помощник Productivum. '
     'Верни только JSON с полями summary и advice. '
