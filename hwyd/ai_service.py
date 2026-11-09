@@ -99,7 +99,7 @@ def informative_habits(habits):
 def request_body(facts, habits, max_tokens):
     try:
         message_limit = int(settings.AI_SUMMARY_MESSAGE_BYTES)
-        if not 512 <= message_limit <= 2048:
+        if not 512 <= message_limit <= 8192:
             raise ValueError
     except (AttributeError, TypeError, ValueError):
         raise unavailable() from None
