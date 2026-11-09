@@ -4,6 +4,9 @@ import { showToast } from './toast.js';
 import { enableDialogDrag } from './dialog-drag.js?v=20261004-4';
 import { loadTop } from './top.js?v=20261005-roles';
 import {isViewAs, viewAsURL} from './view-as.js';
+import {createHabitSummary} from './habit-summary.js';
+
+const habitSummary = createHabitSummary(document.getElementById('habitSummaryModal'));
 
 const visibility = createVisibilityControls(document.getElementById('myTable'), post, showToast);
 const openers = new WeakMap();
@@ -45,6 +48,7 @@ for (const button of document.querySelectorAll('[data-dialog]')) {
         document.body.classList.add('toolbar-modal-open');
         if (dialog.id === 'calendarModal') resetPicker();
         if (dialog.id === 'topModal') loadTop();
+        if (dialog.id === 'habitSummaryModal') habitSummary.open();
         const focus = dialog.querySelector('[data-initial-focus]') || dialog.querySelector('[data-month][aria-pressed="true"]');
         focus?.focus({ preventScroll: true });
     });

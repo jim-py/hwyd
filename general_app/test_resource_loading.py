@@ -98,6 +98,7 @@ class ResourceLoadingTests(TestCase):
         self.graph('by_date')  # The tracker creates a user's initial display preset.
         Settings.objects.filter(user=self.user).update(showViewSwitch=False, showStreak=False)
         graph = self.graph('by_date')
+        self.assertIn('/static/hwyd/css/habit-summary.css', [path for path, _ in graph.styles])
         paths = [path for path, _ in graph.styles] + [s['src'] for s in graph.scripts]
         self.assertFalse(any('year-calendar' in path or 'streak-firework' in path for path in paths))
 
@@ -154,7 +155,7 @@ class ResourceLoadingTests(TestCase):
         self.assertEqual(page.status_code, 200)
         Parser().feed(page.content.decode())
         delegated = {'createActivityModal', 'createActivityGroupModal', 'calendarModal',
-                     'deleteAllModal', 'feedbackModal', 'topModal', 'themeScheduleModal'}
+                     'deleteAllModal', 'feedbackModal', 'topModal', 'themeScheduleModal', 'habitSummaryModal'}
         self.assertEqual(set(buttons), delegated | {'some-modal-id', 'dialog', 'dialogHead',
                                                   'dialogCell', 'chatDialog', 'chatPhotoViewer', 'notification'})
         labels = []

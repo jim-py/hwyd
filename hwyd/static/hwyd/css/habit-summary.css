@@ -1,0 +1,10 @@
+.activity-dialog.toolbar-dialog.habit-summary { width: 440px; }
+.habit-summary [hidden] { display: none !important; }
+.habit-summary__stats { margin: 18px 0; font-variant-numeric: tabular-nums; }
+.habit-summary__stats > div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--color-control-border); }
+.habit-summary__stats dt { color: var(--color-text-secondary); }
+.habit-summary__stats dd { margin: 0; font-weight: 600; }
+.habit-summary__text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+.habit-summary [data-state="error"],
+.habit-summary [data-state="unavailable"],
+.habit-summary [data-state="stale"] { color: var(--color-error); }

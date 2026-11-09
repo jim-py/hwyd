@@ -40,6 +40,7 @@ function toolbar({ sourceAvailable, fails = false }) {
         window: { addEventListener() {}, dispatchEvent: event => events.push(event.type) },
         location: { hash: '' }, isViewAs: false,
         createVisibilityControls: () => ({ refresh() {} }), showToast() {},
+        createHabitSummary: () => ({open() {}}),
         post: async () => { if (fails) throw new Error('Не удалось удалить привычки.'); },
         FormData: class {}, Event: class { constructor(type) { this.type = type; } },
     });

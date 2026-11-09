@@ -7,6 +7,15 @@ MIN_YEAR = 2020
 MAX_YEAR = 2030
 
 
+def enabled_habit_days(begin, end, enabled_text, marks_text, day_limit):
+    """Yield (zero-based day, completed) using the tracker's availability rules."""
+    enabled = enabled_text.split()
+    marks = marks_text.split()
+    for index in range(max(0, begin), min(end + 1, day_limit, len(enabled))):
+        if enabled[index] == 'True':
+            yield index, index < len(marks) and marks[index] == 'True'
+
+
 def year_completion(user, year):
     """Aggregate enabled habit-days from one bounded query of monthly rows."""
     months = [
@@ -29,12 +38,8 @@ def year_completion(user, year):
         if not 1 <= month <= 12 or month_key != f'{year:04}-{month:02}':
             continue
         days = months[month - 1]['days']
-        enabled = enabled_text.split()
-        marks = marks_text.split()
-        for index in range(max(0, begin), min(end + 1, len(days), len(enabled))):
-            if enabled[index] != 'True':
-                continue
+        for index, completed in enabled_habit_days(begin, end, enabled_text, marks_text, len(days)):
             days[index]['total'] += 1
-            if index < len(marks) and marks[index] == 'True':
+            if completed:
                 days[index]['completed'] += 1
     return {'year': year, 'months': months}

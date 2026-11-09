@@ -16,7 +16,11 @@ export async function requestJSON(url, {method = 'POST', data = {}, json = false
     let result = null;
     if (response.headers.get('Content-Type')?.includes('application/json')) result = await response.json();
     if (!response.ok || response.redirected) {
-        throw new Error(result?.error || 'Не удалось выполнить запрос. Попробуйте ещё раз.');
+        const error = new Error(result?.error || 'Не удалось выполнить запрос. Попробуйте ещё раз.');
+        error.result = result;
+        error.status = response.status;
+        error.retryAfter = response.headers.get('Retry-After');
+        throw error;
     }
     return result;
 }

@@ -247,6 +247,7 @@
                 toggleMark.call(elem, null, true);
             }).always(function () {
                 delete elem.dataset.markPending;
+                window.dispatchEvent(new Event('habitus:marks-settled'));
             });
         })
         elem.oncontextmenu = function (e) {

@@ -148,6 +148,12 @@
 
 
 <div id="divButtons" class="toolbar">
+    {% if request.user.is_superuser %}
+    <button id="habitSummaryButton" type="button" data-dialog="habitSummaryModal" aria-controls="habitSummaryModal"
+            title="Сводка привычек" aria-label="Сводка привычек"{% if is_view_as %} disabled{% endif %}>
+        <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+    </button>
+    {% endif %}
     {% if scheduled_theme_colors_enabled %}
     <button id="themeScheduleButton" type="button" data-dialog="themeScheduleModal" aria-controls="themeScheduleModal"
             title="Расписание тем" aria-label="Расписание тем"{% if not settings.showThemeSchedule %} hidden{% endif %}>
@@ -246,6 +252,7 @@
     <span class="habitus-toast__text"></span>
 </div>
 {% include 'hwyd/toolbar_dialogs.html' %}
+{% include 'hwyd/habit_summary_dialog.html' %}
 {% if scheduled_theme_colors_enabled %}
 {% include 'hwyd/theme_schedule_dialog.html' %}
 {% endif %}

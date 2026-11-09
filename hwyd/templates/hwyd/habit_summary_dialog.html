@@ -1,0 +1,22 @@
+<dialog id="habitSummaryModal" class="modalActivity activity-dialog toolbar-dialog habit-summary" aria-labelledby="habitSummaryTitle"
+        data-month="{{ date }}" data-summary-url="{% url 'habit_summary' %}" data-desktop-drag data-mobile="{{ request.user_agent.is_mobile|yesno:'true,false' }}">
+    {% include 'hwyd/toolbar_dialog_header.html' with title_id='habitSummaryTitle' title='Сводка привычек' %}
+    <div class="activity-dialog__body">
+        <p id="habitSummaryPeriod" class="toolbar-dialog__hint"></p>
+        <p id="habitSummaryStatus" role="status" aria-live="polite" aria-atomic="true"></p>
+        <dl id="habitSummaryStats" class="habit-summary__stats" aria-label="Показатели сайта" hidden>
+            <div><dt>Привычки</dt><dd id="habitSummaryCount"></dd></div>
+            <div><dt>Выполнено / доступно</dt><dd id="habitSummaryMarks"></dd></div>
+            <div><dt>Выполнение</dt><dd id="habitSummaryPercent"></dd></div>
+        </dl>
+        <div id="habitSummaryResult" hidden>
+            <h4>AI-сводка</h4>
+            <p id="habitSummaryText" class="habit-summary__text"></p>
+            <p id="habitSummaryTime" class="toolbar-dialog__hint"></p>
+        </div>
+        <p class="toolbar-dialog__hint">Показатели рассчитаны сайтом. Сводка относится к снимку на момент запроса; будущие дни исключены.</p>
+    </div>
+    <div class="activity-dialog-footer toolbar-dialog__footer">
+        <button id="habitSummaryRetry" type="button" class="button-6 toolbar-dialog__button toolbar-dialog__button--primary">Обновить</button>
+    </div>
+</dialog>
